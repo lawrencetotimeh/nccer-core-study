@@ -123,6 +123,7 @@
 <div class="topbar">
   <h1 id="appTitle">NCCER Core Study Tool</h1>
   <div class="topbar-right">
+    <button id="btnGoHome" class="icon-btn" title="Go home" style="background:#2563eb;border-color:#2563eb;color:#fff;">🏠 Home</button>
     <button id="btnTextSize" class="icon-btn" title="Text size">Aa</button>
     <button id="btnTheme" class="icon-btn" title="Light / dark">🌙</button>
     <div class="lang-toggle">
@@ -166,9 +167,13 @@ const T = {
     scoreLabel:"Best score", notStarted:"Not started", passed:"Passed", tryAgainSection:"Below 85% — try again", tryAgainTest:"Below 70% — try again",
     startBtn:"Start quiz", question:"Question", of:"of",
     nextBtn:"Next question", finishBtn:"See results",
-    yourScore:"Your score", passMsgSection:"Nice, you passed this section!", passMsgTest:"You passed! ",
-    failMsgSection:"Not quite at 85% yet. Review the explanations above and try again.",
-    failMsgTest:"Not quite at 70% yet. Review the explanations above and try again.",
+    yourScore:"Your score",
+    passMsgSection:"Nice, you passed this section! Take it again anytime — the goal isn't just the score, it's knowing this material cold before class.",
+    passMsgTest:"You passed! Feel free to retake it whenever you want to lock the material in even tighter.",
+    failMsgSection:"Not quite at 85% yet, and that's okay — this is for learning, not judging.",
+    failMsgTest:"Not quite at 70% yet, and that's okay — this is for learning, not judging.",
+    retakeEncourage:"Take it again as many times as you need. The real goal is understanding this chapter, not just clearing a number.",
+    retakeTips:"To pass next time: read every explanation below closely (especially for the questions you missed), tap any underlined word for a quick definition, and don't guess — if a question stumps you, that's exactly the thing to go re-read in the book before you retake it.",
     retakeBtn:"Retake", backHome:"🏠 Home",
     moduleTestLockedMsg:"Score 85%+ on all sections in this module to unlock its test.",
     moduleTestLabel:"Module Test", startTest:"Start module test", passThreshold:"Passing score: 70%",
@@ -205,9 +210,13 @@ const T = {
     scoreLabel:"Mejor puntaje", notStarted:"No iniciado", passed:"Aprobado", tryAgainSection:"Menos de 85% — inténtalo de nuevo", tryAgainTest:"Menos de 70% — inténtalo de nuevo",
     startBtn:"Comenzar cuestionario", question:"Pregunta", of:"de",
     nextBtn:"Siguiente pregunta", finishBtn:"Ver resultados",
-    yourScore:"Tu puntaje", passMsgSection:"¡Bien hecho, aprobaste esta sección!", passMsgTest:"¡Aprobaste! ",
-    failMsgSection:"Todavía no llegas al 85%. Repasa las explicaciones e inténtalo de nuevo.",
-    failMsgTest:"Todavía no llegas al 70%. Repasa las explicaciones e inténtalo de nuevo.",
+    yourScore:"Tu puntaje",
+    passMsgSection:"¡Bien hecho, aprobaste esta sección! Repítela cuando quieras — la meta no es solo el puntaje, es dominar este material antes de clase.",
+    passMsgTest:"¡Aprobaste! Puedes repetirlo cuando quieras para reforzar aún más lo que aprendiste.",
+    failMsgSection:"Todavía no llegas al 85%, y está bien — esto es para aprender, no para juzgarte.",
+    failMsgTest:"Todavía no llegas al 70%, y está bien — esto es para aprender, no para juzgarte.",
+    retakeEncourage:"Repítelo las veces que necesites. La meta real es entender este capítulo, no solo pasar un número.",
+    retakeTips:"Para aprobar la próxima vez: lee con cuidado cada explicación de abajo (sobre todo en las que fallaste), toca cualquier palabra subrayada para ver su definición, y no adivines. Si una pregunta te cuesta, eso es justo lo que debes releer en el libro antes de repetir el examen.",
     retakeBtn:"Repetir", backHome:"🏠 Inicio",
     moduleTestLockedMsg:"Obtén 85%+ en todas las secciones de este módulo para desbloquear su examen.",
     moduleTestLabel:"Examen del Módulo", startTest:"Comenzar examen del módulo", passThreshold:"Puntaje para aprobar: 70%",
@@ -713,6 +722,13 @@ function removeMissed(item){
 }
 
 /* ---- quick review: random mixed pull from everything built so far ---- */
+// Fisher-Yates shuffle — always returns a NEW array so the original question
+// bank (shared, reused across quiz attempts) is never mutated in place.
+function shuffleArray(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
 function buildQuickReviewBank(size){
   let pool = [];
   MODULES.forEach(m=>{
@@ -720,7 +736,7 @@ function buildQuickReviewBank(size){
     m.sections.forEach(s=>{ pool = pool.concat(s.bank); });
     pool = pool.concat(m.moduleTest);
   });
-  for(let a=pool.length-1;a>0;a--){ const b=Math.floor(Math.random()*(a+1)); [pool[a],pool[b]]=[pool[b],pool[a]]; }
+  pool = shuffleArray(pool);
   return pool.slice(0, Math.min(size, pool.length));
 }
 
@@ -923,11 +939,14 @@ function renderModuleDetail(panel, i){
 }
 
 function startQuiz(cfg){
-  quizState = { ...cfg, idx:0, correctCount:0, answered:false, selected:null, records:[] };
+  // Shuffle the question order every time a quiz is started, so it's never
+  // the same sequence twice — shuffleArray returns a fresh array, so the
+  // module's original bank (reused across attempts) is left untouched.
+  quizState = { ...cfg, bank: shuffleArray(cfg.bank), idx:0, correctCount:0, answered:false, selected:null, records:[] };
   renderQuizQuestion();
 }
 function startCumulativeTest(i){
-  quizState = { kind:'cumulative', modIdx:i, bank: combinedTestBank(i), threshold:70, idx:0, correctCount:0, answered:false, selected:null, records:[] };
+  quizState = { kind:'cumulative', modIdx:i, bank: shuffleArray(combinedTestBank(i)), threshold:70, idx:0, correctCount:0, answered:false, selected:null, records:[] };
   renderQuizQuestion();
 }
 
@@ -1067,6 +1086,8 @@ function finishQuiz(){
       <div class="result-pct ${passed?'pass':'fail'}">${pct}%</div>
       <div class="result-msg">${t('yourScore')}: ${quizState.correctCount}/${quizState.bank.length}</div>
       <div class="result-msg">${passed ? passMsg : failMsg}</div>
+      <div class="result-msg" style="margin-top:8px; font-weight:600;">${t('retakeEncourage')}</div>
+      ${!passed ? `<div class="result-msg" style="margin-top:6px; color:var(--muted); font-size:0.88rem;">${t('retakeTips')}</div>` : ''}
     </div>
     <button class="primary" id="retakeQBtn">${t('retakeBtn')}</button><br><br>
     <button class="primary" id="backQBtn" style="background:#475569;">${t('backHome')}</button>
@@ -1153,6 +1174,11 @@ document.getElementById('glossaryOverlay').addEventListener('click', function(e)
 
 document.getElementById('btnTextSize').onclick = ()=>{ textScale = (textScale+1)%TEXT_SCALES.length; applyTextScale(); };
 document.getElementById('btnTheme').onclick = ()=>{ theme = theme==='light' ? 'dark' : 'light'; applyTheme(); };
+document.getElementById('btnGoHome').onclick = ()=>{
+  // Always-visible "go home" button — works from ANY screen (module map, module
+  // detail, mid-quiz, flashcards, support tab, or the post-quiz review screen).
+  homeView = null; topTab = 'home'; quizState = null; renderTopTabs(); renderPanel();
+};
 applyTextScale();
 applyTheme();
 
