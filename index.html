@@ -35,6 +35,7 @@
   .module-card .mc-title{ font-weight:600; font-size:0.95rem; }
   .module-card .mc-sub{ font-size:0.75rem; color:var(--muted); margin-top:2px; }
   .module-card .mc-date{ font-size:0.75rem; color:var(--muted); margin-top:4px; }
+  .mc-seq{ display:inline-block; min-width:1.6em; text-align:center; margin-right:2px; padding:1px 7px; border-radius:999px; background:var(--accent); color:#fff; font-size:0.85em; font-weight:700; }
   button.cal-btn{ width:auto; padding:5px 10px; font-size:0.72rem; background:transparent; border:1px solid var(--accent); color:var(--accent); border-radius:8px; cursor:pointer; white-space:nowrap; }
   button.cal-btn:hover{ background:var(--accent); color:#fff; }
   .badge{ font-size:0.7rem; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap; }
@@ -858,12 +859,14 @@ const M3_CARDS = [
 ];
 
 /* ============ MODULES REGISTRY ============ */
-// Listed in true numeric module-number order (00100 -> 00109), matching the
-// textbook/syllabus's own numbering, NOT this class's teaching order (which jumps
-// around — see startDate/examDate on each entry for when the class actually
-// covers it). num/startDate/examDate come straight from the confirmed syllabus
-// schedule (BLD-1010, Satterwhite) so the site can show "starts on" / "test on"
-// per module and build "add to calendar" reminders from real dates.
+// Listed in the order this CLASS actually teaches them (per the confirmed
+// BLD-1010/Satterwhite syllabus schedule) — NOT the textbook's numeric module
+// order, which jumps around (00100, 00101, 00107, 00108, 00103...). Each
+// module's position in this array IS its teaching sequence number, rendered as
+// "1.", "2.", "3." etc. outside the module number so students can tell at a
+// glance where they are without comparing dates. num/startDate/examDate come
+// straight from that same syllabus schedule and drive the displayed dates and
+// the "add to calendar" reminders.
 const MODULES = [
   { id:'m1', comingSoon:false, openTest:true, num:'00100',
     startDate:'2026-08-21', examDate:'2026-08-21',
@@ -889,14 +892,6 @@ const MODULES = [
     ],
     moduleTest: M2_TEST, cards: M2_CARDS
   },
-  { id:'m7', comingSoon:true, num:'00102', startDate:'2026-10-16', examDate:'2026-10-23', title:{en:"Module 00102: Introduction to Construction Math", es:"Módulo 00102: Introducción a las Matemáticas de Construcción"} },
-  { id:'m5', comingSoon:true, num:'00103', startDate:'2026-09-23', examDate:'2026-10-02', title:{en:"Module 00103: Introduction to Hand Tools", es:"Módulo 00103: Introducción a las Herramientas Manuales"} },
-  { id:'m6', comingSoon:true, num:'00104', startDate:'2026-10-07', examDate:'2026-10-14', title:{en:"Module 00104: Introduction to Power Tools", es:"Módulo 00104: Introducción a las Herramientas Eléctricas"} },
-  { id:'m8', comingSoon:true, num:'00105', startDate:'2026-10-28', examDate:'2026-11-04', title:{en:"Module 00105: Introduction to Construction Drawings", es:"Módulo 00105: Introducción a los Planos de Construcción"} },
-  { id:'m9', comingSoon:true, num:'00106', startDate:'2026-11-06', examDate:'2026-11-11', title:{en:"Module 00106: Introduction to Basic Rigging", es:"Módulo 00106: Introducción al Aparejamiento Básico"} },
-  // Order note: this class actually teaches 00107/00108 right after 00101 (see
-  // startDate below) — that's reflected in the dates, not in list position, since
-  // this list is sorted by module number to match the syllabus/textbook order.
   { id:'m3', comingSoon:false, openTest:true, num:'00107',
     startDate:'2026-09-04', examDate:'2026-09-09',
     title:{en:"Module 00107: Basic Communication Skills", es:"Módulo 00107: Habilidades Básicas de Comunicación"},
@@ -907,6 +902,11 @@ const MODULES = [
     moduleTest: M3_TEST, cards: M3_CARDS
   },
   { id:'m4', comingSoon:true, num:'00108', startDate:'2026-09-11', examDate:'2026-09-18', title:{en:"Module 00108: Basic Employability Skills", es:"Módulo 00108: Habilidades Básicas de Empleabilidad"} },
+  { id:'m5', comingSoon:true, num:'00103', startDate:'2026-09-23', examDate:'2026-10-02', title:{en:"Module 00103: Introduction to Hand Tools", es:"Módulo 00103: Introducción a las Herramientas Manuales"} },
+  { id:'m6', comingSoon:true, num:'00104', startDate:'2026-10-07', examDate:'2026-10-14', title:{en:"Module 00104: Introduction to Power Tools", es:"Módulo 00104: Introducción a las Herramientas Eléctricas"} },
+  { id:'m7', comingSoon:true, num:'00102', startDate:'2026-10-16', examDate:'2026-10-23', title:{en:"Module 00102: Introduction to Construction Math", es:"Módulo 00102: Introducción a las Matemáticas de Construcción"} },
+  { id:'m8', comingSoon:true, num:'00105', startDate:'2026-10-28', examDate:'2026-11-04', title:{en:"Module 00105: Introduction to Construction Drawings", es:"Módulo 00105: Introducción a los Planos de Construcción"} },
+  { id:'m9', comingSoon:true, num:'00106', startDate:'2026-11-06', examDate:'2026-11-11', title:{en:"Module 00106: Introduction to Basic Rigging", es:"Módulo 00106: Introducción al Aparejamiento Básico"} },
   { id:'m10', comingSoon:true, num:'00109', startDate:'2026-11-13', examDate:'2026-11-13', title:{en:"Module 00109: Introduction to Material Handling", es:"Módulo 00109: Introducción al Manejo de Materiales"} }
 ];
 
@@ -1192,7 +1192,7 @@ function renderModuleMap(panel){
     }
     html += `<div class="module-card ${clickable?'clickable':''} ${!unlocked?'locked':''}" data-idx="${i}">
       <div style="flex:1;">
-        <div class="mc-title">${m.title[lang]}</div>
+        <div class="mc-title"><span class="mc-seq">${i+1}.</span> ${m.title[lang]}</div>
         ${dateLine ? `<div class="mc-date">${dateLine}</div>` : ''}
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
@@ -1259,7 +1259,7 @@ function renderModuleDetail(panel, i){
     }
   }
   let html = `<div class="breadcrumb" id="backToMap">${t('backToModules')}</div>
-    <h2>${m.title[lang]}</h2>
+    <h2><span class="mc-seq">${i+1}.</span> ${m.title[lang]}</h2>
     ${detailDateLine ? `<div class="mc-date" style="margin:-6px 0 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
       <span>${detailDateLine}</span>
       <button class="small cal-btn" data-cal-idx="${i}">${t('addToCalendar')}</button>
