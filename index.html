@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCCER Core Study Tool</title>
+<style>
+  :root{
+    --bg:#0f1720; --panel:#ffffff; --accent:#2563eb; --accent2:#1d4ed8;
+    --text:#1f2937; --muted:#6b7280; --green:#16a34a; --red:#dc2626;
+    --border:#e5e7eb; --amber:#d97706;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(160deg,#0f1720,#1e293b); min-height:100vh; color:var(--text);
+    display:flex; flex-direction:column; align-items:center; padding:20px 14px 60px;
+  }
+  .topbar{ width:100%; max-width:640px; display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  h1{ color:#fff; font-size:1.25rem; margin:0; }
+  .lang-toggle{ display:flex; gap:6px; }
+  .lang-toggle button{ padding:6px 12px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer; font-size:0.8rem; }
+  .lang-toggle button.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .subtitle{ color:#94a3b8; font-size:0.85rem; margin-bottom:16px; text-align:center; max-width:640px; }
+  .tabs{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:18px; max-width:640px; }
+  .tab-btn{ padding:9px 14px; border-radius:10px; border:1px solid #334155; background:#1e293b; color:#cbd5e1; cursor:pointer; font-size:0.82rem; }
+  .tab-btn.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+  .panel{ width:100%; max-width:640px; background:var(--panel); border-radius:16px; padding:22px; box-shadow:0 10px 30px rgba(0,0,0,0.25); }
+  .hint{ font-size:0.78rem; color:var(--muted); margin-bottom:10px; }
+  .breadcrumb{ font-size:0.85rem; color:var(--accent2); cursor:pointer; margin-bottom:12px; display:inline-block; }
+  .module-card{ border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .module-card.clickable{ cursor:pointer; }
+  .module-card.clickable:hover{ border-color:var(--accent); }
+  .module-card.locked{ opacity:0.55; }
+  .module-card .mc-title{ font-weight:600; font-size:0.95rem; }
+  .module-card .mc-sub{ font-size:0.75rem; color:var(--muted); margin-top:2px; }
+  .badge{ font-size:0.7rem; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap; }
+  .badge.locked{ background:#f1f5f9; color:var(--muted); }
+  .badge.progress{ background:#fef3c7; color:var(--amber); }
+  .badge.done{ background:#dcfce7; color:var(--green); }
+  .badge.coming{ background:#e0e7ff; color:#4338ca; }
+  .cum-card{ border:2px dashed #93c5fd; border-radius:12px; padding:14px 16px; margin:4px 0 14px; background:#eff6ff; }
+  .score-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:14px 0; }
+  .score-card{ border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
+  .score-card .pct{ font-size:1.3rem; font-weight:700; }
+  .score-card .lbl{ font-size:0.72rem; color:var(--muted); margin-top:2px;}
+  .pass{ color:var(--green); } .fail{ color:var(--red); } .pending{ color:var(--muted); }
+  button.primary{ background:var(--accent); color:#fff; border:none; padding:11px 18px; border-radius:10px; font-size:0.9rem; cursor:pointer; width:100%; }
+  button.primary:hover{ background:var(--accent2); }
+  button.small{ width:auto; padding:8px 14px; font-size:0.82rem; }
+  button.option{ display:block; width:100%; text-align:left; padding:12px 14px; margin:8px 0; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:0.9rem; }
+  button.option:hover{ border-color:var(--accent); }
+  button.option.correct{ background:#dcfce7; border-color:var(--green); }
+  button.option.incorrect{ background:#fee2e2; border-color:var(--red); }
+  .q-count{ font-size:0.78rem; color:var(--muted); margin-bottom:6px; }
+  .q-text{ font-size:1.02rem; font-weight:600; margin-bottom:12px; }
+  .explain{ margin-top:12px; padding:12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; font-size:0.86rem; display:none; }
+  .explain.show{ display:block; }
+  .result-big{ text-align:center; padding:16px 0; }
+  .result-pct{ font-size:2.2rem; font-weight:800; }
+  .result-msg{ font-size:0.92rem; color:var(--muted); margin-top:6px; }
+  .scene{ width:100%; height:290px; perspective:1400px; margin-bottom:16px; }
+  .card{ width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform .5s; cursor:pointer; }
+  .card.flipped{ transform:rotateY(180deg); }
+  .face{ position:absolute; inset:0; backface-visibility:hidden; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:22px; text-align:center; }
+  .front{ background:#fff; border:1px solid var(--border); }
+  .back{ background:#eff6ff; border:1px solid #bfdbfe; transform:rotateY(180deg); }
+  .tag{ position:absolute; top:12px; left:14px; font-size:0.66rem; text-transform:uppercase; color:var(--muted); font-weight:700;}
+  .nav{ display:flex; gap:10px; justify-content:center; margin-top:4px; }
+  .nav button{ font-size:0.82rem; padding:8px 14px; border-radius:8px; border:1px solid var(--border); background:#fff; cursor:pointer; }
+  .tip-box{ border:1px solid var(--border); border-radius:12px; padding:16px; margin-top:12px; }
+  .tip-row{ display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-top:1px solid var(--border); }
+  .tip-row:first-of-type{ border-top:none; }
+  select{ padding:6px 10px; border-radius:8px; border:1px solid var(--border); }
+  footer{ color:#64748b; font-size:0.72rem; margin-top:18px; text-align:center; max-width:600px; }
+  .glossary-term{ text-decoration:underline dotted; text-decoration-color:var(--accent); text-underline-offset:3px; color:var(--accent2); cursor:pointer; font-weight:600; }
+  .modal-overlay{ position:fixed; inset:0; background:rgba(15,23,32,0.65); display:none; align-items:center; justify-content:center; z-index:1000; padding:20px; }
+  .modal-box{ background:#fff; border-radius:14px; padding:24px; max-width:380px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.35); }
+  .modal-term{ font-weight:700; font-size:1.1rem; margin-bottom:8px; color:var(--accent2); }
+  .modal-def{ font-size:0.92rem; color:var(--text); margin-bottom:16px; line-height:1.5; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1 id="appTitle">NCCER Core Study Tool</h1>
+  <div class="lang-toggle">
+    <button id="btnEN" class="active">EN</button>
+    <button id="btnES">ES</button>
+  </div>
+</div>
+<div class="subtitle" id="subtitle"></div>
+
+<div class="tabs" id="topTabs"></div>
+<div class="panel" id="panel"></div>
+<footer id="footerNote"></footer>
+
+<div class="modal-overlay" id="glossaryOverlay">
+  <div class="modal-box">
+    <div class="modal-term" id="glossTermText"></div>
+    <div class="modal-def" id="glossDefText"></div>
+    <button class="primary" id="glossCloseBtn">Close</button>
+  </div>
+</div>
+
+<script>
+/* ============ TRANSLATIONS ============ */
+const T = {
+  en:{
+    subtitle:"NCCER Core: Introduction to Basic Construction Skills — free study tool",
+    tabHome:"Modules", tabCards:"Flashcards", tabSupport:"Support",
+    homeIntro:"Score 85%+ on every section to unlock that module's test. Pass each module test at 70% (matches the real syllabus standard) to move forward. After finishing Module 2 or later, a Cumulative Review covering everything so far unlocks, also at 70%, before the next module opens.",
+    glossaryHint:"Tip: any underlined word is tappable, tap it for a quick definition without losing your place.",
+    locked:"Locked", unlocked:"Unlocked", completed:"Completed", comingSoon:"Coming soon", inProgress:"In progress",
+    openModule:"Open", backToModules:"← Back to modules",
+    scoreLabel:"Best score", notStarted:"Not started", passed:"Passed", tryAgainSection:"Below 85% — try again", tryAgainTest:"Below 70% — try again",
+    startBtn:"Start quiz", question:"Question", of:"of",
+    nextBtn:"Next question", finishBtn:"See results",
+    yourScore:"Your score", passMsgSection:"Nice, you passed this section!", passMsgTest:"You passed! ",
+    failMsgSection:"Not quite at 85% yet. Review the explanations above and try again.",
+    failMsgTest:"Not quite at 70% yet. Review the explanations above and try again.",
+    retakeBtn:"Retake", backHome:"Back",
+    moduleTestLockedMsg:"Score 85%+ on all sections in this module to unlock its test.",
+    moduleTestLabel:"Module Test", startTest:"Start module test", passThreshold:"Passing score: 70%",
+    sectionThreshold:"Target: 85%+",
+    cumulativeLabel:"Cumulative Review", cumulativeLockedMsg:"Finish this module (all sections + module test) to unlock this review.",
+    cumulativeAvailMsg:"Covers everything through this module. Pass at 70% to unlock the next module.",
+    startCumulative:"Start cumulative review",
+    flipHint:"Tap card to flip", flipBackHint:"Tap card to flip back",
+    prevBtn:"← Prev", flipBtn:"Flip", nextCardBtn:"Next →", shuffleBtn:"🔀 Shuffle",
+    supportIntro:"This tool is free for you and your classmates, no strings attached. If it helped you study, a small tip is appreciated but never expected.",
+    cashapp:"Cash App", zelle:"Zelle",
+    footer:"Made by a classmate, for classmates.",
+    close:"Close", selectModule:"Module", allSections:"All sections", readAloud:"🔊 Read aloud"
+  },
+  es:{
+    subtitle:"NCCER Core: Introducción a Habilidades Básicas de Construcción — herramienta gratuita de estudio",
+    tabHome:"Módulos", tabCards:"Tarjetas", tabSupport:"Apoyar",
+    homeIntro:"Obtén 85%+ en cada sección para desbloquear el examen de ese módulo. Aprueba cada examen de módulo con 70% (el estándar real del programa) para avanzar. Después de terminar el Módulo 2 o posterior, se desbloquea un Repaso Acumulativo de todo lo visto hasta ahora, también con 70%, antes de que se abra el siguiente módulo.",
+    glossaryHint:"Consejo: cualquier palabra subrayada se puede tocar para ver una definición rápida sin perder tu lugar.",
+    locked:"Bloqueado", unlocked:"Desbloqueado", completed:"Completado", comingSoon:"Próximamente", inProgress:"En progreso",
+    openModule:"Abrir", backToModules:"← Volver a los módulos",
+    scoreLabel:"Mejor puntaje", notStarted:"No iniciado", passed:"Aprobado", tryAgainSection:"Menos de 85% — inténtalo de nuevo", tryAgainTest:"Menos de 70% — inténtalo de nuevo",
+    startBtn:"Comenzar cuestionario", question:"Pregunta", of:"de",
+    nextBtn:"Siguiente pregunta", finishBtn:"Ver resultados",
+    yourScore:"Tu puntaje", passMsgSection:"¡Bien hecho, aprobaste esta sección!", passMsgTest:"¡Aprobaste! ",
+    failMsgSection:"Todavía no llegas al 85%. Repasa las explicaciones e inténtalo de nuevo.",
+    failMsgTest:"Todavía no llegas al 70%. Repasa las explicaciones e inténtalo de nuevo.",
+    retakeBtn:"Repetir", backHome:"Volver",
+    moduleTestLockedMsg:"Obtén 85%+ en todas las secciones de este módulo para desbloquear su examen.",
+    moduleTestLabel:"Examen del Módulo", startTest:"Comenzar examen del módulo", passThreshold:"Puntaje para aprobar: 70%",
+    sectionThreshold:"Meta: 85%+",
+    cumulativeLabel:"Repaso Acumulativo", cumulativeLockedMsg:"Termina este módulo (todas las secciones + su examen) para desbloquear este repaso.",
+    cumulativeAvailMsg:"Cubre todo hasta este módulo. Apruébalo con 70% para desbloquear el siguiente módulo.",
+    startCumulative:"Comenzar repaso acumulativo",
+    flipHint:"Toca la tarjeta para voltear", flipBackHint:"Toca para voltear de nuevo",
+    prevBtn:"← Anterior", flipBtn:"Voltear", nextCardBtn:"Siguiente →", shuffleBtn:"🔀 Mezclar",
+    supportIntro:"Esta herramienta es gratuita para ti y tus compañeros, sin ningún compromiso. Si te ayudó a estudiar, una pequeña propina se agradece, pero nunca se espera.",
+    cashapp:"Cash App", zelle:"Zelle",
+    footer:"Hecho por un compañero de clase, para compañeros de clase.",
+    close:"Cerrar", selectModule:"Módulo", allSections:"Todas las secciones", readAloud:"🔊 Leer en voz alta"
+  }
+};
+
+/* ============ GLOSSARY ============ */
+const GLOSSARY = {
+  craftProfessional:{en:{term:"craft professional",def:"A trained and skilled individual who designs and builds things, and conforms to the technical and ethical standards of their trade."},es:{term:"profesional del oficio",def:"Una persona capacitada y calificada que diseña y construye cosas, y cumple con los estándares técnicos y éticos de su oficio."}},
+  craftTrade:{en:{term:"craft/trade",def:"A general term referring to one of the many construction specialties (like carpentry, welding, or masonry)."},es:{term:"oficio",def:"Un término general que se refiere a una de las muchas especialidades de la construcción."}},
+  infrastructure:{en:{term:"infrastructure",def:"The transportation, water, electrical, and telecommunications systems that allow communities and countries to operate."},es:{term:"infraestructura",def:"Los sistemas de transporte, agua, electricidad y telecomunicaciones que permiten que las comunidades y los países funcionen."}},
+  ppe:{en:{term:"PPE",def:"Personal protective equipment — clothing or equipment designed to prevent or reduce injuries (hard hats, gloves, safety glasses, etc.)."},es:{term:"EPP",def:"Equipo de protección personal: ropa o equipo diseñado para prevenir o reducir lesiones."}},
+  cad:{en:{term:"CAD",def:"Computer-aided design — the use of computers to digitally sketch 2D or 3D construction designs."},es:{term:"CAD",def:"Diseño asistido por computadora: el uso de computadoras para dibujar digitalmente diseños en 2D o 3D."}},
+  bim:{en:{term:"BIM",def:"Building information modeling — software that reads building data to create a virtual picture of a facility before it's built."},es:{term:"BIM",def:"Modelado de información de construcción: software que crea una imagen virtual de una instalación antes de construirla."}},
+  vr:{en:{term:"VR",def:"Virtual reality — a 3D model of a construction site that lets users immerse themselves and spot issues before work begins."},es:{term:"RV",def:"Realidad virtual: un modelo 3D de un sitio que permite detectar problemas antes de comenzar el trabajo."}},
+  sector:{en:{term:"sector",def:"A category of construction distinguished by specific types of work, materials, equipment, and skills."},es:{term:"sector",def:"Una categoría de construcción distinguida por tipos específicos de trabajo, materiales, equipo y habilidades."}},
+  contractor:{en:{term:"contractor",def:"Oversees many parts of a construction project. Works directly with the project owner."},es:{term:"contratista",def:"Supervisa muchas partes de un proyecto de construcción. Trabaja directamente con el dueño del proyecto."}},
+  projectOwner:{en:{term:"project owner",def:"The initiator of the project who usually finances the building endeavor."},es:{term:"dueño del proyecto",def:"El iniciador del proyecto que generalmente financia la obra."}},
+  subcontractor:{en:{term:"subcontractor",def:"Employs craft professionals with specialized skills for one part of a project, like HVAC, electrical, or plumbing."},es:{term:"subcontratista",def:"Emplea a profesionales con habilidades especializadas para una parte de un proyecto, como HVAC, eléctrico o plomería."}},
+  crewLeader:{en:{term:"crew leader",def:"Also called foreman — oversees a crew of craft professionals, making sure work is done correctly and on time."},es:{term:"líder de cuadrilla",def:"También llamado capataz: gestiona una cuadrilla de profesionales, asegurando que el trabajo se haga correctamente y a tiempo."}},
+  siteSuperintendent:{en:{term:"site superintendent",def:"Manages day-to-day activities on a construction site and supervises the subcontractors."},es:{term:"superintendente de obra",def:"Gestiona las actividades diarias en un sitio de construcción y supervisa a los subcontratistas."}},
+  projectManager:{en:{term:"project manager",def:"Oversees the planning and delivery of construction projects on time and within budget. Typically holds a university degree."},es:{term:"gerente de proyecto",def:"Supervisa la planificación y entrega de proyectos a tiempo y dentro del presupuesto. Generalmente tiene un título universitario."}},
+  cte:{en:{term:"CTE",def:"Career and technical education — high school/technical center programs that let students explore construction careers."},es:{term:"CTE",def:"Educación profesional y técnica: programas que permiten explorar carreras de construcción."}},
+  apprenticeship:{en:{term:"apprenticeship",def:"A program to gain skills on the job under experienced professionals, often earning money while training."},es:{term:"aprendizaje",def:"Un programa para adquirir habilidades en el trabajo bajo profesionales experimentados, ganando dinero mientras te capacitas."}},
+  ojl:{en:{term:"OJL",def:"On-the-job learning — hands-on training completed while working."},es:{term:"OJL",def:"Aprendizaje en el trabajo: capacitación práctica realizada mientras se trabaja."}},
+  leed:{en:{term:"LEED",def:"The international standard used for certifying environmentally sound, sustainable buildings."},es:{term:"LEED",def:"El estándar internacional para certificar edificios ambientalmente sostenibles."}},
+  iot:{en:{term:"IoT devices",def:"Internet of Things devices — technology letting craft professionals gather and share job-site data."},es:{term:"dispositivos IoT",def:"Dispositivos de Internet de las Cosas para recopilar y compartir datos del sitio de trabajo."}},
+  communityCollege:{en:{term:"community college",def:"Usually offers two-year associate degree programs."},es:{term:"colegio comunitario",def:"Generalmente ofrece programas de título de asociado de dos años."}}
+};
+function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function annotate(text){
+  const entries = Object.keys(GLOSSARY).map(k=>({key:k, pattern: GLOSSARY[k][lang].term}));
+  entries.sort((a,b)=> b.pattern.length - a.pattern.length);
+  const alternation = entries.map(e=> escapeRegExp(e.pattern)).join('|');
+  const re = new RegExp('\\b(' + alternation + ')\\b', 'gi');
+  return text.replace(re, (match)=>{
+    const found = entries.find(e=> e.pattern.toLowerCase() === match.toLowerCase());
+    return `<span class="glossary-term" data-term="${found?found.key:''}">${match}</span>`;
+  });
+}
+function attachGlossaryHandlers(container){
+  container.querySelectorAll('.glossary-term').forEach(el=>{
+    el.addEventListener('click', function(e){ e.stopPropagation(); openGlossary(this.dataset.term); });
+  });
+}
+function openGlossary(key){
+  const g = GLOSSARY[key]; if(!g) return;
+  document.getElementById('glossTermText').textContent = g[lang].term;
+  document.getElementById('glossDefText').textContent = g[lang].def;
+  document.getElementById('glossaryOverlay').style.display = 'flex';
+}
+function closeGlossary(){ document.getElementById('glossaryOverlay').style.display='none'; }
+
+/* ============ READ ALOUD (TEXT-TO-SPEECH) ============ */
+function stripHtml(html){
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+}
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(stripHtml(text));
+  utter.lang = lang==='es' ? 'es-ES' : 'en-US';
+  utter.rate = 0.95;
+  window.speechSynthesis.speak(utter);
+}
+function stopSpeaking(){ if('speechSynthesis' in window) window.speechSynthesis.cancel(); }
+
+/* ============ MODULE 1 CONTENT ============ */
+const M1_SECTION1 = [
+  {en:{q:"According to the AGC, the construction industry builds over how much in structures per year?",opts:["$500 billion","$1.3 trillion","$2.8 trillion","$887 billion"],c:1,exp:"Over $1.3 trillion in structures per year, across more than 700,000 companies employing 7+ million people."},
+   es:{q:"Según la AGC, ¿por cuánto construye la industria de la construcción en estructuras cada año?",opts:["$500 mil millones","$1.3 billones","$2.8 billones","$887 mil millones"],c:1,exp:"Más de $1.3 billones en estructuras por año, en más de 700,000 empresas que emplean a más de 7 millones de personas."}},
+  {en:{q:"By 2030, what percentage of the current construction workforce is expected to retire?",opts:["20 percent","40 percent","60 percent","80 percent"],c:1,exp:"40 percent, mostly Baby Boomers. (80 percent is a different stat: companies planning to hire more.)"},
+   es:{q:"Para 2030, ¿qué porcentaje de la fuerza laboral actual se espera que se jubile?",opts:["20 por ciento","40 por ciento","60 por ciento","80 por ciento"],c:1,exp:"40 por ciento, en su mayoría Baby Boomers. (El 80% es otra estadística: empresas que planean contratar más.)"}},
+  {en:{q:"About what percentage of construction companies intend to hire more people in the coming years?",opts:["40 percent","60 percent","80 percent","95 percent"],c:2,exp:"80 percent of companies intend to hire more people, due to the growing labor shortage."},
+   es:{q:"¿Qué porcentaje de empresas de construcción tiene la intención de contratar a más personas?",opts:["40 por ciento","60 por ciento","80 por ciento","95 por ciento"],c:2,exp:"El 80 por ciento de las empresas planea contratar a más personas debido a la escasez de mano de obra."}},
+  {en:{q:"For every dollar made by men in construction, women make approximately how much?",opts:["50 cents","68 cents","87 cents","99 cents"],c:3,exp:"More than 99 cents per dollar in construction — far above the 81-cent US average across all industries."},
+   es:{q:"Por cada dólar que gana un hombre en construcción, ¿cuánto gana una mujer aproximadamente?",opts:["50 centavos","68 centavos","87 centavos","99 centavos"],c:3,exp:"Más de 99 centavos por dólar, muy por encima del promedio de EE.UU. de 81 centavos."}},
+  {en:{q:"What does PPE stand for?",opts:["Personal Protective Equipment","Project Planning Estimate","Public Permit Extension","Professional Practice Exam"],c:0,exp:"Personal protective equipment — clothing/equipment designed to prevent or reduce injuries."},
+   es:{q:"¿Qué significa EPP?",opts:["Equipo de Protección Personal","Estimado de Planificación de Proyecto","Extensión de Permiso Público","Examen de Práctica Profesional"],c:0,exp:"Equipo de protección personal: ropa/equipo para prevenir o reducir lesiones."}},
+  {en:{q:"What is BIM (building information modeling)?",opts:["A 3D immersive space to feel like you're on-site before it's built","Software that reads building data to create a virtual picture of a facility before it's built","Digitally sketching 2D or 3D designs on a computer","Protective clothing worn on-site"],c:1,exp:"BIM reads building data to create a virtual picture of a facility before it's built. (Option 1 is VR, option 3 is CAD, option 4 is PPE.)"},
+   es:{q:"¿Qué es BIM?",opts:["Un espacio inmersivo en 3D para sentir que estás en el sitio antes de construirlo","Software que crea una imagen virtual de una instalación antes de construirla","Dibujar digitalmente diseños en 2D o 3D","Ropa de protección"],c:1,exp:"BIM crea una imagen virtual de una instalación antes de construirla. (La opción 1 es RV, la 3 es CAD, la 4 es EPP.)"}},
+  {en:{q:"Which famous structure is the longest suspension bridge in the world upon its 1937 completion?",opts:["Eiffel Tower","Golden Gate Bridge","Hoover Dam","Burj Khalifa"],c:1,exp:"The Golden Gate Bridge, in San Francisco, CA."},
+   es:{q:"¿Cuál estructura era el puente colgante más largo del mundo al completarse en 1937?",opts:["Torre Eiffel","Puente Golden Gate","Presa Hoover","Burj Khalifa"],c:1,exp:"El puente Golden Gate, en San Francisco, CA."}},
+  {en:{q:"True or False: You need a college degree to get a construction job.",opts:["True","False"],c:1,exp:"False — a common myth. Craft professionals learn through years of training, both classroom and on-the-job, plus licenses/certifications."},
+   es:{q:"Verdadero o falso: necesitas un título universitario para conseguir un trabajo de construcción.",opts:["Verdadero","Falso"],c:1,exp:"Falso, es un mito común. Se aprende mediante años de capacitación, en el aula y en el trabajo, más licencias/certificaciones."}}
+];
+const M1_SECTION2 = [
+  {en:{q:"How much total US student loan debt is there (second-highest source of debt after mortgages)?",opts:["$500 billion","$1 trillion","$1.5 trillion","$2 trillion"],c:2,exp:"$1.5 trillion — equivalent to about 500 NFL franchises."},
+   es:{q:"¿Cuánta deuda estudiantil total hay en EE.UU. (la segunda fuente de deuda más alta después de las hipotecas)?",opts:["$500 mil millones","$1 billón","$1.5 billones","$2 billones"],c:2,exp:"$1.5 billones, equivalente al valor de unas 500 franquicias de la NFL."}},
+  {en:{q:"How many out of every 10 jobs in the US economy require less than a four-year degree?",opts:["3 out of 10","5 out of 10","7 out of 10","9 out of 10"],c:2,exp:"7 out of 10 jobs require less than a four-year degree."},
+   es:{q:"¿Cuántos de cada 10 empleos requieren menos de un título de cuatro años?",opts:["3 de 10","5 de 10","7 de 10","9 de 10"],c:2,exp:"7 de cada 10 empleos requieren menos de un título de cuatro años."}},
+  {en:{q:"What does the 'Earn as You Learn' model refer to?",opts:["Trainees paid wages for on-the-job work while training","A scholarship covering all tuition","A bonus for training new hires","A tax credit for hiring apprentices"],c:0,exp:"Trainees earn wages for OJL work, with pay increases as skills advance."},
+   es:{q:"¿A qué se refiere 'Gana Mientras Aprendes'?",opts:["Se paga un salario a los aprendices por el trabajo mientras se capacitan","Una beca que cubre toda la matrícula","Un bono por capacitar nuevos empleados","Un crédito fiscal por contratar aprendices"],c:0,exp:"Los aprendices ganan un salario por el trabajo, con aumentos según avanzan las habilidades."}},
+  {en:{q:"What percentage of university graduates end up working in a field related to their major?",opts:["27 percent","45 percent","62 percent","80 percent"],c:0,exp:"Only 27 percent, per a Federal Reserve Bank of New York study."},
+   es:{q:"¿Qué porcentaje de graduados universitarios termina trabajando en un campo relacionado con su especialidad?",opts:["27 por ciento","45 por ciento","62 por ciento","80 por ciento"],c:0,exp:"Solo el 27 por ciento, según un estudio del Banco de la Reserva Federal de Nueva York."}},
+  {en:{q:"True or False: craft professionals are considered first responders because they restore essential services after disasters.",opts:["True","False"],c:0,exp:"True. Restoring water, electricity, and structures after disasters is critical, timely work."},
+   es:{q:"Verdadero o falso: los profesionales del oficio se consideran primeros respondedores porque restauran servicios esenciales tras desastres.",opts:["Verdadero","Falso"],c:0,exp:"Verdadero. Restaurar agua, electricidad y estructuras tras desastres es trabajo crítico y oportuno."}},
+  {en:{q:"What skills help craft professionals advance to higher managerial or executive roles?",opts:["Only technical craft skills","Leadership skills like communication, teamwork, and decision-making","Being friends with the contractor","Willingness to work unpaid overtime"],c:1,exp:"Leadership skills — communication, teamwork, decision-making."},
+   es:{q:"¿Qué habilidades ayudan a avanzar a puestos gerenciales o ejecutivos?",opts:["Solo habilidades técnicas","Habilidades de liderazgo: comunicación, trabajo en equipo, toma de decisiones","Ser amigo del contratista","Trabajar horas extra sin pago"],c:1,exp:"Habilidades de liderazgo: comunicación, trabajo en equipo y toma de decisiones."}}
+];
+const M1_SECTION3 = [
+  {en:{q:"What are the four primary sectors of the construction industry?",opts:["Residential, commercial, industrial, and heavy civil/infrastructure","Public, private, government, and nonprofit","Union, non-union, apprentice, and licensed","Small, medium, large, and mega projects"],c:0,exp:"Residential, commercial, industrial, and heavy civil/infrastructure."},
+   es:{q:"¿Cuáles son los cuatro sectores principales de la construcción?",opts:["Residencial, comercial, industrial e infraestructura civil pesada","Público, privado, gubernamental y sin fines de lucro","Sindicalizado, no sindicalizado, aprendiz y con licencia","Pequeño, mediano, grande y megaproyectos"],c:0,exp:"Residencial, comercial, industrial e infraestructura civil pesada."}},
+  {en:{q:"Which sector includes bridges, roadways, airports, tunnels, and dams (\"horizontal construction\")?",opts:["Residential","Commercial","Industrial","Heavy civil/infrastructure"],c:3,exp:"Heavy civil/infrastructure, often called horizontal construction."},
+   es:{q:"¿Qué sector incluye puentes, carreteras, aeropuertos, túneles y presas (\"construcción horizontal\")?",opts:["Residencial","Comercial","Industrial","Infraestructura civil pesada"],c:3,exp:"Infraestructura civil pesada, a menudo llamada construcción horizontal."}},
+  {en:{q:"Who is the initiator of a construction project who usually finances the building endeavor?",opts:["Contractor","Project owner","Subcontractor","Project manager"],c:1,exp:"The project owner initiates and finances. The contractor is hired to run it."},
+   es:{q:"¿Quién es el iniciador de un proyecto que generalmente lo financia?",opts:["Contratista","Dueño del proyecto","Subcontratista","Gerente de proyecto"],c:1,exp:"El dueño del proyecto lo inicia y financia. El contratista es contratado para ejecutarlo."}},
+  {en:{q:"Who typically manages day-to-day activities on a construction site and supervises the subcontractors' work?",opts:["Project owner","Site superintendent","Crew leader/foreman","Contractor"],c:1,exp:"The site superintendent manages daily site activities and supervises subcontractors."},
+   es:{q:"¿Quién gestiona las actividades diarias del sitio y supervisa a los subcontratistas?",opts:["Dueño del proyecto","Superintendente de obra","Líder de cuadrilla","Contratista"],c:1,exp:"El superintendente de obra gestiona las actividades diarias y supervisa a los subcontratistas."}},
+  {en:{q:"What's the average salary for a carpenter?",opts:["$47,000/year","$57,000/year","$67,000/year","$77,000/year"],c:1,exp:"$57,000/year on average (top 10% earn $84,690+)."},
+   es:{q:"¿Cuál es el salario promedio de un carpintero?",opts:["$47,000/año","$57,000/año","$67,000/año","$77,000/año"],c:1,exp:"$57,000 al año en promedio (el 10% superior gana $84,690+)."}},
+  {en:{q:"What's the average salary for an electrician?",opts:["$57,000/year","$62,000/year","$67,000/year","$92,000/year"],c:2,exp:"$67,000/year on average (top 10% earn $96,580+)."},
+   es:{q:"¿Cuál es el salario promedio de un electricista?",opts:["$57,000/año","$62,000/año","$67,000/año","$92,000/año"],c:2,exp:"$67,000 al año en promedio (el 10% superior gana $96,580+)."}},
+  {en:{q:"Which welding specialization requires the professional to also hold a diver's certification?",opts:["Stainless steel welder","Weld inspector","Underwater welder","Robotic welder"],c:2,exp:"Underwater welders must have a diver's certification too."},
+   es:{q:"¿Qué especialización de soldadura requiere certificación de buceo?",opts:["Soldador de acero inoxidable","Inspector de soldaduras","Soldador subacuático","Soldador robótico"],c:2,exp:"Los soldadores subacuáticos deben tener certificación de buceo también."}},
+  {en:{q:"What's the average salary for a construction project manager?",opts:["$57,000/year","$67,000/year","$92,000/year","$164,000/year"],c:2,exp:"$92,000/year on average (top 10% earn $164,790+)."},
+   es:{q:"¿Cuál es el salario promedio de un gerente de proyecto?",opts:["$57,000/año","$67,000/año","$92,000/año","$164,000/año"],c:2,exp:"$92,000 al año en promedio (el 10% superior gana $164,790+)."}}
+];
+const M1_SECTION4 = [
+  {en:{q:"What are the four training options available after earning a high school diploma?",opts:["Technical school, apprenticeship, community college/university, industry training program","Only apprenticeship or nothing","Military service only","Online courses only"],c:0,exp:"Technical school, apprenticeship program, community college or university, and industry training program."},
+   es:{q:"¿Cuáles son las cuatro opciones de capacitación después de la escuela secundaria?",opts:["Escuela técnica, aprendizaje, colegio comunitario/universidad, capacitación de la industria","Solo aprendizaje o nada","Solo servicio militar","Solo cursos en línea"],c:0,exp:"Escuela técnica, aprendizaje, colegio comunitario/universidad, y capacitación de la industria."}},
+  {en:{q:"What's the typical classroom-to-on-the-job split in an apprenticeship program?",opts:["10% classroom / 90% OJL","20% classroom / 80% OJL","30% classroom / 70% OJL","50% classroom / 50% OJL"],c:1,exp:"About 20 percent classroom, 80 percent on-the-job learning (OJL)."},
+   es:{q:"¿Cuál es la división típica entre aula y trabajo en un aprendizaje?",opts:["10% aula / 90% trabajo","20% aula / 80% trabajo","30% aula / 70% trabajo","50% aula / 50% trabajo"],c:1,exp:"Aproximadamente 20% en el aula y 80% de aprendizaje en el trabajo (OJL)."}},
+  {en:{q:"What are the five components of an apprenticeship, per the US Dept. of Labor?",opts:["Business involvement, structured OJL, related instruction, rewards for skill gains, nationally recognized credentials","Tuition assistance, mentorship, safety training, licensing, job placement","Classroom hours, exam scores, fitness test, background check, drug test","Union membership, wage scale, benefits, seniority, pension"],c:0,exp:"Business involvement, structured OJL, related instruction, rewards for skill gains, nationally recognized credentials."},
+   es:{q:"¿Cuáles son los cinco componentes de un aprendizaje?",opts:["Participación empresarial, OJL estructurado, instrucción relacionada, recompensas por logros, credenciales reconocidas","Asistencia de matrícula, mentoría, capacitación en seguridad, licencias, colocación laboral","Horas de clase, exámenes, prueba física, antecedentes, prueba de drogas","Membresía sindical, escala salarial, beneficios, antigüedad, pensión"],c:0,exp:"Participación empresarial, OJL estructurado, instrucción relacionada, recompensas por logros, credenciales reconocidas."}},
+  {en:{q:"Community colleges usually offer what kind of degree, over roughly how long?",opts:["Associate degree, two-year program","Bachelor's degree, four-year program","Master's degree, two-year program","Certificate only, six-month program"],c:0,exp:"Associate degrees, typically two-year programs."},
+   es:{q:"¿Qué tipo de título ofrecen los colegios comunitarios, y en cuánto tiempo?",opts:["Título de asociado, dos años","Licenciatura, cuatro años","Maestría, dos años","Solo certificado, seis meses"],c:0,exp:"Títulos de asociado, generalmente programas de dos años."}},
+  {en:{q:"A bachelor's degree typically requires at least how many hours of credit work?",opts:["60 hours","90 hours","120 hours","150 hours"],c:2,exp:"At least 120 hours of credit work."},
+   es:{q:"¿Cuántas horas de crédito requiere típicamente una licenciatura?",opts:["60 horas","90 horas","120 horas","150 horas"],c:2,exp:"Al menos 120 horas de crédito."}},
+  {en:{q:"True or False: Earning a construction degree guarantees you a construction job upon graduation.",opts:["True","False"],c:1,exp:"False. A degree helps but doesn't guarantee a specific job offer."},
+   es:{q:"Verdadero o falso: un título en construcción garantiza un trabajo al graduarte.",opts:["Verdadero","Falso"],c:1,exp:"Falso. Un título ayuda, pero no garantiza una oferta de trabajo específica."}}
+];
+const M1_TEST = [
+  {en:{q:"What percentage of construction companies anticipate having to hire more people in the coming years to replace retiring craft professionals?",opts:["60 percent","70 percent","80 percent","90 percent"],c:2,exp:"80 percent."},
+   es:{q:"¿Qué porcentaje de empresas anticipa tener que contratar más personas para reemplazar a los que se jubilan?",opts:["60 por ciento","70 por ciento","80 por ciento","90 por ciento"],c:2,exp:"80 por ciento."}},
+  {en:{q:"What percentage of construction field and office positions are currently filled by women?",opts:["10 percent","20 percent","30 percent","40 percent"],c:0,exp:"10 percent."},
+   es:{q:"¿Qué porcentaje de puestos de campo y oficina están ocupados por mujeres?",opts:["10 por ciento","20 por ciento","30 por ciento","40 por ciento"],c:0,exp:"10 por ciento."}},
+  {en:{q:"The international standard used for certifying environmentally sound buildings is known as ________.",opts:["LEED","OSHA","BIM","NCCER"],c:0,exp:"LEED."},
+   es:{q:"El estándar internacional para certificar edificios ambientalmente sostenibles se conoce como ________.",opts:["LEED","OSHA","BIM","NCCER"],c:0,exp:"LEED."}},
+  {en:{q:"A developing technology that allows craft professionals to gather and share data and reports is ________.",opts:["IoT devices","robots","wireless tools","drones"],c:0,exp:"IoT devices."},
+   es:{q:"Una tecnología en desarrollo que permite recopilar y compartir datos e informes es ________.",opts:["dispositivos IoT","robots","herramientas inalámbricas","drones"],c:0,exp:"Dispositivos IoT."}},
+  {en:{q:"The Empire State Building is important in construction history because, upon completion, it was the tallest building in ________.",opts:["New York City","the United States","the Western Hemisphere","the world"],c:3,exp:"The world."},
+   es:{q:"El Empire State Building era el edificio más alto de ________ al completarse.",opts:["la ciudad de Nueva York","los Estados Unidos","el hemisferio occidental","el mundo"],c:3,exp:"El mundo."}},
+  {en:{q:"Craft professionals restoring essential services after disasters is one reason they can be classified as ________.",opts:["EMTs","first responders","public servants","OSHA workers"],c:1,exp:"First responders."},
+   es:{q:"Restaurar servicios esenciales tras desastres es una razón por la que se clasifica a los profesionales del oficio como ________.",opts:["paramédicos","primeros respondedores","servidores públicos","trabajadores de OSHA"],c:1,exp:"Primeros respondedores."}},
+  {en:{q:"Recent surveys indicate construction careers typically pay salaries that fall between ________.",opts:["$18,000 and $31,000","$27,000 and $47,000","$37,000 and $72,000","$47,000 and $92,000"],c:3,exp:"$47,000 and $92,000."},
+   es:{q:"Las carreras de construcción suelen pagar salarios entre ________.",opts:["$18,000 y $31,000","$27,000 y $47,000","$37,000 y $72,000","$47,000 y $92,000"],c:3,exp:"$47,000 y $92,000."}},
+  {en:{q:"In addition to craft skills, what other traits are essential to advance in a construction career?",opts:["Being friends with the contractor","Having good math and drafting skills","Expertise and decision-making skills","Willingness to travel and work off the clock"],c:2,exp:"Expertise and decision-making skills."},
+   es:{q:"Además de las habilidades del oficio, ¿qué otras características son esenciales para avanzar?",opts:["Ser amigo del contratista","Buenas habilidades de matemáticas y dibujo","Experiencia y toma de decisiones","Estar dispuesto a viajar y trabajar fuera de horario"],c:2,exp:"Experiencia y habilidades de toma de decisiones."}},
+  {en:{q:"The construction of single-family homes falls under the sector called ________.",opts:["small structure","infrastructure","industrial","residential"],c:3,exp:"Residential."},
+   es:{q:"La construcción de viviendas unifamiliares corresponde al sector ________.",opts:["estructura pequeña","infraestructura","industrial","residencial"],c:3,exp:"Residencial."}},
+  {en:{q:"The role sometimes called the foreman is also called the ________.",opts:["site superintendent","crew leader","project owner","contractor"],c:1,exp:"Crew leader."},
+   es:{q:"El puesto a veces llamado capataz también se conoce como ________.",opts:["superintendente de obra","líder de cuadrilla","dueño del proyecto","contratista"],c:1,exp:"Líder de cuadrilla."}},
+  {en:{q:"The construction career that typically requires a four-year college education is a(n) ________.",opts:["project manager","finish carpenter","underwater welder","limited-energy integrator"],c:0,exp:"Project manager."},
+   es:{q:"La carrera que generalmente requiere una educación universitaria de cuatro años es ________.",opts:["gerente de proyecto","carpintero de acabados","soldador subacuático","integrador de energía limitada"],c:0,exp:"Gerente de proyecto."}},
+  {en:{q:"One of the biggest advantages of a construction career is the ________.",opts:["amount of vacation","ability to make your own schedule","large variety of jobs","lack of needed skills"],c:2,exp:"Large variety of jobs."},
+   es:{q:"Una de las mayores ventajas de una carrera en construcción es ________.",opts:["la cantidad de vacaciones","hacer tu propio horario","la gran variedad de trabajos","la falta de habilidades necesarias"],c:2,exp:"La gran variedad de trabajos."}},
+  {en:{q:"A craft professional who joins metals using heat and pressure is called a(n) ________.",opts:["heavy equipment operator","ironworker","crane operator","welder"],c:3,exp:"Welder."},
+   es:{q:"Un profesional que une metales mediante calor y presión se llama ________.",opts:["operador de equipo pesado","obrero del acero","operador de grúa","soldador"],c:3,exp:"Soldador."}},
+  {en:{q:"A craft profession requiring good blueprint reading and geometry knowledge is a(n) ________.",opts:["electrician","pipefitter","HVAC technician","welder"],c:1,exp:"Pipefitter."},
+   es:{q:"Una profesión que requiere buen conocimiento de planos y geometría es ________.",opts:["electricista","tubero","técnico de HVAC","soldador"],c:1,exp:"Tubero."}},
+  {en:{q:"Apprenticeship programs are typically structured so that learning is ________.",opts:["10% classroom / 90% job","20% classroom / 80% job","30% classroom / 70% job","40% classroom / 60% job"],c:1,exp:"20 percent classroom, 80 percent on the job."},
+   es:{q:"Los programas de aprendizaje están estructurados de modo que el aprendizaje es ________.",opts:["10% aula / 90% trabajo","20% aula / 80% trabajo","30% aula / 70% trabajo","40% aula / 60% trabajo"],c:1,exp:"20 por ciento en el aula y 80 por ciento en el trabajo."}}
+];
+const M1_CARDS = [
+  {en:{q:"Define 'craft/trade.'",a:"A general term referring to one of the many construction specialties (like carpentry, welding, or masonry)."}, es:{q:"Define 'oficio.'",a:"Un término general que se refiere a una de las muchas especialidades de la construcción."}},
+  {en:{q:"Define 'infrastructure.'",a:"The transportation, water, electrical, and telecommunications systems that allow communities and countries to operate."}, es:{q:"Define 'infraestructura.'",a:"Los sistemas de transporte, agua, electricidad y telecomunicaciones que permiten que las comunidades funcionen."}},
+  {en:{q:"By 2030, what percentage of the workforce is expected to retire, and what percentage of companies plan to hire more?",a:"40 percent expected to retire; 80 percent of companies plan to hire more."}, es:{q:"Para 2030, ¿qué porcentaje se jubilará, y qué porcentaje de empresas contratará más?",a:"El 40 por ciento se jubilará; el 80 por ciento de las empresas contratará más."}},
+  {en:{q:"Define PPE, CAD, BIM, and VR.",a:"PPE: protective equipment. CAD: computer-aided design. BIM: software modeling building data before construction. VR: 3D immersive site simulation."}, es:{q:"Define EPP, CAD, BIM y RV.",a:"EPP: equipo de protección. CAD: diseño asistido por computadora. BIM: modela datos antes de construir. RV: simulación 3D del sitio."}},
+  {en:{q:"What percentage of university graduates work in a field related to their major?",a:"Only 27 percent, per a Federal Reserve Bank of New York study."}, es:{q:"¿Qué porcentaje de graduados trabaja en un campo relacionado con su especialidad?",a:"Solo el 27 por ciento, según un estudio de la Reserva Federal de Nueva York."}},
+  {en:{q:"Name the four construction sectors and one example each.",a:"Residential (homes), Commercial (schools, hotels), Industrial (plants, refineries), Heavy civil/infrastructure (bridges, roads, dams)."}, es:{q:"Nombra los cuatro sectores y un ejemplo de cada uno.",a:"Residencial (viviendas), Comercial (escuelas, hoteles), Industrial (plantas, refinerías), Infraestructura civil pesada (puentes, carreteras, presas)."}},
+  {en:{q:"Define crew leader vs. site superintendent vs. project manager.",a:"Crew leader: oversees one crew. Site superintendent: manages the whole site, supervises subcontractors. Project manager: plans/budgets the whole project, usually has a degree."}, es:{q:"Define líder de cuadrilla vs. superintendente de obra vs. gerente de proyecto.",a:"Líder de cuadrilla: supervisa una cuadrilla. Superintendente: gestiona todo el sitio. Gerente de proyecto: planifica/presupuesta todo, generalmente con título."}},
+  {en:{q:"List the 9 careers profiled and their average salaries, low to high.",a:"Ironworker $60k, Heavy equip. operator $61k, HVAC tech $62k, Pipefitter $63k, Crane operator $66k, Electrician $67k, Pipe welder $69k, Carpenter $57k (lowest), Project manager $92k (highest)."}, es:{q:"Enumera las 9 carreras y sus salarios promedio, de menor a mayor.",a:"Obrero del acero $60k, Operador de equipo pesado $61k, Técnico HVAC $62k, Tubero $63k, Operador de grúa $66k, Electricista $67k, Soldador de tubería $69k, Carpintero $57k (el más bajo), Gerente de proyecto $92k (el más alto)."}},
+  {en:{q:"What are the 4 training options after high school?",a:"Technical school, apprenticeship, community college/university, industry training program."}, es:{q:"¿Cuáles son las 4 opciones de capacitación después de la secundaria?",a:"Escuela técnica, aprendizaje, colegio comunitario/universidad, capacitación de la industria."}},
+  {en:{q:"What's the classroom/OJL split and hour requirements for apprenticeships?",a:"About 20% classroom / 80% OJL; at least 2,000 hours OJL and 144 hours classroom per year, over 2-4 years."}, es:{q:"¿Cuál es la división aula/OJL y las horas requeridas para aprendizajes?",a:"Aproximadamente 20% aula / 80% OJL; al menos 2,000 horas de OJL y 144 de aula por año, durante 2 a 4 años."}},
+  {en:{q:"Does a college degree guarantee a construction job?",a:"No. It may help you advance faster, but doesn't guarantee a specific job offer."}, es:{q:"¿Un título universitario garantiza un trabajo en construcción?",a:"No. Puede ayudar a avanzar más rápido, pero no garantiza una oferta específica."}}
+];
+
+/* ============ MODULES REGISTRY ============ */
+// Slot in Module 2's content the same way Module 1 is built, then flip comingSoon to false.
+const MODULES = [
+  { id:'m1', comingSoon:false, openTest:true,
+    title:{en:"Module 1: Build Your Future in Construction", es:"Módulo 1: Construye Tu Futuro en la Construcción"},
+    sections:[
+      {key:'s1', label:{en:"1. Industry Overview", es:"1. Panorama de la Industria"}, bank:M1_SECTION1},
+      {key:'s2', label:{en:"2. Career Benefits", es:"2. Beneficios de la Carrera"}, bank:M1_SECTION2},
+      {key:'s3', label:{en:"3. Craft Careers", es:"3. Carreras del Oficio"}, bank:M1_SECTION3},
+      {key:'s4', label:{en:"4. Starting Your Career", es:"4. Cómo Empezar tu Carrera"}, bank:M1_SECTION4}
+    ],
+    moduleTest: M1_TEST, cards: M1_CARDS
+  },
+  { id:'m2', comingSoon:true, title:{en:"Module 2", es:"Módulo 2"} },
+  { id:'m3', comingSoon:true, title:{en:"Module 3", es:"Módulo 3"} },
+  { id:'m4', comingSoon:true, title:{en:"Module 4", es:"Módulo 4"} },
+  { id:'m5', comingSoon:true, title:{en:"Module 5", es:"Módulo 5"} },
+  { id:'m6', comingSoon:true, title:{en:"Module 6", es:"Módulo 6"} },
+  { id:'m7', comingSoon:true, title:{en:"Module 7", es:"Módulo 7"} },
+  { id:'m8', comingSoon:true, title:{en:"Module 8", es:"Módulo 8"} },
+  { id:'m9', comingSoon:true, title:{en:"Module 9", es:"Módulo 9"} },
+  { id:'m10', comingSoon:true, title:{en:"Module 10", es:"Módulo 10"} }
+];
+
+/* ============ STATE ============ */
+let lang = localStorage.getItem('nccer_lang') || 'en';
+let progress = JSON.parse(localStorage.getItem('nccer_progress') || '{}');
+let cumulative = JSON.parse(localStorage.getItem('nccer_cumulative') || '{}');
+let topTab = 'home';
+let homeView = null; // null = module map, {modIdx} = module detail
+let quizState = null;
+let cardState = { modIdx:0, order:[], idx:0 };
+
+function saveProgress(){ localStorage.setItem('nccer_progress', JSON.stringify(progress)); }
+function saveCumulative(){ localStorage.setItem('nccer_cumulative', JSON.stringify(cumulative)); }
+function ensureProgress(modId){
+  if(!progress[modId]) progress[modId] = { sec:{}, testScore:0, testPassed:false };
+  return progress[modId];
+}
+function t(key){ return T[lang][key]; }
+
+function isModuleFullyDone(i){
+  const m = MODULES[i]; if(m.comingSoon) return false;
+  const p = progress[m.id]; if(!p) return false;
+  const secOk = m.sections.every(s => (p.sec[s.key]||0) >= 85);
+  return secOk && p.testPassed;
+}
+function isCumulativePassed(i){ return cumulative['after_'+MODULES[i].id]?.passed === true; }
+function isCumulativeAvailable(i){ return i>=1 && isModuleFullyDone(i); }
+function isModuleUnlocked(i){
+  if(i===0) return true;
+  if(MODULES[i].comingSoon && !MODULES[i-1] ) return false;
+  if(i===1) return progress['m1']?.testPassed === true;
+  return isCumulativePassed(i-1);
+}
+function combinedTestBank(uptoIdx){
+  let bank = [];
+  for(let j=0;j<=uptoIdx;j++){ if(!MODULES[j].comingSoon) bank = bank.concat(MODULES[j].moduleTest); }
+  return bank;
+}
+
+function setLang(l){
+  lang = l; localStorage.setItem('nccer_lang', l);
+  document.getElementById('btnEN').classList.toggle('active', l==='en');
+  document.getElementById('btnES').classList.toggle('active', l==='es');
+  document.getElementById('subtitle').textContent = t('subtitle');
+  document.getElementById('footerNote').textContent = t('footer');
+  document.getElementById('glossCloseBtn').textContent = t('close');
+  renderTopTabs(); renderPanel();
+}
+
+function renderTopTabs(){
+  const wrap = document.getElementById('topTabs');
+  const items = [ {key:'home', label:t('tabHome')}, {key:'cards', label:t('tabCards')}, {key:'support', label:t('tabSupport')} ];
+  wrap.innerHTML = '';
+  items.forEach(it=>{
+    const b = document.createElement('button');
+    b.className = 'tab-btn' + (topTab===it.key?' active':'');
+    b.textContent = it.label;
+    b.onclick = ()=>{ topTab = it.key; homeView=null; quizState=null; renderTopTabs(); renderPanel(); };
+    wrap.appendChild(b);
+  });
+}
+
+function renderPanel(){
+  stopSpeaking();
+  const panel = document.getElementById('panel');
+  if(topTab==='home'){
+    if(homeView===null) renderModuleMap(panel);
+    else renderModuleDetail(panel, homeView.modIdx);
+    return;
+  }
+  if(topTab==='cards'){ renderCards(panel); return; }
+  if(topTab==='support'){ renderSupport(panel); return; }
+}
+
+function statusBadge(i){
+  const m = MODULES[i];
+  if(m.comingSoon) return `<span class="badge coming">${t('comingSoon')}</span>`;
+  if(!isModuleUnlocked(i)) return `<span class="badge locked">🔒 ${t('locked')}</span>`;
+  if(isModuleFullyDone(i)) return `<span class="badge done">✓ ${t('completed')}</span>`;
+  return `<span class="badge progress">${t('inProgress')}</span>`;
+}
+
+function renderModuleMap(panel){
+  let html = `<p>${t('homeIntro')}</p><p class="hint">💡 ${t('glossaryHint')}</p>`;
+  for(let i=0;i<MODULES.length;i++){
+    const m = MODULES[i];
+    const unlocked = isModuleUnlocked(i);
+    const clickable = unlocked && !m.comingSoon;
+    html += `<div class="module-card ${clickable?'clickable':''} ${!unlocked?'locked':''}" data-idx="${i}">
+      <div><div class="mc-title">${m.title[lang]}</div></div>
+      ${statusBadge(i)}
+    </div>`;
+    if(i>=1 && !MODULES[i].comingSoon){
+      const avail = isCumulativeAvailable(i);
+      const passed = isCumulativePassed(i);
+      const nextLocked = MODULES[i+1] && MODULES[i+1].comingSoon;
+      if(avail || passed){
+        html += `<div class="cum-card" data-cum="${i}">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div><strong>${t('cumulativeLabel')}</strong><div class="hint" style="margin:2px 0 0;">Modules 1–${i+1}</div></div>
+            ${passed ? `<span class="badge done">✓ ${t('completed')}</span>` : `<span class="badge progress">${t('inProgress')}</span>`}
+          </div>
+        </div>`;
+      }
+    }
+  }
+  panel.innerHTML = html;
+  panel.querySelectorAll('.module-card.clickable').forEach(el=>{
+    el.onclick = ()=>{ homeView = {modIdx: parseInt(el.dataset.idx)}; renderPanel(); };
+  });
+  panel.querySelectorAll('.cum-card').forEach(el=>{
+    el.onclick = ()=>{
+      const i = parseInt(el.dataset.cum);
+      if(isCumulativePassed(i)) return;
+      startCumulativeTest(i);
+    };
+  });
+}
+
+function renderModuleDetail(panel, i){
+  const m = MODULES[i];
+  const p = ensureProgress(m.id);
+  let html = `<div class="breadcrumb" id="backToMap">${t('backToModules')}</div><h2>${m.title[lang]}</h2><div class="score-grid">`;
+  m.sections.forEach(s=>{
+    const sc = p.sec[s.key]||0;
+    const cls = sc===0?'pending':(sc>=85?'pass':'fail');
+    const label = sc===0? t('notStarted') : (sc>=85? t('passed') : t('tryAgainSection'));
+    html += `<div class="score-card" data-sec="${s.key}" style="cursor:pointer;">
+      <div class="pct ${cls}">${sc}%</div><div class="lbl">${s.label[lang]}</div><div class="lbl">${label}</div>
+    </div>`;
+  });
+  html += `</div>`;
+  const allSecOk = m.openTest || m.sections.every(s=> (p.sec[s.key]||0) >= 85);
+  html += `<h3>${t('moduleTestLabel')} <span class="hint">(${t('passThreshold')})</span></h3>`;
+  if(!allSecOk){
+    html += `<p class="hint">🔒 ${t('moduleTestLockedMsg')}</p>`;
+  } else {
+    const testSc = p.testScore||0;
+    const cls = testSc===0?'pending':(p.testPassed?'pass':'fail');
+    const label = testSc===0? t('notStarted') : (p.testPassed? t('passed') : t('tryAgainTest'));
+    html += `<div class="score-card" style="max-width:220px;margin-bottom:10px;"><div class="pct ${cls}">${testSc}%</div><div class="lbl">${label}</div></div>
+      <button class="primary" id="startModTestBtn">${testSc>0? t('retakeBtn') : t('startTest')}</button>`;
+  }
+  panel.innerHTML = html;
+  document.getElementById('backToMap').onclick = ()=>{ homeView=null; renderPanel(); };
+  panel.querySelectorAll('.score-card[data-sec]').forEach(el=>{
+    el.onclick = ()=>{
+      const key = el.dataset.sec;
+      const section = m.sections.find(s=>s.key===key);
+      startQuiz({kind:'section', modIdx:i, sectionKey:key, bank:section.bank, threshold:85});
+    };
+  });
+  const testBtn = document.getElementById('startModTestBtn');
+  if(testBtn) testBtn.onclick = ()=> startQuiz({kind:'moduleTest', modIdx:i, bank:m.moduleTest, threshold:70});
+}
+
+function startQuiz(cfg){
+  quizState = { ...cfg, idx:0, correctCount:0, answered:false };
+  renderQuizQuestion();
+}
+function startCumulativeTest(i){
+  quizState = { kind:'cumulative', modIdx:i, bank: combinedTestBank(i), threshold:70, idx:0, correctCount:0, answered:false };
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion(){
+  stopSpeaking();
+  const panel = document.getElementById('panel');
+  const item = quizState.bank[quizState.idx][lang];
+  let optsHtml = '';
+  item.opts.forEach((opt,idx)=>{ optsHtml += `<button class="option" data-i="${idx}">${annotate(opt)}</button>`; });
+  panel.innerHTML = `
+    <div class="q-count">${t('question')} ${quizState.idx+1} ${t('of')} ${quizState.bank.length}</div>
+    <div class="q-text">${annotate(item.q)}</div>
+    <button id="readAloudBtn" style="background:none;border:1px solid var(--accent2);color:var(--accent2);border-radius:6px;padding:4px 10px;font-size:0.78rem;margin-bottom:10px;cursor:pointer;">${t('readAloud')}</button>
+    <div id="optsWrap">${optsHtml}</div>
+    <div class="explain" id="explainBox">${annotate(item.exp)}</div>
+    <br>
+    <button class="primary" id="nextBtn" style="display:none;">${quizState.idx+1===quizState.bank.length ? t('finishBtn') : t('nextBtn')}</button>
+  `;
+  attachGlossaryHandlers(panel);
+  document.getElementById('readAloudBtn').onclick = ()=>{
+    const optLabels = ['A','B','C','D'];
+    const optsText = item.opts.map((o,idx)=> `${optLabels[idx]}. ${o}`).join('. ');
+    speak(item.q + '. ' + optsText);
+  };
+  document.querySelectorAll('#optsWrap .option').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(quizState.answered) return;
+      quizState.answered = true;
+      const chosen = parseInt(btn.dataset.i); const correct = item.c;
+      document.querySelectorAll('#optsWrap .option').forEach((b2,i2)=>{
+        if(i2===correct) b2.classList.add('correct'); else if(i2===chosen) b2.classList.add('incorrect');
+      });
+      if(chosen===correct) quizState.correctCount++;
+      document.getElementById('explainBox').classList.add('show');
+      document.getElementById('nextBtn').style.display = 'block';
+    };
+  });
+  document.getElementById('nextBtn').onclick = ()=>{
+    if(quizState.idx+1 < quizState.bank.length){ quizState.idx++; quizState.answered=false; renderQuizQuestion(); }
+    else finishQuiz();
+  };
+}
+
+function finishQuiz(){
+  stopSpeaking();
+  const panel = document.getElementById('panel');
+  const pct = Math.round((quizState.correctCount / quizState.bank.length) * 100);
+  const threshold = quizState.threshold;
+  const passed = pct >= threshold;
+  if(quizState.kind==='section'){
+    const p = ensureProgress(MODULES[quizState.modIdx].id);
+    p.sec[quizState.sectionKey] = pct; saveProgress();
+  } else if(quizState.kind==='moduleTest'){
+    const p = ensureProgress(MODULES[quizState.modIdx].id);
+    p.testScore = pct; p.testPassed = passed; saveProgress();
+  } else if(quizState.kind==='cumulative'){
+    cumulative['after_'+MODULES[quizState.modIdx].id] = {score:pct, passed}; saveCumulative();
+  }
+  const failMsg = quizState.kind==='section' ? t('failMsgSection') : t('failMsgTest');
+  const passMsg = quizState.kind==='section' ? t('passMsgSection') : t('passMsgTest');
+  panel.innerHTML = `
+    <div class="result-big">
+      <div class="result-pct ${passed?'pass':'fail'}">${pct}%</div>
+      <div class="result-msg">${t('yourScore')}: ${quizState.correctCount}/${quizState.bank.length}</div>
+      <div class="result-msg">${passed ? passMsg : failMsg}</div>
+    </div>
+    <button class="primary" id="retakeQBtn">${t('retakeBtn')}</button><br><br>
+    <button class="primary" id="backQBtn" style="background:#475569;">${t('backHome')}</button>
+  `;
+  document.getElementById('retakeQBtn').onclick = ()=>{
+    if(quizState.kind==='cumulative') startCumulativeTest(quizState.modIdx);
+    else startQuiz(quizState);
+  };
+  document.getElementById('backQBtn').onclick = ()=>{
+    if(quizState.kind==='cumulative'){ homeView=null; }
+    quizState=null; renderPanel();
+  };
+}
+
+function renderCards(panel){
+  const unlockedModules = MODULES.map((m,i)=>({m,i})).filter(x=> !x.m.comingSoon && isModuleUnlocked(x.i));
+  if(cardState.modIdx===null || !unlockedModules.find(x=>x.i===cardState.modIdx)) cardState.modIdx = unlockedModules[0]?.i ?? 0;
+  const mod = MODULES[cardState.modIdx];
+  const deck = mod.cards || [];
+  if(cardState.idx >= deck.length) cardState.idx = 0;
+  const card = deck[cardState.idx] ? deck[cardState.idx][lang] : {q:'',a:''};
+  let options = unlockedModules.map(x=>`<option value="${x.i}" ${x.i===cardState.modIdx?'selected':''}>${x.m.title[lang]}</option>`).join('');
+  panel.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <select id="modFilter">${options}</select>
+      <button id="shuffleCardsBtn">${t('shuffleBtn')}</button>
+    </div>
+    <div style="text-align:center; font-size:0.8rem; color:var(--muted); margin-bottom:8px;">${deck.length? (cardState.idx+1)+' / '+deck.length : ''}</div>
+    <div class="scene">
+      <div class="card" id="flashCard">
+        <div class="face front"><div class="tag">${lang==='en'?'Question':'Pregunta'}</div><div>${annotate(card.q||'')}</div><div style="margin-top:10px;font-size:0.75rem;color:var(--muted);">${t('flipHint')}</div></div>
+        <div class="face back"><div class="tag">${lang==='en'?'Answer':'Respuesta'}</div><div style="font-weight:500;font-size:0.95rem;">${annotate(card.a||'')}</div><div style="margin-top:10px;font-size:0.75rem;color:var(--muted);">${t('flipBackHint')}</div></div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-bottom:8px;">
+      <button id="readAloudCardBtn" style="background:none;border:1px solid var(--accent2);color:var(--accent2);border-radius:6px;padding:4px 10px;font-size:0.78rem;cursor:pointer;">${t('readAloud')}</button>
+    </div>
+    <div class="nav">
+      <button id="prevCardBtn">${t('prevBtn')}</button>
+      <button id="flipCardBtn">${t('flipBtn')}</button>
+      <button id="nextCardBtn2">${t('nextCardBtn')}</button>
+    </div>
+  `;
+  attachGlossaryHandlers(panel);
+  document.getElementById('readAloudCardBtn').onclick = ()=>{
+    const showingBack = document.getElementById('flashCard').classList.contains('flipped');
+    speak(showingBack ? (card.a||'') : (card.q||''));
+  };
+  document.getElementById('modFilter').onchange = (e)=>{ cardState.modIdx = parseInt(e.target.value); cardState.idx=0; renderCards(panel); };
+  document.getElementById('flashCard').onclick = ()=> document.getElementById('flashCard').classList.toggle('flipped');
+  document.getElementById('flipCardBtn').onclick = ()=> document.getElementById('flashCard').classList.toggle('flipped');
+  document.getElementById('nextCardBtn2').onclick = ()=>{ if(deck.length){ cardState.idx=(cardState.idx+1)%deck.length; renderCards(panel);} };
+  document.getElementById('prevCardBtn').onclick = ()=>{ if(deck.length){ cardState.idx=(cardState.idx-1+deck.length)%deck.length; renderCards(panel);} };
+  document.getElementById('shuffleCardsBtn').onclick = ()=>{
+    for(let a=deck.length-1;a>0;a--){ const b=Math.floor(Math.random()*(a+1)); [deck[a],deck[b]]=[deck[b],deck[a]]; }
+    cardState.idx=0; renderCards(panel);
+  };
+}
+
+function renderSupport(panel){
+  panel.innerHTML = `
+    <p>${t('supportIntro')}</p>
+    <div class="tip-box">
+      <h3>💛 ${lang==='en'?'Support the maker':'Apoya al creador'}</h3>
+      <div class="tip-row"><span>${t('cashapp')}</span><span style="font-weight:700;">$AgentKodak</span></div>
+      <div class="tip-row"><span>${t('zelle')}</span><span style="font-weight:700;">(571) 331-5770</span></div>
+    </div>
+  `;
+}
+
+/* ============ INIT ============ */
+document.getElementById('btnEN').onclick = ()=> setLang('en');
+document.getElementById('btnES').onclick = ()=> setLang('es');
+document.getElementById('glossCloseBtn').onclick = ()=> closeGlossary();
+document.getElementById('glossaryOverlay').addEventListener('click', function(e){ if(e.target===this) closeGlossary(); });
+setLang(lang);
+</script>
+</body>
+</html>
