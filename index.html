@@ -85,15 +85,50 @@
   .modal-box{ background:#fff; border-radius:14px; padding:24px; max-width:380px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.35); }
   .modal-term{ font-weight:700; font-size:1.1rem; margin-bottom:8px; color:var(--accent2); }
   .modal-def{ font-size:0.92rem; color:var(--text); margin-bottom:16px; line-height:1.5; }
+
+  /* ---- light mode ---- */
+  body.light-mode{ background:linear-gradient(160deg,#f8fafc,#e2e8f0); }
+  body.light-mode h1{ color:#0f1720; }
+  body.light-mode .subtitle{ color:#475569; }
+  body.light-mode .lang-toggle button, body.light-mode .tab-btn, body.light-mode .icon-btn{
+    background:#e2e8f0; color:#334155; border-color:#cbd5e1;
+  }
+  body.light-mode .lang-toggle button.active, body.light-mode .tab-btn.active{
+    background:var(--accent); color:#fff; border-color:var(--accent);
+  }
+  body.light-mode footer{ color:#64748b; }
+
+  /* ---- topbar icon buttons (text size / theme) ---- */
+  .icon-btn{ padding:6px 10px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; cursor:pointer; font-size:0.8rem; font-weight:700; }
+  .topbar-right{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+
+  /* ---- continue / streak / quick-review / missed-review cards ---- */
+  .continue-card{ border:2px solid var(--accent); border-radius:12px; padding:14px 16px; margin-bottom:14px; background:#eff6ff; cursor:pointer; }
+  .continue-card:hover{ background:#dbeafe; }
+  .continue-card .cc-label{ font-size:0.72rem; text-transform:uppercase; font-weight:700; color:var(--accent2); letter-spacing:0.03em; }
+  .continue-card .cc-title{ font-weight:700; font-size:1rem; margin-top:2px; }
+  .streak-line{ font-size:0.85rem; color:var(--amber); font-weight:600; margin-bottom:10px; }
+  .quick-card, .missed-card{ border:1px dashed #94a3b8; border-radius:12px; padding:12px 16px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; gap:10px; cursor:pointer; background:#f8fafc; }
+  .quick-card:hover, .missed-card:hover{ border-color:var(--accent); }
+  .quick-card .qc-title, .missed-card .qc-title{ font-weight:600; font-size:0.92rem; }
+  .quick-card .qc-sub, .missed-card .qc-sub{ font-size:0.75rem; color:var(--muted); margin-top:2px; }
+
+  /* bigger, easier-to-tap answer buttons */
+  button.option{ min-height:44px; }
+  button.primary{ min-height:46px; }
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <h1 id="appTitle">NCCER Core Study Tool</h1>
-  <div class="lang-toggle">
-    <button id="btnEN" class="active">EN</button>
-    <button id="btnES">ES</button>
+  <div class="topbar-right">
+    <button id="btnTextSize" class="icon-btn" title="Text size">Aa</button>
+    <button id="btnTheme" class="icon-btn" title="Light / dark">🌙</button>
+    <div class="lang-toggle">
+      <button id="btnEN" class="active">EN</button>
+      <button id="btnES">ES</button>
+    </div>
   </div>
 </div>
 <div class="subtitle" id="subtitle"></div>
@@ -107,6 +142,14 @@
     <div class="modal-term" id="glossTermText"></div>
     <div class="modal-def" id="glossDefText"></div>
     <button class="primary" id="glossCloseBtn">Close</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="onboardingOverlay">
+  <div class="modal-box">
+    <div class="modal-term" id="onboardTitle"></div>
+    <div class="modal-def" id="onboardBody" style="white-space:pre-line;"></div>
+    <button class="primary" id="onboardCloseBtn">Close</button>
   </div>
 </div>
 
@@ -139,7 +182,18 @@ const T = {
     cashapp:"Cash App", zelle:"Zelle",
     footer:"Made by a classmate, for classmates.",
     close:"Close", selectModule:"Module", allSections:"All sections", readAloud:"🔊 Read aloud",
-    reviewLabel:"Answer review", yourAnswer:"Your answer", correctAnswer:"Correct answer"
+    reviewLabel:"Answer review", yourAnswer:"Your answer", correctAnswer:"Correct answer",
+    continueLabel:"Continue where you left off", quickReviewTitle:"⚡ Quick Review",
+    quickReviewSub:"10 random questions from everything you've covered",
+    missedReviewTitle:"🔁 Review missed questions", missedReviewSub:(n)=>`${n} question${n===1?'':'s'} you got wrong before — get them right to clear them`,
+    streakLine:(n)=>`🔥 ${n} day${n===1?'':'s'} studied so far`,
+    onboardTitle:"Quick tips before you start", onboardBody:
+`• Tap any underlined word for a quick definition, you won't lose your place.
+• Flashcards: tap the card to flip between question and answer.
+• On the Module Test and Cumulative Review, answers are revealed together at the end, so you can review everything at once.
+• Miss a question? It gets added to "Review missed questions" on the home screen so you can come back to it.
+• Use the "Aa" and 🌙 buttons up top to adjust text size and switch between light and dark.`,
+    onboardClose:"Got it, let's go"
   },
   es:{
     subtitle:"NCCER Core: Introducción a Habilidades Básicas de Construcción — herramienta gratuita de estudio",
@@ -167,7 +221,18 @@ const T = {
     cashapp:"Cash App", zelle:"Zelle",
     footer:"Hecho por un compañero de clase, para compañeros de clase.",
     close:"Cerrar", selectModule:"Módulo", allSections:"Todas las secciones", readAloud:"🔊 Leer en voz alta",
-    reviewLabel:"Repaso de respuestas", yourAnswer:"Tu respuesta", correctAnswer:"Respuesta correcta"
+    reviewLabel:"Repaso de respuestas", yourAnswer:"Tu respuesta", correctAnswer:"Respuesta correcta",
+    continueLabel:"Continuar donde lo dejaste", quickReviewTitle:"⚡ Repaso Rápido",
+    quickReviewSub:"10 preguntas al azar de todo lo que has visto",
+    missedReviewTitle:"🔁 Repasar preguntas falladas", missedReviewSub:(n)=>`${n} pregunta${n===1?'':'s'} que fallaste antes — acértalas para quitarlas de la lista`,
+    streakLine:(n)=>`🔥 ${n} día${n===1?'':'s'} de estudio hasta ahora`,
+    onboardTitle:"Consejos rápidos antes de empezar", onboardBody:
+`• Toca cualquier palabra subrayada para ver una definición rápida, sin perder tu lugar.
+• Tarjetas: toca la tarjeta para voltear entre pregunta y respuesta.
+• En el Examen del Módulo y el Repaso Acumulativo, las respuestas se revelan todas juntas al final, para que puedas repasar todo de una vez.
+• ¿Fallaste una pregunta? Se agrega a "Repasar preguntas falladas" en la pantalla principal para que puedas volver a ella.
+• Usa los botones "Aa" y 🌙 arriba para ajustar el tamaño del texto y cambiar entre modo claro y oscuro.`,
+    onboardClose:"Entendido, vamos"
   }
 };
 
@@ -606,14 +671,75 @@ let topTab = 'home';
 let homeView = null; // null = module map, {modIdx} = module detail
 let quizState = null;
 let cardState = { modIdx:0, order:[], idx:0 };
+let missed = JSON.parse(localStorage.getItem('nccer_missed') || '[]'); // [{key, item}]
+let lastModIdx = localStorage.getItem('nccer_last_mod');
+lastModIdx = lastModIdx===null ? null : parseInt(lastModIdx);
+let textScale = parseInt(localStorage.getItem('nccer_textscale') || '0');
+let theme = localStorage.getItem('nccer_theme') || 'dark';
+const TEXT_SCALES = [16, 18, 21];
 
 function saveProgress(){ localStorage.setItem('nccer_progress', JSON.stringify(progress)); }
 function saveCumulative(){ localStorage.setItem('nccer_cumulative', JSON.stringify(cumulative)); }
+function saveMissed(){ localStorage.setItem('nccer_missed', JSON.stringify(missed)); }
 function ensureProgress(modId){
   if(!progress[modId]) progress[modId] = { sec:{}, testScore:0, testPassed:false };
   return progress[modId];
 }
 function t(key){ return T[lang][key]; }
+
+/* ---- missed-question tracking (simple spaced repetition) ---- */
+function missedKey(item){ return item && item.en ? item.en.q : null; }
+function addMissed(item){
+  const k = missedKey(item); if(!k) return;
+  if(!missed.find(x=>x.key===k)) missed.push({key:k, item});
+}
+function removeMissed(item){
+  const k = missedKey(item); if(!k) return;
+  missed = missed.filter(x=>x.key!==k);
+}
+
+/* ---- quick review: random mixed pull from everything built so far ---- */
+function buildQuickReviewBank(size){
+  let pool = [];
+  MODULES.forEach(m=>{
+    if(m.comingSoon) return;
+    m.sections.forEach(s=>{ pool = pool.concat(s.bank); });
+    pool = pool.concat(m.moduleTest);
+  });
+  for(let a=pool.length-1;a>0;a--){ const b=Math.floor(Math.random()*(a+1)); [pool[a],pool[b]]=[pool[b],pool[a]]; }
+  return pool.slice(0, Math.min(size, pool.length));
+}
+
+/* ---- text size ---- */
+function applyTextScale(){
+  document.documentElement.style.fontSize = TEXT_SCALES[textScale] + 'px';
+  localStorage.setItem('nccer_textscale', textScale);
+}
+
+/* ---- light / dark theme ---- */
+function applyTheme(){
+  document.body.classList.toggle('light-mode', theme==='light');
+  const btn = document.getElementById('btnTheme');
+  if(btn) btn.textContent = theme==='light' ? '☀️' : '🌙';
+  localStorage.setItem('nccer_theme', theme);
+}
+
+/* ---- simple day streak ---- */
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+let streakDates = JSON.parse(localStorage.getItem('nccer_streak') || '[]');
+(function recordVisitToday(){
+  const today = todayStr();
+  if(!streakDates.includes(today)){ streakDates.push(today); localStorage.setItem('nccer_streak', JSON.stringify(streakDates)); }
+})();
+function currentStreak(){
+  const set = new Set(streakDates);
+  let streak = 0; let d = new Date();
+  while(true){
+    const key = d.toISOString().slice(0,10);
+    if(set.has(key)){ streak++; d.setDate(d.getDate()-1); } else break;
+  }
+  return streak;
+}
 
 function isModuleFullyDone(i){
   const m = MODULES[i]; if(m.comingSoon) return false;
@@ -642,6 +768,11 @@ function setLang(l){
   document.getElementById('subtitle').textContent = t('subtitle');
   document.getElementById('footerNote').textContent = t('footer');
   document.getElementById('glossCloseBtn').textContent = t('close');
+  if(document.getElementById('onboardingOverlay').style.display === 'flex'){
+    document.getElementById('onboardTitle').textContent = t('onboardTitle');
+    document.getElementById('onboardBody').textContent = t('onboardBody');
+    document.getElementById('onboardCloseBtn').textContent = t('onboardClose');
+  }
   renderTopTabs(); renderPanel();
 }
 
@@ -679,7 +810,27 @@ function statusBadge(i){
 }
 
 function renderModuleMap(panel){
-  let html = `<p>${t('homeIntro')}</p><p class="hint">💡 ${t('glossaryHint')}</p>`;
+  let html = '';
+  const streak = currentStreak();
+  if(streak>=1) html += `<div class="streak-line">${t('streakLine')(streak)}</div>`;
+  if(lastModIdx!==null && MODULES[lastModIdx] && !MODULES[lastModIdx].comingSoon){
+    html += `<div class="continue-card" id="continueCard">
+      <div class="cc-label">${t('continueLabel')}</div>
+      <div class="cc-title">${MODULES[lastModIdx].title[lang]}</div>
+    </div>`;
+  }
+  const hasAnyRealModule = MODULES.some(m=>!m.comingSoon);
+  if(hasAnyRealModule){
+    html += `<div class="quick-card" id="quickReviewCard">
+      <div><div class="qc-title">${t('quickReviewTitle')}</div><div class="qc-sub">${t('quickReviewSub')}</div></div>
+    </div>`;
+  }
+  if(missed.length>0){
+    html += `<div class="missed-card" id="missedReviewCard">
+      <div><div class="qc-title">${t('missedReviewTitle')}</div><div class="qc-sub">${t('missedReviewSub')(missed.length)}</div></div>
+    </div>`;
+  }
+  html += `<p>${t('homeIntro')}</p><p class="hint">💡 ${t('glossaryHint')}</p>`;
   for(let i=0;i<MODULES.length;i++){
     const m = MODULES[i];
     const unlocked = isModuleUnlocked(i);
@@ -713,10 +864,17 @@ function renderModuleMap(panel){
       startCumulativeTest(i);
     };
   });
+  const contCard = document.getElementById('continueCard');
+  if(contCard) contCard.onclick = ()=>{ homeView = {modIdx: lastModIdx}; renderPanel(); };
+  const quickCard = document.getElementById('quickReviewCard');
+  if(quickCard) quickCard.onclick = ()=> startQuiz({kind:'quick', bank: buildQuickReviewBank(10), threshold:70});
+  const missedCard = document.getElementById('missedReviewCard');
+  if(missedCard) missedCard.onclick = ()=> startQuiz({kind:'missed', bank: missed.map(x=>x.item), threshold:70});
 }
 
 function renderModuleDetail(panel, i){
   const m = MODULES[i];
+  lastModIdx = i; localStorage.setItem('nccer_last_mod', i);
   const p = ensureProgress(m.id);
   let html = `<div class="breadcrumb" id="backToMap">${t('backToModules')}</div><h2>${m.title[lang]}</h2><div class="score-grid">`;
   m.sections.forEach(s=>{
@@ -822,7 +980,7 @@ function renderQuizQuestion(){
     document.getElementById('nextBtn').onclick = ()=>{
       if(quizState.selected===null) return;
       const chosen = quizState.selected; const correct = item.c;
-      quizState.records.push({ q:item.q, opts:item.opts, chosen, correct, exp:item.exp, right: chosen===correct });
+      quizState.records.push({ q:item.q, opts:item.opts, chosen, correct, exp:item.exp, right: chosen===correct, full: quizState.bank[quizState.idx] });
       if(chosen===correct) quizState.correctCount++;
       quizState.selected = null;
       if(quizState.idx+1 < quizState.bank.length){ quizState.idx++; renderQuizQuestion(); }
@@ -837,9 +995,11 @@ function renderQuizQuestion(){
       quizState.answered = true;
       const chosen = parseInt(btn.dataset.i); const correct = item.c;
       document.querySelectorAll('#optsWrap .option').forEach((b2,i2)=>{
-        if(i2===correct) b2.classList.add('correct'); else if(i2===chosen) b2.classList.add('incorrect');
+        if(i2===correct){ b2.classList.add('correct'); b2.innerHTML = '✓ ' + b2.innerHTML; }
+        else if(i2===chosen){ b2.classList.add('incorrect'); b2.innerHTML = '✗ ' + b2.innerHTML; }
       });
       if(chosen===correct) quizState.correctCount++;
+      quizState.records.push({ q:item.q, opts:item.opts, chosen, correct, exp:item.exp, right: chosen===correct, full: quizState.bank[quizState.idx] });
       document.getElementById('explainBox').classList.add('show');
       document.getElementById('nextBtn').style.display = 'block';
     };
@@ -856,6 +1016,13 @@ function finishQuiz(){
   const pct = Math.round((quizState.correctCount / quizState.bank.length) * 100);
   const threshold = quizState.threshold;
   const passed = pct >= threshold;
+  // Missed-question tracking: wrong answers get added to the review list, right
+  // answers clear a question off it (however/wherever it gets answered right).
+  (quizState.records||[]).forEach(r=>{
+    if(!r.full) return;
+    if(r.right) removeMissed(r.full); else addMissed(r.full);
+  });
+  saveMissed();
   if(quizState.kind==='section'){
     const p = ensureProgress(MODULES[quizState.modIdx].id);
     p.sec[quizState.sectionKey] = pct; saveProgress();
@@ -894,6 +1061,11 @@ function finishQuiz(){
   if(reviewHtml) attachGlossaryHandlers(panel);
   document.getElementById('retakeQBtn').onclick = ()=>{
     if(quizState.kind==='cumulative') startCumulativeTest(quizState.modIdx);
+    else if(quizState.kind==='quick') startQuiz({kind:'quick', bank: buildQuickReviewBank(10), threshold:70});
+    else if(quizState.kind==='missed'){
+      if(missed.length===0){ quizState=null; renderPanel(); return; }
+      startQuiz({kind:'missed', bank: missed.map(x=>x.item), threshold:70});
+    }
     else startQuiz(quizState);
   };
   document.getElementById('backQBtn').onclick = ()=>{
@@ -963,7 +1135,28 @@ document.getElementById('btnEN').onclick = ()=> setLang('en');
 document.getElementById('btnES').onclick = ()=> setLang('es');
 document.getElementById('glossCloseBtn').onclick = ()=> closeGlossary();
 document.getElementById('glossaryOverlay').addEventListener('click', function(e){ if(e.target===this) closeGlossary(); });
+
+document.getElementById('btnTextSize').onclick = ()=>{ textScale = (textScale+1)%TEXT_SCALES.length; applyTextScale(); };
+document.getElementById('btnTheme').onclick = ()=>{ theme = theme==='light' ? 'dark' : 'light'; applyTheme(); };
+applyTextScale();
+applyTheme();
+
+function showOnboarding(){
+  document.getElementById('onboardTitle').textContent = t('onboardTitle');
+  document.getElementById('onboardBody').textContent = t('onboardBody');
+  document.getElementById('onboardCloseBtn').textContent = t('onboardClose');
+  document.getElementById('onboardingOverlay').style.display = 'flex';
+}
+document.getElementById('onboardCloseBtn').onclick = ()=>{
+  document.getElementById('onboardingOverlay').style.display = 'none';
+  localStorage.setItem('nccer_onboarded', '1');
+};
+document.getElementById('onboardingOverlay').addEventListener('click', function(e){
+  if(e.target===this){ this.style.display='none'; localStorage.setItem('nccer_onboarded','1'); }
+});
+
 setLang(lang);
+if(!localStorage.getItem('nccer_onboarded')) showOnboarding();
 </script>
 </body>
 </html>
