@@ -523,12 +523,32 @@ function startCumulativeTest(i){
   renderQuizQuestion();
 }
 
+function showOptionDefinition(text){
+  const entries = Object.keys(GLOSSARY).map(k=>({key:k, pattern: GLOSSARY[k][lang].term}));
+  entries.sort((a,b)=> b.pattern.length - a.pattern.length);
+  const found = entries.find(e=> new RegExp('\\b'+escapeRegExp(e.pattern)+'\\b','i').test(text));
+  if(found){ openGlossary(found.key); return; }
+  document.getElementById('glossTermText').textContent = '';
+  document.getElementById('glossDefText').textContent = lang==='es' ? 'No hay una definición rápida para esta respuesta.' : 'No quick definition available for this answer.';
+  document.getElementById('glossaryOverlay').style.display = 'flex';
+}
+
 function renderQuizQuestion(){
   stopSpeaking();
   const panel = document.getElementById('panel');
   const item = quizState.bank[quizState.idx][lang];
+  // On the official module/cumulative test, options are shown plain (no auto-highlighted
+  // glossary terms) so the underline itself can't hint at the correct answer. A neutral
+  // "?" on every option lets a student look up a definition on demand instead.
+  const isOfficialTest = (quizState.kind==='moduleTest' || quizState.kind==='cumulative');
   let optsHtml = '';
-  item.opts.forEach((opt,idx)=>{ optsHtml += `<button class="option" data-i="${idx}">${annotate(opt)}</button>`; });
+  item.opts.forEach((opt,idx)=>{
+    if(isOfficialTest){
+      optsHtml += `<button class="option" data-i="${idx}">${opt} <span class="opt-def-btn" data-opt="${idx}" style="display:inline-block;margin-left:6px;padding:0 6px;border:1px solid currentColor;border-radius:50%;font-size:0.75rem;opacity:0.7;cursor:pointer;">?</span></button>`;
+    } else {
+      optsHtml += `<button class="option" data-i="${idx}">${annotate(opt)}</button>`;
+    }
+  });
   panel.innerHTML = `
     <div class="q-count">${t('question')} ${quizState.idx+1} ${t('of')} ${quizState.bank.length}</div>
     <div class="q-text">${annotate(item.q)}</div>
@@ -539,6 +559,15 @@ function renderQuizQuestion(){
     <button class="primary" id="nextBtn" style="display:none;">${quizState.idx+1===quizState.bank.length ? t('finishBtn') : t('nextBtn')}</button>
   `;
   attachGlossaryHandlers(panel);
+  if(isOfficialTest){
+    panel.querySelectorAll('.opt-def-btn').forEach(el=>{
+      el.addEventListener('click', function(e){
+        e.stopPropagation();
+        const idx = parseInt(this.dataset.opt);
+        showOptionDefinition(item.opts[idx]);
+      });
+    });
+  }
   document.getElementById('readAloudBtn').onclick = ()=>{
     const optLabels = ['A','B','C','D'];
     const optsText = item.opts.map((o,idx)=> `${optLabels[idx]}. ${o}`).join('. ');
