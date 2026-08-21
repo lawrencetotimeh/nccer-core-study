@@ -93,6 +93,12 @@
   .modal-box{ background:#fff; border-radius:14px; padding:24px; max-width:380px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.35); }
   .modal-term{ font-weight:700; font-size:1.1rem; margin-bottom:8px; color:var(--accent2); }
   .modal-def{ font-size:0.92rem; color:var(--text); margin-bottom:16px; line-height:1.5; }
+  .pref-label{ display:block; font-weight:600; font-size:0.85rem; margin-bottom:6px; }
+  .pref-cadence-opt{ display:flex; align-items:flex-start; gap:8px; border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px; cursor:pointer; }
+  .pref-cadence-opt input{ margin-top:3px; }
+  .pref-cadence-opt .pco-title{ font-weight:600; font-size:0.88rem; }
+  .pref-cadence-opt .pco-sub{ font-size:0.76rem; color:var(--muted); margin-top:2px; }
+  .study-minutes{ font-size:0.75rem; color:var(--muted); }
 
   /* ---- light mode ---- */
   body.light-mode{ background:linear-gradient(160deg,#f8fafc,#e2e8f0); }
@@ -176,6 +182,19 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="studyPrefOverlay">
+  <div class="modal-box">
+    <div class="modal-term" id="studyPrefTitle"></div>
+    <div class="modal-def" id="studyPrefIntro"></div>
+    <label class="pref-label" id="studyPrefTimeLabel"></label>
+    <input type="time" id="studyPrefTimeInput" value="19:00" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);font-size:1rem;margin-bottom:14px;background:var(--panel-bg,#fff);color:inherit;">
+    <label class="pref-label" id="studyPrefCadenceLabel"></label>
+    <div id="studyPrefCadenceOpts" style="margin-bottom:16px;"></div>
+    <button class="primary" id="studyPrefSaveBtn"></button>
+    <button class="primary" id="studyPrefCancelBtn" style="background:#475569;margin-top:8px;"></button>
+  </div>
+</div>
+
 <script>
 /* ============ TRANSLATIONS ============ */
 const T = {
@@ -211,6 +230,16 @@ const T = {
     icsExamSummary:(num)=>`Module ${num} test day`,
     icsExamDesc:(title)=>`Test day for ${title}. Good luck — you've got this.`,
     icsLinkLabel:"Study tool link",
+    studyPrefTitle:"When do you like to study?",
+    studyPrefIntro:"Pick a time and we'll build your study reminders around it. Spread-out reminders (spaced over several days) work better for actually remembering the material than one big cram session — that's just how memory works. You only have to set this once; every module will reuse it.",
+    studyPrefTimeLabel:"What time of day?",
+    studyPrefCadenceLabel:"How do you want reminders spaced out?",
+    cadenceSpacedTitle:"Spaced reminders (recommended)", cadenceSpacedSub:"Short reminders 7, 3, and 1 day before the test — better for actually remembering it.",
+    cadenceSingleTitle:"One reminder only", cadenceSingleSub:"A single reminder 3 days before the test.",
+    studyPrefSave:"Save & add to calendar", studyPrefCancel:"Cancel",
+    changeStudyTime:"⏰ Study time settings",
+    estStudyTime:(mins)=> `⏱️ About ${mins} min to go over this module`,
+    icsStudyReminderTitle:(num,mins)=>`Study Module ${num} (~${mins} min)`,
     cumulativeLabel:"Cumulative Review", cumulativeLockedMsg:"Finish this module (all sections + module test) to unlock this review.",
     cumulativeAvailMsg:"Covers everything through this module. Pass at 70% to unlock the next module.",
     startCumulative:"Start cumulative review",
@@ -268,6 +297,16 @@ const T = {
     icsExamSummary:(num)=>`Día del examen del Módulo ${num}`,
     icsExamDesc:(title)=>`Día del examen para ${title}. Suerte, tú puedes.`,
     icsLinkLabel:"Enlace a la herramienta de estudio",
+    studyPrefTitle:"¿Cuándo te gusta estudiar?",
+    studyPrefIntro:"Elige una hora y armamos tus recordatorios de estudio alrededor de ella. Los recordatorios repartidos en varios días funcionan mejor para realmente recordar el material que una sola sesión de último momento — así es como funciona la memoria. Solo necesitas configurar esto una vez; cada módulo lo reutilizará.",
+    studyPrefTimeLabel:"¿A qué hora del día?",
+    studyPrefCadenceLabel:"¿Cómo quieres repartir los recordatorios?",
+    cadenceSpacedTitle:"Recordatorios repartidos (recomendado)", cadenceSpacedSub:"Recordatorios cortos 7, 3 y 1 día antes del examen — mejor para realmente recordarlo.",
+    cadenceSingleTitle:"Solo un recordatorio", cadenceSingleSub:"Un solo recordatorio 3 días antes del examen.",
+    studyPrefSave:"Guardar y agregar al calendario", studyPrefCancel:"Cancelar",
+    changeStudyTime:"⏰ Configurar hora de estudio",
+    estStudyTime:(mins)=> `⏱️ Unos ${mins} min para repasar este módulo`,
+    icsStudyReminderTitle:(num,mins)=>`Estudia el Módulo ${num} (~${mins} min)`,
     cumulativeLabel:"Repaso Acumulativo", cumulativeLockedMsg:"Termina este módulo (todas las secciones + su examen) para desbloquear este repaso.",
     cumulativeAvailMsg:"Cubre todo hasta este módulo. Apruébalo con 70% para desbloquear el siguiente módulo.",
     startCumulative:"Comenzar repaso acumulativo",
@@ -359,6 +398,43 @@ function openGlossary(key){
   document.getElementById('glossaryOverlay').style.display = 'flex';
 }
 function closeGlossary(){ document.getElementById('glossaryOverlay').style.display='none'; }
+
+/* ============ STUDY TIME / CADENCE PREFERENCE MODAL ============ */
+// onSave (optional): called after the person hits Save, with nothing to pass —
+// read prefs back out via getStudyPrefs(). Used so "Add to calendar" can chain
+// straight into a download the very first time, with no extra click needed.
+function openStudyPrefModal(onSave){
+  const existing = getStudyPrefs();
+  document.getElementById('studyPrefTitle').textContent = t('studyPrefTitle');
+  document.getElementById('studyPrefIntro').textContent = t('studyPrefIntro');
+  document.getElementById('studyPrefTimeLabel').textContent = t('studyPrefTimeLabel');
+  document.getElementById('studyPrefCadenceLabel').textContent = t('studyPrefCadenceLabel');
+  document.getElementById('studyPrefSaveBtn').textContent = t('studyPrefSave');
+  document.getElementById('studyPrefCancelBtn').textContent = t('studyPrefCancel');
+  document.getElementById('studyPrefTimeInput').value = existing ? existing.time : '19:00';
+  const cadence = existing ? existing.cadence : 'spaced';
+  const opts = [
+    {key:'spaced', title:t('cadenceSpacedTitle'), sub:t('cadenceSpacedSub')},
+    {key:'single', title:t('cadenceSingleTitle'), sub:t('cadenceSingleSub')}
+  ];
+  document.getElementById('studyPrefCadenceOpts').innerHTML = opts.map(o=>`
+    <label class="pref-cadence-opt">
+      <input type="radio" name="studyCadence" value="${o.key}" ${cadence===o.key?'checked':''}>
+      <div><div class="pco-title">${o.title}</div><div class="pco-sub">${o.sub}</div></div>
+    </label>
+  `).join('');
+  document.getElementById('studyPrefOverlay').style.display = 'flex';
+  document.getElementById('studyPrefSaveBtn').onclick = ()=>{
+    const time = document.getElementById('studyPrefTimeInput').value || '19:00';
+    const cadenceSel = document.querySelector('input[name="studyCadence"]:checked');
+    saveStudyPrefs({time, cadence: cadenceSel ? cadenceSel.value : 'spaced'});
+    document.getElementById('studyPrefOverlay').style.display = 'none';
+    if(onSave) onSave();
+  };
+  document.getElementById('studyPrefCancelBtn').onclick = ()=>{
+    document.getElementById('studyPrefOverlay').style.display = 'none';
+  };
+}
 
 /* ============ READ ALOUD (TEXT-TO-SPEECH) ============ */
 function stripHtml(html){
@@ -979,10 +1055,24 @@ function icsDatePlusDays(iso, days){
 function escapeICSText(s){
   return String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
 }
+// Rough "how long will this take" estimate so a reminder can tell someone what
+// they're actually signing up for, not just "go study." Not scientific — just
+// (question count * a bit) + (flashcard count * a bit) + a flat orientation
+// buffer, rounded to a friendly number. Returns null for not-yet-built modules
+// (no sections/test/cards to count yet).
+function estimateStudyMinutes(m){
+  const sections = m.sections || [];
+  const qCount = sections.reduce((sum,s)=> sum + (s.bank ? s.bank.length : 0), 0) + (m.moduleTest ? m.moduleTest.length : 0);
+  const cardCount = m.cards ? m.cards.length : 0;
+  if(qCount === 0 && cardCount === 0) return null;
+  let mins = Math.round((qCount*1.2 + cardCount*0.5) / 5) * 5;
+  mins += 15;
+  return Math.max(20, mins);
+}
+// All-day event (module start / test day) — DTEND is the next day per the
+// iCalendar spec for VALUE=DATE all-day events (end date is exclusive).
 function icsEvent({summary, description, dateObj}){
   const dt = icsDate(dateObj);
-  // All-day event: DTSTART is the date, DTEND is the next day (per iCalendar spec
-  // for VALUE=DATE all-day events, the end date is exclusive).
   const endObj = new Date(dateObj); endObj.setDate(endObj.getDate()+1);
   const uid = `${dt}-${Math.random().toString(36).slice(2)}@nccer-core-study`;
   return [
@@ -1000,25 +1090,76 @@ function icsEvent({summary, description, dateObj}){
     'END:VEVENT'
   ].join('\r\n');
 }
-// Builds one .ics file per module with up to 3 events: the module's start date,
-// a study-reminder 3 days before its test (if it has an exam date), and the test
-// day itself. Every description carries a link straight back to the study tool
-// (per Lawrence's request) so a reminder popping up on someone's phone has a
-// one-tap way back in, not just a note to "go study."
-function buildModuleICS(m){
+// Timed study-reminder event, at the person's chosen time of day, 45 minutes
+// long. Deliberately "floating" local time (no Z / TZID) so whatever device
+// this gets opened on shows it at that clock time on that device — the
+// simplest correct behavior for a personal study reminder.
+function icsTimedEvent({summary, description, dateObj, timeStr, durationMinutes}){
+  const [hh,mm] = timeStr.split(':').map(Number);
+  const start = new Date(dateObj); start.setHours(hh, mm, 0, 0);
+  const end = new Date(start); end.setMinutes(end.getMinutes() + (durationMinutes||45));
+  const fmt = (d)=> `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}T${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}00`;
+  const uid = `${fmt(start)}-${Math.random().toString(36).slice(2)}@nccer-core-study`;
+  return [
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTART:${fmt(start)}`,
+    `DTEND:${fmt(end)}`,
+    `SUMMARY:${escapeICSText(summary)}`,
+    `DESCRIPTION:${escapeICSText(description)}`,
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Reminder',
+    'TRIGGER:-PT15M',
+    'END:VALARM',
+    'END:VEVENT'
+  ].join('\r\n');
+}
+
+/* ---- study time preferences (saved once, reused for every module) ---- */
+const STUDY_PREF_KEY = 'nccer_study_prefs';
+function getStudyPrefs(){
+  try{ const raw = localStorage.getItem(STUDY_PREF_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ return null; }
+}
+function saveStudyPrefs(prefs){ localStorage.setItem(STUDY_PREF_KEY, JSON.stringify(prefs)); }
+// Spaced (recommended): reminders 7, 3, and 1 day before the test — distributed
+// practice beats one cram session for actually remembering the material.
+// Single: one reminder 3 days out, for anyone who'd rather keep it simple.
+const CADENCE_OFFSETS = { spaced:[-7,-3,-1], single:[-3] };
+
+// Builds one .ics file per module: the module's start date (all-day), one or
+// more timed study reminders leading up to the test (per the saved cadence
+// preference, at the saved time of day), and the test day itself (all-day).
+// Every description carries a link straight back to the study tool and the
+// estimated time the module takes, so a reminder popping up on someone's phone
+// tells them what they're actually signing up for, not just "go study."
+function buildModuleICS(m, prefs){
   const events = [];
+  const mins = estimateStudyMinutes(m);
+  const minsNote = mins ? `\n${t('estStudyTime')(mins)}` : '';
   events.push(icsEvent({
     summary: t('icsStartSummary')(m.num),
-    description: `${t('icsStartDesc')(m.title[lang])}\n\n${t('icsLinkLabel')}: ${STUDY_TOOL_URL}`,
+    description: `${t('icsStartDesc')(m.title[lang])}${minsNote}\n\n${t('icsLinkLabel')}: ${STUDY_TOOL_URL}`,
     dateObj: parseISODate(m.startDate)
   }));
   if(m.examDate){
     const examDisplay = formatDisplayDate(m.examDate);
-    events.push(icsEvent({
-      summary: t('icsStudySummary')(m.num),
-      description: `${t('icsStudyDesc')(m.title[lang], examDisplay)}\n\n${t('icsLinkLabel')}: ${STUDY_TOOL_URL}`,
-      dateObj: icsDatePlusDays(m.examDate, -3)
-    }));
+    const todayMidnight = new Date(); todayMidnight.setHours(0,0,0,0);
+    const startMidnight = parseISODate(m.startDate);
+    const offsets = CADENCE_OFFSETS[prefs.cadence] || CADENCE_OFFSETS.spaced;
+    offsets.forEach(offset=>{
+      const reminderDate = icsDatePlusDays(m.examDate, offset);
+      // Skip reminders that would land before the module even starts, or in the past.
+      if(reminderDate < startMidnight || reminderDate < todayMidnight) return;
+      const summary = mins ? t('icsStudyReminderTitle')(m.num, mins) : t('icsStudySummary')(m.num);
+      events.push(icsTimedEvent({
+        summary,
+        description: `${t('icsStudyDesc')(m.title[lang], examDisplay)}${minsNote}\n\n${t('icsLinkLabel')}: ${STUDY_TOOL_URL}`,
+        dateObj: reminderDate,
+        timeStr: prefs.time,
+        durationMinutes: mins || 45
+      }));
+    });
     events.push(icsEvent({
       summary: t('icsExamSummary')(m.num),
       description: `${t('icsExamDesc')(m.title[lang])}\n\n${t('icsLinkLabel')}: ${STUDY_TOOL_URL}`,
@@ -1034,14 +1175,23 @@ function buildModuleICS(m){
     'END:VCALENDAR'
   ].join('\r\n');
 }
-function downloadModuleICS(m){
-  const ics = buildModuleICS(m);
+function triggerICSDownload(m, prefs){
+  const ics = buildModuleICS(m, prefs);
   const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = `NCCER-Module-${m.num}.ics`;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=> URL.revokeObjectURL(url), 4000);
+}
+// Entry point every "Add to calendar" button calls. First time ever: opens the
+// one-time study-time/cadence picker, saves the answer, then downloads. Every
+// time after that: prefs are already saved, so this goes straight to the
+// download with zero extra clicks.
+function downloadModuleICS(m){
+  const prefs = getStudyPrefs();
+  if(prefs){ triggerICSDownload(m, prefs); return; }
+  openStudyPrefModal(()=> triggerICSDownload(m, getStudyPrefs()));
 }
 function buildQuickReviewBank(size){
   let pool = [];
@@ -1189,6 +1339,8 @@ function renderModuleMap(panel){
         if(dLeft === 0) dateLine += ` — <strong>${t('examToday')}</strong>`;
         else if(dLeft > 0 && dLeft <= 14) dateLine += ` — <strong>${t('examInDays')(dLeft)}</strong>`;
       }
+      const estMins = estimateStudyMinutes(m);
+      if(estMins) dateLine += `<div class="study-minutes">${t('estStudyTime')(estMins)}</div>`;
     }
     html += `<div class="module-card ${clickable?'clickable':''} ${!unlocked?'locked':''}" data-idx="${i}">
       <div style="flex:1;">
@@ -1257,6 +1409,8 @@ function renderModuleDetail(panel, i){
       if(dLeft === 0) detailDateLine += ` — <strong>${t('examToday')}</strong>`;
       else if(dLeft > 0 && dLeft <= 14) detailDateLine += ` — <strong>${t('examInDays')(dLeft)}</strong>`;
     }
+    const estMinsDetail = estimateStudyMinutes(m);
+    if(estMinsDetail) detailDateLine += `<div class="study-minutes">${t('estStudyTime')(estMinsDetail)}</div>`;
   }
   let html = `<div class="breadcrumb" id="backToMap">${t('backToModules')}</div>
     <h2><span class="mc-seq">${i+1}.</span> ${m.title[lang]}</h2>
@@ -1612,7 +1766,9 @@ function renderSupport(panel){
       <div class="tip-row"><span>${t('cashapp')}</span><span style="font-weight:700;">$AgentKodak</span></div>
       <div class="tip-row"><span>${t('zelle')}</span><span style="font-weight:700;">(571) 331-5770</span></div>
     </div>
+    <button class="small" id="changeStudyTimeBtn" style="margin-top:16px;background:transparent;border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;">${t('changeStudyTime')}</button>
   `;
+  document.getElementById('changeStudyTimeBtn').onclick = ()=> openStudyPrefModal(null);
 }
 
 /* ============ INIT ============ */
@@ -1620,6 +1776,7 @@ document.getElementById('btnEN').onclick = ()=> setLang('en');
 document.getElementById('btnES').onclick = ()=> setLang('es');
 document.getElementById('glossCloseBtn').onclick = ()=> closeGlossary();
 document.getElementById('glossaryOverlay').addEventListener('click', function(e){ if(e.target===this) closeGlossary(); });
+document.getElementById('studyPrefOverlay').addEventListener('click', function(e){ if(e.target===this) this.style.display='none'; });
 
 document.getElementById('btnTextSize').onclick = ()=>{ textScale = (textScale+1)%TEXT_SCALES.length; applyTextScale(); };
 document.getElementById('btnTheme').onclick = ()=>{ theme = theme==='light' ? 'dark' : 'light'; applyTheme(); };
