@@ -116,7 +116,7 @@ const T = {
   en:{
     subtitle:"NCCER Core: Introduction to Basic Construction Skills — free study tool",
     tabHome:"Modules", tabCards:"Flashcards", tabSupport:"Support",
-    homeIntro:"Score 85%+ on every section to unlock that module's test. Pass each module test at 70% (matches the real syllabus standard) to move forward. After finishing Module 2 or later, a Cumulative Review covering everything so far unlocks, also at 70%, before the next module opens.",
+    homeIntro:"Every module and test is open, jump to whatever you need to study. 70% is the passing score on module tests (matches the real syllabus standard), and there's a Cumulative Review after Module 2 covering everything so far.",
     glossaryHint:"Tip: any underlined word is tappable, tap it for a quick definition without losing your place.",
     locked:"Locked", unlocked:"Unlocked", completed:"Completed", comingSoon:"Coming soon", inProgress:"In progress",
     openModule:"Open", backToModules:"← Back to modules",
@@ -144,7 +144,7 @@ const T = {
   es:{
     subtitle:"NCCER Core: Introducción a Habilidades Básicas de Construcción — herramienta gratuita de estudio",
     tabHome:"Módulos", tabCards:"Tarjetas", tabSupport:"Apoyar",
-    homeIntro:"Obtén 85%+ en cada sección para desbloquear el examen de ese módulo. Aprueba cada examen de módulo con 70% (el estándar real del programa) para avanzar. Después de terminar el Módulo 2 o posterior, se desbloquea un Repaso Acumulativo de todo lo visto hasta ahora, también con 70%, antes de que se abra el siguiente módulo.",
+    homeIntro:"Todos los módulos y exámenes están abiertos, pasa al que necesites estudiar. 70% es la puntuación para aprobar los exámenes de módulo (el estándar real del programa), y hay un Repaso Acumulativo después del Módulo 2 que cubre todo lo visto hasta ahora.",
     glossaryHint:"Consejo: cualquier palabra subrayada se puede tocar para ver una definición rápida sin perder tu lugar.",
     locked:"Bloqueado", unlocked:"Desbloqueado", completed:"Completado", comingSoon:"Próximamente", inProgress:"En progreso",
     openModule:"Abrir", backToModules:"← Volver a los módulos",
@@ -622,12 +622,12 @@ function isModuleFullyDone(i){
   return secOk && p.testPassed;
 }
 function isCumulativePassed(i){ return cumulative['after_'+MODULES[i].id]?.passed === true; }
-function isCumulativeAvailable(i){ return i>=1 && isModuleFullyDone(i); }
+function isCumulativeAvailable(i){ return i>=1; }
+// Open access: any module with real content is available immediately. The only
+// thing gating a module now is whether it actually has content built yet
+// (comingSoon) — no more "pass the last module first" requirement.
 function isModuleUnlocked(i){
-  if(i===0) return true;
-  if(MODULES[i].comingSoon && !MODULES[i-1] ) return false;
-  if(i===1) return progress['m1']?.testPassed === true;
-  return isCumulativePassed(i-1);
+  return !MODULES[i].comingSoon;
 }
 function combinedTestBank(uptoIdx){
   let bank = [];
@@ -728,11 +728,9 @@ function renderModuleDetail(panel, i){
     </div>`;
   });
   html += `</div>`;
-  const allSecOk = m.openTest || m.sections.every(s=> (p.sec[s.key]||0) >= 85);
+  // Open access: the module test is always available, no need to hit 85% on every section first.
   html += `<h3>${t('moduleTestLabel')} <span class="hint">(${t('passThreshold')})</span></h3>`;
-  if(!allSecOk){
-    html += `<p class="hint">🔒 ${t('moduleTestLockedMsg')}</p>`;
-  } else {
+  {
     const testSc = p.testScore||0;
     const cls = testSc===0?'pending':(p.testPassed?'pass':'fail');
     const label = testSc===0? t('notStarted') : (p.testPassed? t('passed') : t('tryAgainTest'));
