@@ -50,8 +50,15 @@
   button.small{ width:auto; padding:8px 14px; font-size:0.82rem; }
   button.option{ display:block; width:100%; text-align:left; padding:12px 14px; margin:8px 0; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:0.9rem; }
   button.option:hover{ border-color:var(--accent); }
-  button.option.correct{ background:#dcfce7; border-color:var(--green); }
-  button.option.incorrect{ background:#fee2e2; border-color:var(--red); }
+  button.option.correct{ background:#bbf7d0; border:2px solid #15803d; color:#14532d; font-weight:700; }
+  button.option.incorrect{ background:#fecaca; border:2px solid #b91c1c; color:#7f1d1d; font-weight:700; }
+  button.option.selected{ background:#dbeafe; border:2px solid var(--accent); }
+  .review-item{ border:1px solid var(--border); border-radius:10px; padding:12px 14px; margin-bottom:10px; text-align:left; }
+  .review-item .rq{ font-weight:600; font-size:0.88rem; margin-bottom:6px; }
+  .review-item .ra{ font-size:0.84rem; margin-bottom:3px; }
+  .review-item .ra.wrong{ color:#b91c1c; }
+  .review-item .ra.right{ color:#15803d; }
+  .review-item .rexp{ font-size:0.82rem; color:var(--muted); margin-top:6px; padding-top:6px; border-top:1px dashed var(--border); }
   .q-count{ font-size:0.78rem; color:var(--muted); margin-bottom:6px; }
   .q-text{ font-size:1.02rem; font-weight:600; margin-bottom:12px; }
   .explain{ margin-top:12px; padding:12px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; font-size:0.86rem; display:none; }
@@ -131,7 +138,8 @@ const T = {
     supportIntro:"This tool is free for you and your classmates, no strings attached. If it helped you study, a small tip is appreciated but never expected.",
     cashapp:"Cash App", zelle:"Zelle",
     footer:"Made by a classmate, for classmates.",
-    close:"Close", selectModule:"Module", allSections:"All sections", readAloud:"🔊 Read aloud"
+    close:"Close", selectModule:"Module", allSections:"All sections", readAloud:"🔊 Read aloud",
+    reviewLabel:"Answer review", yourAnswer:"Your answer", correctAnswer:"Correct answer"
   },
   es:{
     subtitle:"NCCER Core: Introducción a Habilidades Básicas de Construcción — herramienta gratuita de estudio",
@@ -158,7 +166,8 @@ const T = {
     supportIntro:"Esta herramienta es gratuita para ti y tus compañeros, sin ningún compromiso. Si te ayudó a estudiar, una pequeña propina se agradece, pero nunca se espera.",
     cashapp:"Cash App", zelle:"Zelle",
     footer:"Hecho por un compañero de clase, para compañeros de clase.",
-    close:"Cerrar", selectModule:"Módulo", allSections:"Todas las secciones", readAloud:"🔊 Leer en voz alta"
+    close:"Cerrar", selectModule:"Módulo", allSections:"Todas las secciones", readAloud:"🔊 Leer en voz alta",
+    reviewLabel:"Repaso de respuestas", yourAnswer:"Tu respuesta", correctAnswer:"Respuesta correcta"
   }
 };
 
@@ -515,11 +524,11 @@ function renderModuleDetail(panel, i){
 }
 
 function startQuiz(cfg){
-  quizState = { ...cfg, idx:0, correctCount:0, answered:false };
+  quizState = { ...cfg, idx:0, correctCount:0, answered:false, selected:null, records:[] };
   renderQuizQuestion();
 }
 function startCumulativeTest(i){
-  quizState = { kind:'cumulative', modIdx:i, bank: combinedTestBank(i), threshold:70, idx:0, correctCount:0, answered:false };
+  quizState = { kind:'cumulative', modIdx:i, bank: combinedTestBank(i), threshold:70, idx:0, correctCount:0, answered:false, selected:null, records:[] };
   renderQuizQuestion();
 }
 
@@ -537,26 +546,28 @@ function renderQuizQuestion(){
   stopSpeaking();
   const panel = document.getElementById('panel');
   const item = quizState.bank[quizState.idx][lang];
-  // On the official module/cumulative test, options are shown plain (no auto-highlighted
-  // glossary terms) so the underline itself can't hint at the correct answer. A neutral
-  // "?" on every option lets a student look up a definition on demand instead.
+  // The official module/cumulative test mimics a real exam: no auto-highlighted glossary
+  // terms (a neutral "?" gives lookup on demand instead), you can change your pick before
+  // submitting, and right/wrong isn't revealed until the full test is done.
   const isOfficialTest = (quizState.kind==='moduleTest' || quizState.kind==='cumulative');
   let optsHtml = '';
   item.opts.forEach((opt,idx)=>{
     if(isOfficialTest){
-      optsHtml += `<button class="option" data-i="${idx}">${opt} <span class="opt-def-btn" data-opt="${idx}" style="display:inline-block;margin-left:6px;padding:0 6px;border:1px solid currentColor;border-radius:50%;font-size:0.75rem;opacity:0.7;cursor:pointer;">?</span></button>`;
+      const selCls = quizState.selected===idx ? ' selected' : '';
+      optsHtml += `<button class="option${selCls}" data-i="${idx}">${opt} <span class="opt-def-btn" data-opt="${idx}" style="display:inline-block;margin-left:6px;padding:0 6px;border:1px solid currentColor;border-radius:50%;font-size:0.75rem;opacity:0.7;cursor:pointer;">?</span></button>`;
     } else {
       optsHtml += `<button class="option" data-i="${idx}">${annotate(opt)}</button>`;
     }
   });
+  const officialNextLabel = quizState.idx+1===quizState.bank.length ? t('finishBtn') : t('nextBtn');
   panel.innerHTML = `
     <div class="q-count">${t('question')} ${quizState.idx+1} ${t('of')} ${quizState.bank.length}</div>
     <div class="q-text">${annotate(item.q)}</div>
     <button id="readAloudBtn" style="background:none;border:1px solid var(--accent2);color:var(--accent2);border-radius:6px;padding:4px 10px;font-size:0.78rem;margin-bottom:10px;cursor:pointer;">${t('readAloud')}</button>
     <div id="optsWrap">${optsHtml}</div>
-    <div class="explain" id="explainBox">${annotate(item.exp)}</div>
+    ${isOfficialTest ? '' : `<div class="explain" id="explainBox">${annotate(item.exp)}</div>`}
     <br>
-    <button class="primary" id="nextBtn" style="display:none;">${quizState.idx+1===quizState.bank.length ? t('finishBtn') : t('nextBtn')}</button>
+    <button class="primary" id="nextBtn" style="${isOfficialTest ? (quizState.selected===null?'opacity:0.5;':'') : 'display:none;'}">${isOfficialTest ? officialNextLabel : (quizState.idx+1===quizState.bank.length ? t('finishBtn') : t('nextBtn'))}</button>
   `;
   attachGlossaryHandlers(panel);
   if(isOfficialTest){
@@ -573,6 +584,26 @@ function renderQuizQuestion(){
     const optsText = item.opts.map((o,idx)=> `${optLabels[idx]}. ${o}`).join('. ');
     speak(item.q + '. ' + optsText);
   };
+
+  if(isOfficialTest){
+    document.querySelectorAll('#optsWrap .option').forEach(btn=>{
+      btn.onclick = ()=>{
+        quizState.selected = parseInt(btn.dataset.i);
+        renderQuizQuestion();
+      };
+    });
+    document.getElementById('nextBtn').onclick = ()=>{
+      if(quizState.selected===null) return;
+      const chosen = quizState.selected; const correct = item.c;
+      quizState.records.push({ q:item.q, opts:item.opts, chosen, correct, exp:item.exp, right: chosen===correct });
+      if(chosen===correct) quizState.correctCount++;
+      quizState.selected = null;
+      if(quizState.idx+1 < quizState.bank.length){ quizState.idx++; renderQuizQuestion(); }
+      else finishQuiz();
+    };
+    return;
+  }
+
   document.querySelectorAll('#optsWrap .option').forEach(btn=>{
     btn.onclick = ()=>{
       if(quizState.answered) return;
@@ -609,6 +640,20 @@ function finishQuiz(){
   }
   const failMsg = quizState.kind==='section' ? t('failMsgSection') : t('failMsgTest');
   const passMsg = quizState.kind==='section' ? t('passMsgSection') : t('passMsgTest');
+  const isOfficialTest = (quizState.kind==='moduleTest' || quizState.kind==='cumulative');
+  let reviewHtml = '';
+  if(isOfficialTest && quizState.records && quizState.records.length){
+    reviewHtml = `<h3>${t('reviewLabel')}</h3>` + quizState.records.map((r,i)=>{
+      const yourOpt = r.opts[r.chosen];
+      const correctOpt = r.opts[r.correct];
+      return `<div class="review-item">
+        <div class="rq">${i+1}. ${annotate(r.q)}</div>
+        <div class="ra ${r.right?'right':'wrong'}">${t('yourAnswer')}: ${yourOpt} ${r.right?'✓':'✗'}</div>
+        ${r.right ? '' : `<div class="ra right">${t('correctAnswer')}: ${correctOpt}</div>`}
+        <div class="rexp">${annotate(r.exp)}</div>
+      </div>`;
+    }).join('');
+  }
   panel.innerHTML = `
     <div class="result-big">
       <div class="result-pct ${passed?'pass':'fail'}">${pct}%</div>
@@ -617,7 +662,9 @@ function finishQuiz(){
     </div>
     <button class="primary" id="retakeQBtn">${t('retakeBtn')}</button><br><br>
     <button class="primary" id="backQBtn" style="background:#475569;">${t('backHome')}</button>
+    ${reviewHtml ? `<br><br>${reviewHtml}` : ''}
   `;
+  if(reviewHtml) attachGlossaryHandlers(panel);
   document.getElementById('retakeQBtn').onclick = ()=>{
     if(quizState.kind==='cumulative') startCumulativeTest(quizState.modIdx);
     else startQuiz(quizState);
