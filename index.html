@@ -246,11 +246,11 @@ const T = {
     flipHint:"Tap card to flip", flipBackHint:"Tap card to flip back",
     prevBtn:"← Prev", flipBtn:"Flip", nextCardBtn:"Next →", shuffleBtn:"🔀 Shuffle",
     supportIntro:"This tool is free. No login, no paywall, no catch. I built it to help you learn on the go, right from your phone.",
-    supportIntro2:"If it's helping you study, a small donation goes straight toward building the next module. That's how this stays free for every Owl who takes this class after you.",
+    supportIntro2:"If it's helping you study, a small donation goes straight toward building the next module. That's how this stays free for every student who comes after you.",
     supportHeading:"💛 Help build the next module",
-    donateNudge:"This tool is free and always will be. If it helped you study, consider tossing a few dollars toward the next module. 🦉",
-    cashapp:"Cash App", zelle:"Zelle",
-    footer:"Made by a classmate, for classmates.",
+    donateNudge:"This tool is free and always will be. If it helped you study, consider tossing a few dollars toward the next module.",
+    cashapp:"Cash App",
+    footer:"Built by <a href='https://lawrencetotimeh.com' style='color:inherit'>Lawrence Totimeh Jr.</a> · Independent study tool, not affiliated with or endorsed by NCCER.",
     close:"Close", selectModule:"Module", allSections:"All sections", readAloud:"🔊 Read aloud",
     reviewLabel:"Answer review", yourAnswer:"Your answer", correctAnswer:"Correct answer",
     continueLabel:"Continue where you left off", quickReviewTitle:"⚡ Quick Review",
@@ -313,11 +313,11 @@ const T = {
     flipHint:"Toca la tarjeta para voltear", flipBackHint:"Toca para voltear de nuevo",
     prevBtn:"← Anterior", flipBtn:"Voltear", nextCardBtn:"Siguiente →", shuffleBtn:"🔀 Mezclar",
     supportIntro:"Esta herramienta es gratuita. Sin inicio de sesión, sin muro de pago, sin trampa. La construí para ayudarte a aprender sobre la marcha, directo desde tu teléfono.",
-    supportIntro2:"Si te está ayudando a estudiar, una pequeña donación va directo a construir el próximo módulo. Así es como esto se mantiene gratis para cada Owl que tome esta clase después de ti.",
+    supportIntro2:"Si te está ayudando a estudiar, una pequeña donación va directo a construir el próximo módulo. Así es como esto se mantiene gratis para cada estudiante que venga después de ti.",
     supportHeading:"💛 Ayuda a construir el próximo módulo",
-    donateNudge:"Esta herramienta es gratis y siempre lo será. Si te ayudó a estudiar, considera aportar unos dólares para el próximo módulo. 🦉",
-    cashapp:"Cash App", zelle:"Zelle",
-    footer:"Hecho por un compañero de clase, para compañeros de clase.",
+    donateNudge:"Esta herramienta es gratis y siempre lo será. Si te ayudó a estudiar, considera aportar unos dólares para el próximo módulo.",
+    cashapp:"Cash App",
+    footer:"Creado por <a href='https://lawrencetotimeh.com' style='color:inherit'>Lawrence Totimeh Jr.</a> · Herramienta independiente, no afiliada ni avalada por NCCER.",
     close:"Cerrar", selectModule:"Módulo", allSections:"Todas las secciones", readAloud:"🔊 Leer en voz alta",
     reviewLabel:"Repaso de respuestas", yourAnswer:"Tu respuesta", correctAnswer:"Respuesta correcta",
     continueLabel:"Continuar donde lo dejaste", quickReviewTitle:"⚡ Repaso Rápido",
@@ -1260,7 +1260,7 @@ function setLang(l){
   document.getElementById('btnEN').classList.toggle('active', l==='en');
   document.getElementById('btnES').classList.toggle('active', l==='es');
   document.getElementById('subtitle').textContent = t('subtitle');
-  document.getElementById('footerNote').textContent = t('footer');
+  document.getElementById('footerNote').innerHTML = t('footer');
   document.getElementById('glossCloseBtn').textContent = t('close');
   if(document.getElementById('onboardingOverlay').style.display === 'flex'){
     document.getElementById('onboardTitle').textContent = t('onboardTitle');
@@ -1764,7 +1764,6 @@ function renderSupport(panel){
     <div class="tip-box">
       <h3>${t('supportHeading')}</h3>
       <div class="tip-row"><span>${t('cashapp')}</span><span style="font-weight:700;">$AgentKodak</span></div>
-      <div class="tip-row"><span>${t('zelle')}</span><span style="font-weight:700;">(571) 331-5770</span></div>
     </div>
     <button class="small" id="changeStudyTimeBtn" style="margin-top:16px;background:transparent;border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;">${t('changeStudyTime')}</button>
   `;
