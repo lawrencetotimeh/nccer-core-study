@@ -199,7 +199,10 @@ const T = {
     startCumulative:"Start cumulative review",
     flipHint:"Tap card to flip", flipBackHint:"Tap card to flip back",
     prevBtn:"← Prev", flipBtn:"Flip", nextCardBtn:"Next →", shuffleBtn:"🔀 Shuffle",
-    supportIntro:"This tool is free for you and your classmates, no strings attached. If it helped you study, a small tip is appreciated but never expected.",
+    supportIntro:"This tool is free. No login, no paywall, no catch. I built it because I needed it for my own NCCER class and figured the rest of you would too.",
+    supportIntro2:"If it's helping you study, a small donation goes straight toward building the next module. That's how this stays free for every Owl who takes this class after you.",
+    supportHeading:"💛 Help build the next module",
+    donateNudge:"This tool is free and always will be. If it helped you study, consider tossing a few dollars toward the next module. 🦉",
     cashapp:"Cash App", zelle:"Zelle",
     footer:"Made by a classmate, for classmates.",
     close:"Close", selectModule:"Module", allSections:"All sections", readAloud:"🔊 Read aloud",
@@ -244,7 +247,10 @@ const T = {
     startCumulative:"Comenzar repaso acumulativo",
     flipHint:"Toca la tarjeta para voltear", flipBackHint:"Toca para voltear de nuevo",
     prevBtn:"← Anterior", flipBtn:"Voltear", nextCardBtn:"Siguiente →", shuffleBtn:"🔀 Mezclar",
-    supportIntro:"Esta herramienta es gratuita para ti y tus compañeros, sin ningún compromiso. Si te ayudó a estudiar, una pequeña propina se agradece, pero nunca se espera.",
+    supportIntro:"Esta herramienta es gratuita. Sin inicio de sesión, sin muro de pago, sin trampa. La construí porque la necesitaba para mi propia clase de NCCER y pensé que a ustedes también les serviría.",
+    supportIntro2:"Si te está ayudando a estudiar, una pequeña donación va directo a construir el próximo módulo. Así es como esto se mantiene gratis para cada Owl que tome esta clase después de ti.",
+    supportHeading:"💛 Ayuda a construir el próximo módulo",
+    donateNudge:"Esta herramienta es gratis y siempre lo será. Si te ayudó a estudiar, considera aportar unos dólares para el próximo módulo. 🦉",
     cashapp:"Cash App", zelle:"Zelle",
     footer:"Hecho por un compañero de clase, para compañeros de clase.",
     close:"Cerrar", selectModule:"Módulo", allSections:"Todas las secciones", readAloud:"🔊 Leer en voz alta",
@@ -1068,7 +1074,10 @@ function renderModuleMap(panel){
       }
     }
   }
+  html += `<div class="donate-nudge" id="donateNudge" style="margin-top:18px; padding:12px 14px; border-radius:10px; background:var(--card-alt, rgba(250,204,21,0.1)); cursor:pointer; font-size:0.92rem;">${t('donateNudge')}</div>`;
   panel.innerHTML = html;
+  const donateNudge = document.getElementById('donateNudge');
+  if(donateNudge) donateNudge.onclick = ()=>{ topTab='support'; homeView=null; quizState=null; renderTopTabs(); renderPanel(); };
   panel.querySelectorAll('.module-card.clickable').forEach(el=>{
     el.onclick = ()=>{ homeView = {modIdx: parseInt(el.dataset.idx)}; renderPanel(); };
   });
@@ -1352,12 +1361,15 @@ function finishQuiz(){
       <div class="result-msg">${passed ? passMsg : failMsg}</div>
       <div class="result-msg" style="margin-top:8px; font-weight:600;">${t('retakeEncourage')}</div>
       ${!passed ? `<div class="result-msg" style="margin-top:6px; color:var(--muted); font-size:0.88rem;">${t('retakeTips')}</div>` : ''}
+      ${passed ? `<div class="donate-nudge" id="resultDonateNudge" style="margin-top:12px; padding:10px 14px; border-radius:10px; background:var(--card-alt, rgba(250,204,21,0.1)); cursor:pointer; font-size:0.88rem; text-align:left;">${t('donateNudge')}</div>` : ''}
     </div>
     <button class="primary" id="retakeQBtn">${t('retakeBtn')}</button><br><br>
     <button class="primary" id="backQBtn" style="background:#475569;">${t('backHome')}</button>
     ${reviewHtml ? `<br><br>${reviewHtml}` : ''}
   `;
   if(reviewHtml) attachGlossaryHandlers(panel);
+  const resultDonateNudge = document.getElementById('resultDonateNudge');
+  if(resultDonateNudge) resultDonateNudge.onclick = ()=>{ topTab='support'; homeView=null; quizState=null; renderTopTabs(); renderPanel(); };
   document.getElementById('retakeQBtn').onclick = ()=>{
     if(quizState.kind==='cumulative') startCumulativeTest(quizState.modIdx);
     else if(quizState.kind==='quick') startQuiz({kind:'quick', bank: buildQuickReviewBank(10), threshold:70});
@@ -1422,8 +1434,9 @@ function renderCards(panel){
 function renderSupport(panel){
   panel.innerHTML = `
     <p>${t('supportIntro')}</p>
+    <p>${t('supportIntro2')}</p>
     <div class="tip-box">
-      <h3>💛 ${lang==='en'?'Support the maker':'Apoya al creador'}</h3>
+      <h3>${t('supportHeading')}</h3>
       <div class="tip-row"><span>${t('cashapp')}</span><span style="font-weight:700;">$AgentKodak</span></div>
       <div class="tip-row"><span>${t('zelle')}</span><span style="font-weight:700;">(571) 331-5770</span></div>
     </div>
