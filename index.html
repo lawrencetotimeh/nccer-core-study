@@ -40,6 +40,10 @@
   .badge.done{ background:#dcfce7; color:var(--green); }
   .badge.coming{ background:#e0e7ff; color:#4338ca; }
   .cum-card{ border:2px dashed #93c5fd; border-radius:12px; padding:14px 16px; margin:4px 0 14px; background:#eff6ff; }
+  .test-box{ border:2px solid var(--accent); border-radius:14px; padding:16px 18px; margin:6px 0 18px; background:var(--test-box-bg, #fff7ed); }
+  .test-box h3{ margin-top:0; }
+  button.test-btn{ background:var(--accent); color:#fff; border:none; padding:16px 18px; border-radius:12px; font-size:1.05rem; font-weight:700; cursor:pointer; width:100%; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
+  button.test-btn:hover{ background:var(--accent2); }
   .score-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin:14px 0; }
   .score-card{ border:1px solid var(--border); border-radius:10px; padding:12px; text-align:center; }
   .score-card .pct{ font-size:1.3rem; font-weight:700; }
@@ -1111,13 +1115,18 @@ function renderModuleDetail(panel, i){
   });
   html += `</div>`;
   // Open access: the module test is always available, no need to hit 85% on every section first.
-  html += `<h3>${t('moduleTestLabel')} <span class="hint">(${t('passThreshold')})</span></h3>`;
+  // Wrapped in a bordered, colored "test-box" (like the cumulative-review card) so this button
+  // doesn't get lost on the page underneath the section score grid.
   {
     const testSc = p.testScore||0;
     const cls = testSc===0?'pending':(p.testPassed?'pass':'fail');
     const label = testSc===0? t('notStarted') : (p.testPassed? t('passed') : t('tryAgainTest'));
-    html += `<div class="score-card" style="max-width:220px;margin-bottom:10px;"><div class="pct ${cls}">${testSc}%</div><div class="lbl">${label}</div></div>
-      <button class="primary" id="startModTestBtn">${testSc>0? t('retakeBtn') : t('startTest')}</button>`;
+    const btnLabel = testSc>0 ? `🔁 ${t('retakeBtn')}` : `📝 ${t('startTest')}`;
+    html += `<div class="test-box">
+      <h3>${t('moduleTestLabel')} <span class="hint">(${t('passThreshold')})</span></h3>
+      <div class="score-card" style="max-width:220px;margin-bottom:12px;background:transparent;"><div class="pct ${cls}">${testSc}%</div><div class="lbl">${label}</div></div>
+      <button class="test-btn" id="startModTestBtn">${btnLabel}</button>
+    </div>`;
   }
   panel.innerHTML = html;
   document.getElementById('backToMap').onclick = ()=>{ homeView=null; renderPanel(); };
