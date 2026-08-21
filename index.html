@@ -34,6 +34,9 @@
   .module-card.locked{ opacity:0.55; }
   .module-card .mc-title{ font-weight:600; font-size:0.95rem; }
   .module-card .mc-sub{ font-size:0.75rem; color:var(--muted); margin-top:2px; }
+  .module-card .mc-date{ font-size:0.75rem; color:var(--muted); margin-top:4px; }
+  button.cal-btn{ width:auto; padding:5px 10px; font-size:0.72rem; background:transparent; border:1px solid var(--accent); color:var(--accent); border-radius:8px; cursor:pointer; white-space:nowrap; }
+  button.cal-btn:hover{ background:var(--accent); color:#fff; }
   .badge{ font-size:0.7rem; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap; }
   .badge.locked{ background:#f1f5f9; color:var(--muted); }
   .badge.progress{ background:#fef3c7; color:var(--amber); }
@@ -198,6 +201,15 @@ const T = {
     moduleTestLockedMsg:"Score 85%+ on all sections in this module to unlock its test.",
     moduleTestLabel:"Module Test", startTest:"Start module test", passThreshold:"Passing score: 70%",
     sectionThreshold:"Target: 85%+",
+    startsOn:"Starts", startedOn:"Started", examOn:"Test", examToday:"Test day is today!",
+    examInDays:(n)=> n===1 ? "Test in 1 day" : `Test in ${n} days`,
+    addToCalendar:"📅 Add to calendar", icsStartSummary:(num)=>`NCCER Module ${num} starts`,
+    icsStartDesc:(title)=>`Time to start studying ${title} on the NCCER Core study tool.`,
+    icsStudySummary:(num)=>`Study for Module ${num} test!`,
+    icsStudyDesc:(title,examDate)=>`Your ${title} test is on ${examDate}. Open the study tool and review the sections + flashcards before then.`,
+    icsExamSummary:(num)=>`Module ${num} test day`,
+    icsExamDesc:(title)=>`Test day for ${title}. Good luck — you've got this.`,
+    icsLinkLabel:"Study tool link",
     cumulativeLabel:"Cumulative Review", cumulativeLockedMsg:"Finish this module (all sections + module test) to unlock this review.",
     cumulativeAvailMsg:"Covers everything through this module. Pass at 70% to unlock the next module.",
     startCumulative:"Start cumulative review",
@@ -246,6 +258,15 @@ const T = {
     moduleTestLockedMsg:"Obtén 85%+ en todas las secciones de este módulo para desbloquear su examen.",
     moduleTestLabel:"Examen del Módulo", startTest:"Comenzar examen del módulo", passThreshold:"Puntaje para aprobar: 70%",
     sectionThreshold:"Meta: 85%+",
+    startsOn:"Comienza", startedOn:"Comenzó", examOn:"Examen", examToday:"¡El examen es hoy!",
+    examInDays:(n)=> n===1 ? "Examen en 1 día" : `Examen en ${n} días`,
+    addToCalendar:"📅 Agregar al calendario", icsStartSummary:(num)=>`Comienza el Módulo ${num} de NCCER`,
+    icsStartDesc:(title)=>`Es hora de empezar a estudiar ${title} en la herramienta de estudio de NCCER Core.`,
+    icsStudySummary:(num)=>`¡Estudia para el examen del Módulo ${num}!`,
+    icsStudyDesc:(title,examDate)=>`Tu examen del ${title} es el ${examDate}. Abre la herramienta de estudio y repasa las secciones + tarjetas antes de esa fecha.`,
+    icsExamSummary:(num)=>`Día del examen del Módulo ${num}`,
+    icsExamDesc:(title)=>`Día del examen para ${title}. Suerte, tú puedes.`,
+    icsLinkLabel:"Enlace a la herramienta de estudio",
     cumulativeLabel:"Repaso Acumulativo", cumulativeLockedMsg:"Termina este módulo (todas las secciones + su examen) para desbloquear este repaso.",
     cumulativeAvailMsg:"Cubre todo hasta este módulo. Apruébalo con 70% para desbloquear el siguiente módulo.",
     startCumulative:"Comenzar repaso acumulativo",
@@ -837,9 +858,15 @@ const M3_CARDS = [
 ];
 
 /* ============ MODULES REGISTRY ============ */
-// Slot in Module 2's content the same way Module 1 is built, then flip comingSoon to false.
+// Listed in true numeric module-number order (00100 -> 00109), matching the
+// textbook/syllabus's own numbering, NOT this class's teaching order (which jumps
+// around — see startDate/examDate on each entry for when the class actually
+// covers it). num/startDate/examDate come straight from the confirmed syllabus
+// schedule (BLD-1010, Satterwhite) so the site can show "starts on" / "test on"
+// per module and build "add to calendar" reminders from real dates.
 const MODULES = [
-  { id:'m1', comingSoon:false, openTest:true,
+  { id:'m1', comingSoon:false, openTest:true, num:'00100',
+    startDate:'2026-08-21', examDate:'2026-08-21',
     title:{en:"Module 00100: Build Your Future in Construction", es:"Módulo 00100: Construye Tu Futuro en la Construcción"},
     sections:[
       {key:'s1', label:{en:"1. Industry Overview", es:"1. Panorama de la Industria"}, bank:M1_SECTION1},
@@ -849,7 +876,8 @@ const MODULES = [
     ],
     moduleTest: M1_TEST, cards: M1_CARDS
   },
-  { id:'m2', comingSoon:false, openTest:true,
+  { id:'m2', comingSoon:false, openTest:true, num:'00101',
+    startDate:'2026-08-26', examDate:'2026-09-02',
     title:{en:"Module 00101: Basic Safety", es:"Módulo 00101: Seguridad Básica"},
     sections:[
       {key:'s1', label:{en:"1. Safety and Hazard Recognition", es:"1. Seguridad y Reconocimiento de Riesgos"}, bank:M2_SECTION1},
@@ -861,10 +889,16 @@ const MODULES = [
     ],
     moduleTest: M2_TEST, cards: M2_CARDS
   },
-  // Order below matches this class's actual syllabus teaching sequence (not the
-  // textbook's numeric module order) — module numbers/titles confirmed against
-  // the NCCER Core, 6th Edition course map on the book's inside cover.
-  { id:'m3', comingSoon:false, openTest:true,
+  { id:'m7', comingSoon:true, num:'00102', startDate:'2026-10-16', examDate:'2026-10-23', title:{en:"Module 00102: Introduction to Construction Math", es:"Módulo 00102: Introducción a las Matemáticas de Construcción"} },
+  { id:'m5', comingSoon:true, num:'00103', startDate:'2026-09-23', examDate:'2026-10-02', title:{en:"Module 00103: Introduction to Hand Tools", es:"Módulo 00103: Introducción a las Herramientas Manuales"} },
+  { id:'m6', comingSoon:true, num:'00104', startDate:'2026-10-07', examDate:'2026-10-14', title:{en:"Module 00104: Introduction to Power Tools", es:"Módulo 00104: Introducción a las Herramientas Eléctricas"} },
+  { id:'m8', comingSoon:true, num:'00105', startDate:'2026-10-28', examDate:'2026-11-04', title:{en:"Module 00105: Introduction to Construction Drawings", es:"Módulo 00105: Introducción a los Planos de Construcción"} },
+  { id:'m9', comingSoon:true, num:'00106', startDate:'2026-11-06', examDate:'2026-11-11', title:{en:"Module 00106: Introduction to Basic Rigging", es:"Módulo 00106: Introducción al Aparejamiento Básico"} },
+  // Order note: this class actually teaches 00107/00108 right after 00101 (see
+  // startDate below) — that's reflected in the dates, not in list position, since
+  // this list is sorted by module number to match the syllabus/textbook order.
+  { id:'m3', comingSoon:false, openTest:true, num:'00107',
+    startDate:'2026-09-04', examDate:'2026-09-09',
     title:{en:"Module 00107: Basic Communication Skills", es:"Módulo 00107: Habilidades Básicas de Comunicación"},
     sections:[
       {key:'s1', label:{en:"1. Communication", es:"1. Comunicación"}, bank:M3_SECTION1},
@@ -872,13 +906,8 @@ const MODULES = [
     ],
     moduleTest: M3_TEST, cards: M3_CARDS
   },
-  { id:'m4', comingSoon:true, title:{en:"Module 00108: Basic Employability Skills", es:"Módulo 00108: Habilidades Básicas de Empleabilidad"} },
-  { id:'m5', comingSoon:true, title:{en:"Module 00103: Introduction to Hand Tools", es:"Módulo 00103: Introducción a las Herramientas Manuales"} },
-  { id:'m6', comingSoon:true, title:{en:"Module 00104: Introduction to Power Tools", es:"Módulo 00104: Introducción a las Herramientas Eléctricas"} },
-  { id:'m7', comingSoon:true, title:{en:"Module 00102: Introduction to Construction Math", es:"Módulo 00102: Introducción a las Matemáticas de Construcción"} },
-  { id:'m8', comingSoon:true, title:{en:"Module 00105: Introduction to Construction Drawings", es:"Módulo 00105: Introducción a los Planos de Construcción"} },
-  { id:'m9', comingSoon:true, title:{en:"Module 00106: Introduction to Basic Rigging", es:"Módulo 00106: Introducción al Aparejamiento Básico"} },
-  { id:'m10', comingSoon:true, title:{en:"Module 00109: Introduction to Material Handling", es:"Módulo 00109: Introducción al Manejo de Materiales"} }
+  { id:'m4', comingSoon:true, num:'00108', startDate:'2026-09-11', examDate:'2026-09-18', title:{en:"Module 00108: Basic Employability Skills", es:"Módulo 00108: Habilidades Básicas de Empleabilidad"} },
+  { id:'m10', comingSoon:true, num:'00109', startDate:'2026-11-13', examDate:'2026-11-13', title:{en:"Module 00109: Introduction to Material Handling", es:"Módulo 00109: Introducción al Manejo de Materiales"} }
 ];
 
 /* ============ STATE ============ */
@@ -923,6 +952,96 @@ function shuffleArray(arr){
   const a = arr.slice();
   for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
   return a;
+}
+
+/* ---- module dates + "add to calendar" (.ics) ---- */
+const STUDY_TOOL_URL = 'https://lawrencetotimeh.com/nccer-core-study/';
+// Parse a plain "YYYY-MM-DD" as LOCAL midnight (not UTC) so the displayed/compared
+// date never shifts a day off in negative-UTC-offset timezones.
+function parseISODate(iso){ const [y,m,d] = iso.split('-').map(Number); return new Date(y, m-1, d); }
+function formatDisplayDate(iso){
+  return parseISODate(iso).toLocaleDateString(lang==='es'?'es-ES':'en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+function daysUntil(iso){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const target = parseISODate(iso);
+  return Math.round((target - today) / 86400000);
+}
+// ICS date format for an all-day VALUE=DATE event: YYYYMMDD, computed from the
+// local-midnight parse above (not toISOString, which can shift a day via UTC).
+function icsDate(dateObj){
+  const y=dateObj.getFullYear(), m=String(dateObj.getMonth()+1).padStart(2,'0'), d=String(dateObj.getDate()).padStart(2,'0');
+  return `${y}${m}${d}`;
+}
+function icsDatePlusDays(iso, days){
+  const d = parseISODate(iso); d.setDate(d.getDate()+days); return d;
+}
+function escapeICSText(s){
+  return String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+}
+function icsEvent({summary, description, dateObj}){
+  const dt = icsDate(dateObj);
+  // All-day event: DTSTART is the date, DTEND is the next day (per iCalendar spec
+  // for VALUE=DATE all-day events, the end date is exclusive).
+  const endObj = new Date(dateObj); endObj.setDate(endObj.getDate()+1);
+  const uid = `${dt}-${Math.random().toString(36).slice(2)}@nccer-core-study`;
+  return [
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTART;VALUE=DATE:${dt}`,
+    `DTEND;VALUE=DATE:${icsDate(endObj)}`,
+    `SUMMARY:${escapeICSText(summary)}`,
+    `DESCRIPTION:${escapeICSText(description)}`,
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Reminder',
+    'TRIGGER:-PT9H',
+    'END:VALARM',
+    'END:VEVENT'
+  ].join('\r\n');
+}
+// Builds one .ics file per module with up to 3 events: the module's start date,
+// a study-reminder 3 days before its test (if it has an exam date), and the test
+// day itself. Every description carries a link straight back to the study tool
+// (per Lawrence's request) so a reminder popping up on someone's phone has a
+// one-tap way back in, not just a note to "go study."
+function buildModuleICS(m){
+  const events = [];
+  events.push(icsEvent({
+    summary: t('icsStartSummary')(m.num),
+    description: `${t('icsStartDesc')(m.title[lang])}\n\n${t('icsLinkLabel')}: ${STUDY_TOOL_URL}`,
+    dateObj: parseISODate(m.startDate)
+  }));
+  if(m.examDate){
+    const examDisplay = formatDisplayDate(m.examDate);
+    events.push(icsEvent({
+      summary: t('icsStudySummary')(m.num),
+      description: `${t('icsStudyDesc')(m.title[lang], examDisplay)}\n\n${t('icsLinkLabel')}: ${STUDY_TOOL_URL}`,
+      dateObj: icsDatePlusDays(m.examDate, -3)
+    }));
+    events.push(icsEvent({
+      summary: t('icsExamSummary')(m.num),
+      description: `${t('icsExamDesc')(m.title[lang])}\n\n${t('icsLinkLabel')}: ${STUDY_TOOL_URL}`,
+      dateObj: parseISODate(m.examDate)
+    }));
+  }
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//NCCER Core Study Tool//EN',
+    'CALSCALE:GREGORIAN',
+    ...events,
+    'END:VCALENDAR'
+  ].join('\r\n');
+}
+function downloadModuleICS(m){
+  const ics = buildModuleICS(m);
+  const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `NCCER-Module-${m.num}.ics`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=> URL.revokeObjectURL(url), 4000);
 }
 function buildQuickReviewBank(size){
   let pool = [];
@@ -1060,18 +1179,39 @@ function renderModuleMap(panel){
     const m = MODULES[i];
     const unlocked = isModuleUnlocked(i);
     const clickable = unlocked && !m.comingSoon;
+    let dateLine = '';
+    if(m.startDate){
+      const started = daysUntil(m.startDate) <= 0;
+      dateLine += `📅 ${started? t('startedOn') : t('startsOn')} ${formatDisplayDate(m.startDate)}`;
+      if(m.examDate){
+        const dLeft = daysUntil(m.examDate);
+        dateLine += ` &nbsp;·&nbsp; 📝 ${t('examOn')}: ${formatDisplayDate(m.examDate)}`;
+        if(dLeft === 0) dateLine += ` — <strong>${t('examToday')}</strong>`;
+        else if(dLeft > 0 && dLeft <= 14) dateLine += ` — <strong>${t('examInDays')(dLeft)}</strong>`;
+      }
+    }
     html += `<div class="module-card ${clickable?'clickable':''} ${!unlocked?'locked':''}" data-idx="${i}">
-      <div><div class="mc-title">${m.title[lang]}</div></div>
-      ${statusBadge(i)}
+      <div style="flex:1;">
+        <div class="mc-title">${m.title[lang]}</div>
+        ${dateLine ? `<div class="mc-date">${dateLine}</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+        ${statusBadge(i)}
+        ${m.startDate ? `<button class="small cal-btn" data-cal-idx="${i}">${t('addToCalendar')}</button>` : ''}
+      </div>
     </div>`;
     if(i>=1 && !MODULES[i].comingSoon){
       const avail = isCumulativeAvailable(i);
       const passed = isCumulativePassed(i);
       const nextLocked = MODULES[i+1] && MODULES[i+1].comingSoon;
       if(avail || passed){
+        // List is sorted by module number, not teaching order, so "Modules 1-N" would
+        // misstate which modules are actually built into this cumulative test. List the
+        // real (non-comingSoon) module numbers included instead.
+        const builtNums = MODULES.slice(0, i+1).filter(x=>!x.comingSoon).map(x=>x.num).join(' + ');
         html += `<div class="cum-card" data-cum="${i}">
           <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div><strong>${t('cumulativeLabel')}</strong><div class="hint" style="margin:2px 0 0;">Modules 1–${i+1}</div></div>
+            <div><strong>${t('cumulativeLabel')}</strong><div class="hint" style="margin:2px 0 0;">${builtNums}</div></div>
             ${passed ? `<span class="badge done">✓ ${t('completed')}</span>` : `<span class="badge progress">${t('inProgress')}</span>`}
           </div>
         </div>`;
@@ -1084,6 +1224,9 @@ function renderModuleMap(panel){
   if(donateNudge) donateNudge.onclick = ()=>{ topTab='support'; homeView=null; quizState=null; renderTopTabs(); renderPanel(); };
   panel.querySelectorAll('.module-card.clickable').forEach(el=>{
     el.onclick = ()=>{ homeView = {modIdx: parseInt(el.dataset.idx)}; renderPanel(); };
+  });
+  panel.querySelectorAll('.cal-btn').forEach(el=>{
+    el.onclick = (e)=>{ e.stopPropagation(); downloadModuleICS(MODULES[parseInt(el.dataset.calIdx)]); };
   });
   panel.querySelectorAll('.cum-card').forEach(el=>{
     el.onclick = ()=>{
@@ -1104,7 +1247,24 @@ function renderModuleDetail(panel, i){
   const m = MODULES[i];
   lastModIdx = i; localStorage.setItem('nccer_last_mod', i);
   const p = ensureProgress(m.id);
-  let html = `<div class="breadcrumb" id="backToMap">${t('backToModules')}</div><h2>${m.title[lang]}</h2><div class="score-grid">`;
+  let detailDateLine = '';
+  if(m.startDate){
+    const started = daysUntil(m.startDate) <= 0;
+    detailDateLine += `📅 ${started? t('startedOn') : t('startsOn')} ${formatDisplayDate(m.startDate)}`;
+    if(m.examDate){
+      const dLeft = daysUntil(m.examDate);
+      detailDateLine += ` &nbsp;·&nbsp; 📝 ${t('examOn')}: ${formatDisplayDate(m.examDate)}`;
+      if(dLeft === 0) detailDateLine += ` — <strong>${t('examToday')}</strong>`;
+      else if(dLeft > 0 && dLeft <= 14) detailDateLine += ` — <strong>${t('examInDays')(dLeft)}</strong>`;
+    }
+  }
+  let html = `<div class="breadcrumb" id="backToMap">${t('backToModules')}</div>
+    <h2>${m.title[lang]}</h2>
+    ${detailDateLine ? `<div class="mc-date" style="margin:-6px 0 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+      <span>${detailDateLine}</span>
+      <button class="small cal-btn" data-cal-idx="${i}">${t('addToCalendar')}</button>
+    </div>` : ''}
+    <div class="score-grid">`;
   m.sections.forEach(s=>{
     const sc = p.sec[s.key]||0;
     const cls = sc===0?'pending':(sc>=85?'pass':'fail');
@@ -1130,6 +1290,9 @@ function renderModuleDetail(panel, i){
   }
   panel.innerHTML = html;
   document.getElementById('backToMap').onclick = ()=>{ homeView=null; renderPanel(); };
+  panel.querySelectorAll('.cal-btn').forEach(el=>{
+    el.onclick = (e)=>{ e.stopPropagation(); downloadModuleICS(MODULES[parseInt(el.dataset.calIdx)]); };
+  });
   panel.querySelectorAll('.score-card[data-sec]').forEach(el=>{
     el.onclick = ()=>{
       const key = el.dataset.sec;
