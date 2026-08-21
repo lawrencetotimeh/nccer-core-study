@@ -116,6 +116,20 @@
   /* bigger, easier-to-tap answer buttons */
   button.option{ min-height:44px; }
   button.primary{ min-height:46px; }
+
+  /* ---- Duolingo-style mixed question types: fill-in-the-blank word bank + matching ---- */
+  .type-tag{ display:inline-block; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; color:var(--accent2); background:#eff6ff; border:1px solid #bfdbfe; border-radius:999px; padding:2px 9px; margin-bottom:8px; }
+  #optsWrap.chips{ display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+  #optsWrap.chips button.option{ display:inline-block; width:auto; margin:0; padding:9px 16px; border-radius:999px; font-weight:600; }
+  .match-cols{ display:flex; gap:10px; margin:12px 0; }
+  .match-col{ flex:1; display:flex; flex-direction:column; gap:8px; min-width:0; }
+  .match-btn{ display:block; width:100%; text-align:left; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#fff; cursor:pointer; font-size:0.85rem; line-height:1.25; }
+  .match-btn:hover{ border-color:var(--accent); }
+  .match-btn.selected{ background:#dbeafe; border:2px solid var(--accent); }
+  .match-btn.locked{ cursor:default; opacity:0.75; }
+  .match-btn.correct{ background:#bbf7d0; border:2px solid #15803d; color:#14532d; font-weight:700; }
+  .match-btn.incorrect{ background:#fecaca; border:2px solid #b91c1c; color:#7f1d1d; font-weight:700; }
+  .match-hint{ font-size:0.78rem; color:var(--muted); margin-bottom:8px; }
 </style>
 </head>
 <body>
@@ -175,6 +189,8 @@ const T = {
     retakeEncourage:"Take it again as many times as you need. The real goal is understanding this chapter, not just clearing a number.",
     retakeTips:"To pass next time: read every explanation below closely (especially for the questions you missed), tap any underlined word for a quick definition, and don't guess — if a question stumps you, that's exactly the thing to go re-read in the book before you retake it.",
     retakeBtn:"Retake", backHome:"🏠 Home",
+    typeTagFill:"Fill in the blank", typeTagMatch:"Matching",
+    matchHint:"Tap a term on the left, then tap its match on the right.",
     moduleTestLockedMsg:"Score 85%+ on all sections in this module to unlock its test.",
     moduleTestLabel:"Module Test", startTest:"Start module test", passThreshold:"Passing score: 70%",
     sectionThreshold:"Target: 85%+",
@@ -218,6 +234,8 @@ const T = {
     retakeEncourage:"Repítelo las veces que necesites. La meta real es entender este capítulo, no solo pasar un número.",
     retakeTips:"Para aprobar la próxima vez: lee con cuidado cada explicación de abajo (sobre todo en las que fallaste), toca cualquier palabra subrayada para ver su definición, y no adivines. Si una pregunta te cuesta, eso es justo lo que debes releer en el libro antes de repetir el examen.",
     retakeBtn:"Repetir", backHome:"🏠 Inicio",
+    typeTagFill:"Completa el espacio", typeTagMatch:"Relacionar",
+    matchHint:"Toca un término a la izquierda y luego su pareja a la derecha.",
     moduleTestLockedMsg:"Obtén 85%+ en todas las secciones de este módulo para desbloquear su examen.",
     moduleTestLabel:"Examen del Módulo", startTest:"Comenzar examen del módulo", passThreshold:"Puntaje para aprobar: 70%",
     sectionThreshold:"Meta: 85%+",
@@ -277,7 +295,14 @@ const GLOSSARY = {
   scba:{en:{term:"SCBA",def:"Self-Contained Breathing Apparatus — a respirator that carries its own compressed air tank, used where there isn't enough breathable oxygen."},es:{term:"SCBA",def:"Aparato de Respiración Autónomo: un respirador que lleva su propio tanque de aire comprimido, usado donde no hay suficiente oxígeno respirable."}},
   hepa:{en:{term:"HEPA",def:"High-Efficiency Particulate Air — a filter standard capturing at least 99.97 percent of particles 0.3 microns or larger, used to filter hazardous dust like silica."},es:{term:"HEPA",def:"Aire Particulado de Alta Eficiencia: un estándar de filtro que captura al menos el 99.97 por ciento de partículas de 0.3 micras o más, usado para filtrar polvo peligroso como la sílice."}},
   ghs:{en:{term:"GHS",def:"Globally Harmonized System — the international standard for labeling hazardous chemicals with consistent pictograms and hazard statements."},es:{term:"GHS",def:"Sistema Globalmente Armonizado: el estándar internacional para etiquetar químicos peligrosos con pictogramas y advertencias consistentes."}},
-  fatalFour:{en:{term:"fatal four",def:"The four leading causes of construction worker deaths: falls, struck-by, electrical hazards, and caught-in/between — together responsible for nearly 3 out of 5 deaths."},es:{term:"cuatro fatales",def:"Las cuatro causas principales de muerte de trabajadores de la construcción: caídas, golpeado por objeto, riesgos eléctricos y atrapado en/entre; juntas causan casi 3 de cada 5 muertes."}}
+  fatalFour:{en:{term:"fatal four",def:"The four leading causes of construction worker deaths: falls, struck-by, electrical hazards, and caught-in/between — together responsible for nearly 3 out of 5 deaths."},es:{term:"cuatro fatales",def:"Las cuatro causas principales de muerte de trabajadores de la construcción: caídas, golpeado por objeto, riesgos eléctricos y atrapado en/entre; juntas causan casi 3 de cada 5 muertes."}},
+  jargon:{en:{term:"jargon",def:"Specialized terms used in a particular industry or trade — using it with someone who doesn't know it creates a barrier to communication."},es:{term:"jerga",def:"Términos especializados usados en una industria u oficio particular — usarla con alguien que no la conoce crea una barrera de comunicación."}},
+  nonverbalCommunication:{en:{term:"nonverbal communication",def:"All communication that doesn't use words — facial expressions, gestures, posture, and body language that communicate feelings and attitudes."},es:{term:"comunicación no verbal",def:"Toda comunicación que no usa palabras — expresiones faciales, gestos, postura y lenguaje corporal que comunican sentimientos y actitudes."}},
+  activeListening:{en:{term:"active listening",def:"A process that involves listening for a total meaning, paying attention to both the words and the body language of the person speaking, and being aware of the possible consequences of not listening."},es:{term:"escucha activa",def:"Un proceso que implica escuchar el significado total, prestando atención tanto a las palabras como al lenguaje corporal de quien habla, y siendo consciente de las posibles consecuencias de no escuchar."}},
+  paraphrasing:{en:{term:"paraphrasing",def:"Expressing something heard or read using different words — a good way to check that you understood a set of instructions correctly."},es:{term:"parafrasear",def:"Expresar algo que se escuchó o leyó usando palabras diferentes — una buena manera de comprobar que entendiste correctamente un conjunto de instrucciones."}},
+  punchList:{en:{term:"punch list",def:"An itemized list of tasks that still need to be completed before a construction job can be considered finished."},es:{term:"lista de pendientes (punch list)",def:"Una lista detallada de tareas que aún deben completarse antes de que un trabajo de construcción pueda considerarse terminado."}},
+  memo:{en:{term:"memo",def:"Short for memorandum — an informal written correspondence used to communicate within a company, usually shorter and less formal than a letter."},es:{term:"memo",def:"Abreviatura de memorando — una correspondencia escrita informal usada para comunicarse dentro de una empresa, generalmente más corta y menos formal que una carta."}},
+  electronicSignature:{en:{term:"electronic signature",def:"A signature in digital form that is added to an electronic document to confirm the identity of the sender and that the content hasn't been altered."},es:{term:"firma electrónica",def:"Una firma en forma digital que se agrega a un documento electrónico para confirmar la identidad del remitente y que el contenido no ha sido alterado."}}
 };
 function escapeRegExp(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 function annotate(text){
@@ -648,6 +673,159 @@ const M2_CARDS = [
   {en:{q:"What is a hot work permit, and what is a fire watch?",a:"A hot work permit is official authorization for work that may pose a fire hazard (welding, cutting). A fire watch is a dedicated person, other than the operator, who constantly scans for fires during and after hot work."}, es:{q:"¿Qué es un permiso de trabajo en caliente, y qué es una vigilancia de incendio?",a:"Un permiso de trabajo en caliente es autorización oficial para trabajo que puede causar riesgo de incendio (soldar, cortar). Una vigilancia de incendio es una persona dedicada, distinta del operador, que vigila constantemente por incendios durante y después del trabajo en caliente."}}
 ];
 
+const M3_SECTION1 = [
+  {en:{q:"What are the four parts of the basic communication process shown in this module?",opts:["Sender, communications channel, receiver, feedback","Sender, jargon, listener, memo","Reading, writing, speaking, texting","Email, text, phone call, memo"],c:0,exp:"The communication process is a loop: a sender sends a message through a communications channel to a receiver, and feedback from the receiver closes the loop so the sender knows the message got through."},
+   es:{q:"¿Cuáles son las cuatro partes del proceso básico de comunicación que muestra este módulo?",opts:["Emisor, canal de comunicación, receptor, retroalimentación","Emisor, jerga, oyente, memo","Leer, escribir, hablar, enviar mensajes de texto","Correo, mensaje de texto, llamada, memo"],c:0,exp:"El proceso de comunicación es un ciclo: un emisor envía un mensaje a través de un canal de comunicación a un receptor, y la retroalimentación del receptor cierra el ciclo para que el emisor sepa que el mensaje llegó."}},
+  {type:'fillBlank', en:{q:"A sender sends a message through a channel to a receiver, and it is the ___ that closes the loop and lets the sender know the message got through.",opts:["feedback","jargon","noise","memo"],c:0,exp:"Feedback is the receiver's response back to the sender — without it, the sender has no way to know whether the message was actually received and understood."},
+   es:{q:"Un emisor envía un mensaje por un canal a un receptor, y es la ___ la que cierra el ciclo y le permite al emisor saber que el mensaje llegó.",opts:["retroalimentación","jerga","ruido","memo"],c:0,exp:"La retroalimentación es la respuesta del receptor hacia el emisor — sin ella, el emisor no tiene forma de saber si el mensaje realmente se recibió y se entendió."}},
+  {en:{q:"Which of the following is an example of a barrier that can get in the way of clear communication?",opts:["Using jargon the other person doesn't understand","A clear, well-organized message","Making eye contact","Speaking at a normal pace"],c:0,exp:"Jargon — specialized terms used in a particular trade — creates a real barrier when the person you're talking to doesn't know the terms. Good communicators explain or avoid jargon with people outside their trade."},
+   es:{q:"¿Cuál de las siguientes es un ejemplo de barrera que puede dificultar la comunicación clara?",opts:["Usar jerga que la otra persona no entiende","Un mensaje claro y bien organizado","Hacer contacto visual","Hablar a un ritmo normal"],c:0,exp:"La jerga (términos especializados de un oficio) crea una barrera real cuando la persona con quien hablas no conoce esos términos. Los buenos comunicadores explican o evitan la jerga con quienes no son del oficio."}},
+  {type:'match', en:{prompt:"Match each communication-process term to its definition.", pairs:[
+      {term:"Sender", def:"The person who starts the communication by sending a message"},
+      {term:"Receiver", def:"The person who gets and interprets the message"},
+      {term:"Feedback", def:"The receiver's response that lets the sender know the message arrived"},
+      {term:"Jargon", def:"Specialized terms used in a particular industry or trade"}
+    ], exp:"These four terms describe the basic loop of the communication process: a sender's message travels to a receiver, who sends feedback back — and jargon is one of the biggest barriers that can break that loop."},
+   es:{prompt:"Relaciona cada término del proceso de comunicación con su definición.", pairs:[
+      {term:"Emisor", def:"La persona que inicia la comunicación enviando un mensaje"},
+      {term:"Receptor", def:"La persona que recibe e interpreta el mensaje"},
+      {term:"Retroalimentación", def:"La respuesta del receptor que le indica al emisor que el mensaje llegó"},
+      {term:"Jerga", def:"Términos especializados usados en una industria u oficio particular"}
+    ], exp:"Estos cuatro términos describen el ciclo básico del proceso de comunicación: el mensaje de un emisor viaja a un receptor, quien envía retroalimentación de vuelta — y la jerga es una de las barreras más grandes que puede romper ese ciclo."}},
+  {en:{q:"Nonverbal communication includes all of the following EXCEPT ________.",opts:["a written memo sent by email","facial expressions","posture and gestures","eye contact"],c:0,exp:"A written memo is verbal communication (it uses words) delivered through a written channel. Nonverbal communication is everything that communicates without words — facial expressions, gestures, posture, and eye contact."},
+   es:{q:"La comunicación no verbal incluye todo lo siguiente EXCEPTO ________.",opts:["un memo escrito enviado por correo","expresiones faciales","postura y gestos","contacto visual"],c:0,exp:"Un memo escrito es comunicación verbal (usa palabras) entregada por un canal escrito. La comunicación no verbal es todo lo que comunica sin palabras: expresiones faciales, gestos, postura y contacto visual."}},
+  {en:{q:"According to the module, crossed arms and a furrowed brow are usually a sign of ________.",opts:["anger or annoyance","confidence","boredom","happiness"],c:0,exp:"Facial expressions and posture like crossed arms and a furrowed brow are described as common nonverbal signs of anger or annoyance — reading them helps you notice when a conversation is going poorly, even if no one says anything."},
+   es:{q:"Según el módulo, los brazos cruzados y el ceño fruncido suelen ser una señal de ________.",opts:["enojo o molestia","confianza","aburrimiento","felicidad"],c:0,exp:"Expresiones faciales y posturas como brazos cruzados y ceño fruncido se describen como señales no verbales comunes de enojo o molestia — reconocerlas ayuda a notar cuando una conversación va mal, incluso si nadie dice nada."}},
+  {type:'fillBlank', en:{q:"Dressing and presenting yourself appropriately and neatly on a new job site is one way to show ___.",opts:["respect","boredom","jargon","noise"],c:0,exp:"Appropriate, neat dress is called out as a simple nonverbal way to show respect to your new coworkers and supervisor, before you've even said a word."},
+   es:{q:"Vestirse y presentarte de forma apropiada y ordenada en un nuevo sitio de trabajo es una manera de mostrar ___.",opts:["respeto","aburrimiento","jerga","ruido"],c:0,exp:"Vestirse de forma apropiada y ordenada se menciona como una manera sencilla no verbal de mostrar respeto a tus nuevos compañeros y supervisor, incluso antes de decir una palabra."}},
+  {en:{q:"Which of the following best describes 'active listening'?",opts:["Paying attention to both the speaker's words and body language","Waiting silently for your turn to talk","Reading something else while someone talks to you","Interrupting right away to ask a question"],c:0,exp:"Active listening means listening for the total meaning — paying attention to both the words AND the body language of the person speaking, and being aware of what could happen if you don't really listen."},
+   es:{q:"¿Cuál de las siguientes describe mejor la 'escucha activa'?",opts:["Prestar atención tanto a las palabras como al lenguaje corporal de quien habla","Esperar en silencio tu turno para hablar","Leer otra cosa mientras alguien te habla","Interrumpir de inmediato para preguntar algo"],c:0,exp:"La escucha activa significa escuchar el significado total: prestar atención tanto a las palabras COMO al lenguaje corporal de quien habla, y ser consciente de lo que podría pasar si en realidad no escuchas."}},
+  {en:{q:"Which of the following is listed as a barrier to listening well?",opts:["Boredom","Paraphrasing","Active listening","Making eye contact"],c:0,exp:"Boredom and emotion are both named as barriers to effective listening — when you're bored or reacting emotionally, it's much easier to miss important information the speaker is giving you."},
+   es:{q:"¿Cuál de las siguientes se menciona como una barrera para escuchar bien?",opts:["Aburrimiento","Parafrasear","Escucha activa","Hacer contacto visual"],c:0,exp:"El aburrimiento y la emoción se mencionan como barreras para escuchar de forma efectiva — cuando estás aburrido o reaccionando emocionalmente, es mucho más fácil perder información importante que te está dando quien habla."}},
+  {en:{q:"If you don't fully understand instructions someone gave you, a good listening strategy is to ________.",opts:["paraphrase them back to confirm you understood correctly","pretend you understood to avoid seeming slow","wait and hope it becomes clear later","write down only the parts that sounded important"],c:0,exp:"Paraphrasing — repeating what you heard back in your own words — is a direct way to check that you understood instructions correctly before you act on them."},
+   es:{q:"Si no entiendes completamente las instrucciones que alguien te dio, una buena estrategia de escucha es ________.",opts:["parafrasearlas para confirmar que entendiste bien","fingir que entendiste para no parecer lento","esperar y confiar en que se aclarará después","anotar solo las partes que sonaron importantes"],c:0,exp:"Parafrasear (repetir lo que escuchaste con tus propias palabras) es una forma directa de comprobar que entendiste correctamente las instrucciones antes de actuar según ellas."}},
+  {type:'match', en:{prompt:"Match each listening/speaking term to its definition.", pairs:[
+      {term:"Active listening", def:"Paying attention to both the words and body language of the speaker"},
+      {term:"Paraphrasing", def:"Restating what you heard in your own words to confirm understanding"},
+      {term:"Nonverbal communication", def:"Communicating through facial expressions, gestures, and posture instead of words"},
+      {term:"Barrier", def:"Something, like boredom or emotion, that gets in the way of understanding a message"}
+    ], exp:"Being a good listener means using active listening, paraphrasing to confirm what you heard, reading nonverbal cues, and staying alert to barriers like boredom that can make you miss something important."},
+   es:{prompt:"Relaciona cada término de escucha/habla con su definición.", pairs:[
+      {term:"Escucha activa", def:"Prestar atención tanto a las palabras como al lenguaje corporal de quien habla"},
+      {term:"Parafrasear", def:"Repetir lo que escuchaste con tus propias palabras para confirmar que entendiste"},
+      {term:"Comunicación no verbal", def:"Comunicarse mediante expresiones faciales, gestos y postura en vez de palabras"},
+      {term:"Barrera", def:"Algo, como el aburrimiento o la emoción, que dificulta entender un mensaje"}
+    ], exp:"Ser un buen oyente significa usar la escucha activa, parafrasear para confirmar lo que escuchaste, leer las señales no verbales, y estar alerta a barreras como el aburrimiento que pueden hacerte perder algo importante."}},
+  {en:{q:"When giving spoken instructions to a co-worker, speaking experts recommend all of the following EXCEPT ________.",opts:["speaking as fast as possible to save time","explaining the purpose so they understand why it matters","using words the listener will actually understand","being patient if they ask questions"],c:0,exp:"Speaking quickly to save time works against you — good speakers slow down, explain the purpose of what they're asking, avoid unnecessary jargon, and stay patient with follow-up questions."},
+   es:{q:"Al dar instrucciones habladas a un compañero, los expertos en comunicación recomiendan todo lo siguiente EXCEPTO ________.",opts:["hablar lo más rápido posible para ahorrar tiempo","explicar el propósito para que entiendan por qué importa","usar palabras que el oyente realmente entienda","tener paciencia si hacen preguntas"],c:0,exp:"Hablar rápido para ahorrar tiempo juega en tu contra — los buenos comunicadores hablan más despacio, explican el propósito de lo que piden, evitan jerga innecesaria y tienen paciencia con las preguntas de seguimiento."}},
+  {en:{q:"Before placing a business phone call, you should ________.",opts:["plan what you want to say and have your information ready","call as soon as the thought crosses your mind, with no preparation","speak only in text-message abbreviations","avoid giving your name when the call connects"],c:0,exp:"Planning ahead — knowing what you want to accomplish and having any needed information on hand — makes a business call shorter, clearer, and more professional for both people."},
+   es:{q:"Antes de hacer una llamada de negocios, deberías ________.",opts:["planear qué quieres decir y tener tu información lista","llamar apenas se te ocurra, sin ninguna preparación","hablar solo con abreviaturas de mensajes de texto","evitar decir tu nombre cuando se conecte la llamada"],c:0,exp:"Planear con anticipación (saber qué quieres lograr y tener a la mano la información necesaria) hace que una llamada de negocios sea más corta, clara y profesional para ambas personas."}},
+  {en:{q:"When you answer a business phone call, professional phone etiquette means you should ________.",opts:["identify yourself and your company right away","wait silently for the caller to speak first","never take notes during the call","transfer every call immediately without listening"],c:0,exp:"A professional greeting identifies yourself and your company right away, so the caller immediately knows they've reached the right place and who they're speaking with."},
+   es:{q:"Cuando respondes una llamada de negocios, la etiqueta telefónica profesional significa que deberías ________.",opts:["identificarte a ti mismo y a tu empresa de inmediato","esperar en silencio a que hable primero quien llama","nunca tomar notas durante la llamada","transferir cada llamada de inmediato sin escuchar"],c:0,exp:"Un saludo profesional te identifica a ti y a tu empresa de inmediato, para que quien llama sepa enseguida que llegó al lugar correcto y con quién está hablando."}}
+];
+
+const M3_SECTION2 = [
+  {en:{q:"According to this module, the written word is described as ________ in the construction trade.",opts:["extremely important","rarely necessary","less important than speaking","only useful for management"],c:0,exp:"The module opens by stating the written word is extremely important in construction — from reading codebooks and manuals to writing memos, permits, and emails, reading and writing skills come up constantly on the job."},
+   es:{q:"Según este módulo, la palabra escrita se describe como ________ en el oficio de la construcción.",opts:["extremadamente importante","raramente necesaria","menos importante que hablar","útil solo para la gerencia"],c:0,exp:"El módulo comienza afirmando que la palabra escrita es extremadamente importante en la construcción — desde leer códigos y manuales hasta escribir memos, permisos y correos, las habilidades de lectura y escritura aparecen constantemente en el trabajo."}},
+  {en:{q:"A codebook, such as the NFPA Life Safety Code, is a resource that provides ________.",opts:["the latest safety guidelines and standards for your trade","only pictures, with no real text","one company's internal payroll policy","personal opinions on best practices"],c:0,exp:"Codebooks like the NFPA Life Safety Code are official industry references that keep workers current on safety guidelines and standards — they get updated over time, so reading the latest edition matters."},
+   es:{q:"Un código, como el NFPA Life Safety Code, es un recurso que ofrece ________.",opts:["las últimas pautas y estándares de seguridad de tu oficio","solo imágenes, sin texto real","la política de nómina interna de una empresa","opiniones personales sobre mejores prácticas"],c:0,exp:"Códigos como el NFPA Life Safety Code son referencias oficiales de la industria que mantienen a los trabajadores al día con las pautas y estándares de seguridad — se actualizan con el tiempo, así que leer la última edición importa."}},
+  {type:'match', en:{prompt:"Match each part of a book to what it's used for.", pairs:[
+      {term:"Table of contents", def:"A list of chapters or sections, usually found at the front of the book"},
+      {term:"Index", def:"An alphabetical list of topics with the page numbers where each one appears"},
+      {term:"Glossary", def:"An alphabetical list of terms and their definitions"},
+      {term:"Appendix", def:"Detailed or specific information placed at the end of a section, chapter, or book"}
+    ], exp:"Knowing these four parts of a book saves real time on the job: the table of contents gives you the big picture, the index finds any topic fast, the glossary defines unfamiliar terms, and appendices hold the detailed backup information."},
+   es:{prompt:"Relaciona cada parte de un libro con para qué se usa.", pairs:[
+      {term:"Tabla de contenido", def:"Una lista de capítulos o secciones, usualmente al frente del libro"},
+      {term:"Índice", def:"Una lista alfabética de temas con los números de página donde aparece cada uno"},
+      {term:"Glosario", def:"Una lista alfabética de términos y sus definiciones"},
+      {term:"Apéndice", def:"Información detallada o específica al final de una sección, capítulo o libro"}
+    ], exp:"Conocer estas cuatro partes de un libro ahorra tiempo real en el trabajo: la tabla de contenido da la idea general, el índice encuentra cualquier tema rápido, el glosario define términos desconocidos, y los apéndices guardan la información detallada de respaldo."}},
+  {type:'fillBlank', en:{q:"If you want to find every place a certain topic is mentioned anywhere in a book, you should check the ___.",opts:["index","title page","cover","dedication"],c:0,exp:"The index is an alphabetical list of every topic in the book along with every page number it appears on — exactly what you need when a topic could be scattered across several chapters."},
+   es:{q:"Si quieres encontrar cada lugar donde se menciona un tema en un libro, debes revisar el ___.",opts:["índice","página de título","portada","dedicatoria"],c:0,exp:"El índice es una lista alfabética de cada tema del libro junto con cada número de página donde aparece — justo lo que necesitas cuando un tema puede estar disperso en varios capítulos."}},
+  {en:{q:"When you're looking for a specific installation procedure in a manual, the best approach is to ________.",opts:["identify the correct section and go straight there","start reading from page one every time","study every term in the glossary first","skim the entire book and take notes on everything"],c:0,exp:"Manuals are built for quick reference, not cover-to-cover reading — going straight to the relevant section (using the table of contents or index to find it) is faster and more reliable than starting from the beginning."},
+   es:{q:"Cuando buscas un procedimiento de instalación específico en un manual, lo mejor es ________.",opts:["identificar la sección correcta e ir directo a ella","empezar a leer desde la página uno cada vez","estudiar primero cada término del glosario","hojear todo el libro y tomar notas de todo"],c:0,exp:"Los manuales están hechos para consulta rápida, no para leerse de principio a fin — ir directo a la sección relevante (usando la tabla de contenido o el índice para encontrarla) es más rápido y confiable que empezar desde el inicio."}},
+  {en:{q:"According to the module's text-presentation tips, ALL CAPITAL LETTERS should be used ________.",opts:["sparingly, since long stretches are hard to read","for the entire body of every document","only in email subject lines","instead of a table of contents"],c:0,exp:"Text in all capital letters is harder to read in long stretches, so the module recommends using it sparingly — just to draw attention to a specific word or short phrase, not for whole paragraphs."},
+   es:{q:"Según los consejos de presentación de texto del módulo, las LETRAS MAYÚSCULAS deben usarse ________.",opts:["con moderación, ya que largos tramos son difíciles de leer","en todo el cuerpo de cada documento","solo en el asunto de los correos","en vez de una tabla de contenido"],c:0,exp:"El texto en mayúsculas es más difícil de leer en tramos largos, así que el módulo recomienda usarlo con moderación — solo para llamar la atención sobre una palabra o frase corta, no en párrafos completos."}},
+  {en:{q:"Italics are typically used in a technical document to ________.",opts:["emphasize a word or indicate a title","make the page count longer","replace bullet points entirely","hide unimportant information"],c:0,exp:"Italic type is a lighter-touch way than bold or all-caps to make a word stand out or to set off the title of a publication, without disrupting the flow of a sentence."},
+   es:{q:"Las cursivas se usan típicamente en un documento técnico para ________.",opts:["enfatizar una palabra o indicar un título","alargar el número de páginas","reemplazar por completo las viñetas","ocultar información poco importante"],c:0,exp:"La cursiva es una forma más sutil que la negrita o las mayúsculas para resaltar una palabra o marcar el título de una publicación, sin interrumpir el flujo de una oración."}},
+  {type:'match', en:{prompt:"Match each written work-document to what it's used for.", pairs:[
+      {term:"Punch list", def:"An itemized list of tasks still needed before a job is considered finished"},
+      {term:"Memo", def:"A short, informal written correspondence used within a company"},
+      {term:"Permit", def:"A written authorization that allows certain work, like hot work, to proceed safely"},
+      {term:"Change order", def:"A written order authorizing a change in a project's scope, amount, or time"}
+    ], exp:"These four documents show up constantly on real job sites — a punch list tracks what's left to finish, a memo handles quick internal communication, a permit authorizes specific hazardous work, and a change order formally documents any change to the original job."},
+   es:{prompt:"Relaciona cada documento escrito de trabajo con para qué se usa.", pairs:[
+      {term:"Lista de pendientes (punch list)", def:"Una lista detallada de tareas que aún faltan antes de considerar terminado un trabajo"},
+      {term:"Memo", def:"Una correspondencia escrita corta e informal usada dentro de una empresa"},
+      {term:"Permiso", def:"Una autorización escrita que permite que cierto trabajo, como trabajo en caliente, se realice de forma segura"},
+      {term:"Orden de cambio", def:"Una orden escrita que autoriza un cambio en el alcance, monto o tiempo de un proyecto"}
+    ], exp:"Estos cuatro documentos aparecen constantemente en sitios de trabajo reales — una lista de pendientes rastrea lo que falta terminar, un memo maneja comunicación interna rápida, un permiso autoriza trabajo peligroso específico, y una orden de cambio documenta formalmente cualquier cambio al trabajo original."}},
+  {type:'fillBlank', en:{q:"A ___ is a written order that authorizes a change in a project's scope, amount, or time.",opts:["change order","punch list","glossary","index"],c:0,exp:"A change order is the formal paperwork used whenever a project's original scope, cost, or timeline needs to officially change — it protects both the contractor and the client by documenting exactly what changed and why."},
+   es:{q:"Una ___ es una orden escrita que autoriza un cambio en el alcance, monto o tiempo de un proyecto.",opts:["orden de cambio","lista de pendientes","glosario","índice"],c:0,exp:"Una orden de cambio es el papeleo formal que se usa cada vez que el alcance, costo o cronograma original de un proyecto necesita cambiar oficialmente — protege tanto al contratista como al cliente al documentar exactamente qué cambió y por qué."}},
+  {en:{q:"According to the module's writing tips, good job-site writing should be ________.",opts:["clear, concise, correct, and complete","as long and detailed as possible, always","full of jargon to sound more professional","written only in shorthand"],c:0,exp:"The four writing tips given in the module — be clear, be concise, be correct, be complete — are meant to make sure the reader gets exactly what they need without extra confusion or wasted time."},
+   es:{q:"Según los consejos de escritura del módulo, la buena escritura en el sitio de trabajo debe ser ________.",opts:["clara, concisa, correcta y completa","siempre lo más larga y detallada posible","llena de jerga para sonar más profesional","escrita solo en taquigrafía"],c:0,exp:"Los cuatro consejos de escritura del módulo (ser claro, conciso, correcto y completo) buscan asegurar que el lector obtenga exactamente lo que necesita sin confusión extra ni tiempo perdido."}},
+  {en:{q:"Before sending an important work email, you should always ________.",opts:["proofread it and use spell-check","send it immediately without reading it over","avoid including a subject line","write the entire message in capital letters"],c:0,exp:"Proofreading and spell-checking catches embarrassing errors before they reach the reader — emails represent you and your company in writing, so a careless mistake can hurt your professional image."},
+   es:{q:"Antes de enviar un correo importante de trabajo, siempre debes ________.",opts:["revisarlo y usar el corrector ortográfico","enviarlo de inmediato sin volver a leerlo","evitar incluir un asunto","escribir todo el mensaje en mayúsculas"],c:0,exp:"Revisar y usar el corrector ortográfico detecta errores vergonzosos antes de que lleguen al lector — los correos te representan a ti y a tu empresa por escrito, así que un descuido puede dañar tu imagen profesional."}},
+  {en:{q:"According to the module, text messages are best used for ________.",opts:["brief messages that should be viewed right away","long conversations that must be preserved as a formal record","detailed or complex technical information","replacing every phone call at work"],c:0,exp:"Texting is fast, but it's meant for short, time-sensitive messages — not for detailed instructions or anything that needs a permanent, formal written record."},
+   es:{q:"Según el módulo, los mensajes de texto se usan mejor para ________.",opts:["mensajes breves que deben verse de inmediato","conversaciones largas que deben conservarse como registro formal","información técnica detallada o compleja","reemplazar toda llamada telefónica en el trabajo"],c:0,exp:"Los mensajes de texto son rápidos, pero están pensados para mensajes breves y urgentes, no para instrucciones detalladas ni nada que necesite un registro escrito formal y permanente."}},
+  {en:{q:"An electronic signature added to a digital document is used to ________.",opts:["confirm the sender's identity and that the content hasn't been altered","make the document file smaller","automatically translate the document","replace the need for a subject line"],c:0,exp:"An electronic signature works like a digital fingerprint on the document — it confirms who sent it and verifies the content hasn't been changed since it was signed."},
+   es:{q:"Una firma electrónica agregada a un documento digital se usa para ________.",opts:["confirmar la identidad del remitente y que el contenido no fue alterado","hacer el archivo del documento más pequeño","traducir automáticamente el documento","reemplazar la necesidad de un asunto"],c:0,exp:"Una firma electrónica funciona como una huella digital del documento — confirma quién lo envió y verifica que el contenido no ha cambiado desde que se firmó."}}
+];
+
+const M3_TEST = [
+  {en:{q:"What are the four parts of the basic communication process covered in this module?",opts:["Sender, communications channel, receiver, feedback","Sender, jargon, listener, memo","Reading, writing, speaking, texting","Email, text, phone call, memo"],c:0,exp:"The module's communication-process diagram shows a loop: sender → communications channel → receiver → feedback back to the sender. Feedback is what confirms the message was actually understood."},
+   es:{q:"¿Cuáles son las cuatro partes del proceso básico de comunicación de este módulo?",opts:["Emisor, canal de comunicación, receptor, retroalimentación","Emisor, jerga, oyente, memo","Leer, escribir, hablar, enviar mensajes","Correo, mensaje de texto, llamada, memo"],c:0,exp:"El diagrama del proceso de comunicación del módulo muestra un ciclo: emisor → canal de comunicación → receptor → retroalimentación de vuelta al emisor. La retroalimentación confirma que el mensaje realmente se entendió."}},
+  {en:{q:"Nonverbal communication includes ________.",opts:["facial expressions, gestures, and posture","only written memos and emails","only phone conversations","only text messages"],c:0,exp:"Nonverbal communication is everything that communicates without words: facial expressions, gestures, posture, and eye contact all send a message even when nobody is talking."},
+   es:{q:"La comunicación no verbal incluye ________.",opts:["expresiones faciales, gestos y postura","solo memos y correos escritos","solo conversaciones telefónicas","solo mensajes de texto"],c:0,exp:"La comunicación no verbal es todo lo que comunica sin palabras: expresiones faciales, gestos, postura y contacto visual transmiten un mensaje incluso cuando nadie habla."}},
+  {en:{q:"Which of the following is named as a common barrier to effective listening?",opts:["Boredom or emotion getting in the way","Being well-rested","Using active listening","Making eye contact"],c:0,exp:"Boredom and emotion are the two barriers the module calls out by name — both make it much easier to tune out and miss what the speaker is actually saying."},
+   es:{q:"¿Cuál de las siguientes se nombra como una barrera común para escuchar de forma efectiva?",opts:["El aburrimiento o la emoción interponiéndose","Estar bien descansado","Usar la escucha activa","Hacer contacto visual"],c:0,exp:"El aburrimiento y la emoción son las dos barreras que el módulo menciona por nombre — ambas facilitan desconectarse y perderse lo que realmente dice quien habla."}},
+  {en:{q:"Paraphrasing what you heard back to the speaker is a good way to ________.",opts:["confirm you understood the instructions correctly","show off your vocabulary","waste the speaker's time","avoid answering a direct question"],c:0,exp:"Paraphrasing — repeating the instructions back in your own words — gives the speaker a chance to correct any misunderstanding before you go off and do the task wrong."},
+   es:{q:"Parafrasear lo que escuchaste de vuelta a quien habla es una buena manera de ________.",opts:["confirmar que entendiste bien las instrucciones","lucir tu vocabulario","hacerle perder el tiempo a quien habla","evitar responder una pregunta directa"],c:0,exp:"Parafrasear (repetir las instrucciones con tus propias palabras) le da a quien habla la oportunidad de corregir cualquier malentendido antes de que hagas la tarea de forma incorrecta."}},
+  {en:{q:"When giving spoken instructions to a co-worker, you should ________.",opts:["speak clearly, explain the purpose, and be patient with questions","use as much jargon as possible","speak as fast as you can to save time","avoid repeating anything, even if asked"],c:0,exp:"Clear speaking means explaining the purpose behind an instruction, using words the listener understands, and staying patient — rushing or refusing to repeat yourself just leads to mistakes."},
+   es:{q:"Al dar instrucciones habladas a un compañero, debes ________.",opts:["hablar con claridad, explicar el propósito y tener paciencia con las preguntas","usar la mayor jerga posible","hablar lo más rápido posible para ahorrar tiempo","evitar repetir algo, incluso si te lo piden"],c:0,exp:"Hablar con claridad significa explicar el propósito detrás de una instrucción, usar palabras que el oyente entienda, y tener paciencia — apurarse o negarse a repetir solo lleva a errores."}},
+  {en:{q:"Before placing a business phone call, you should ________.",opts:["plan what you want to say and have your information ready","call the moment the thought occurs, with no preparation","speak only in text-message abbreviations","avoid giving your name once the call connects"],c:0,exp:"Planning ahead of a business call — knowing your goal and having any needed information at hand — keeps the call short, clear, and professional for both people on the line."},
+   es:{q:"Antes de hacer una llamada de negocios, debes ________.",opts:["planear qué quieres decir y tener tu información lista","llamar en cuanto se te ocurra, sin ninguna preparación","hablar solo con abreviaturas de mensajes de texto","evitar decir tu nombre una vez conectada la llamada"],c:0,exp:"Planear antes de una llamada de negocios (saber tu objetivo y tener a la mano la información necesaria) mantiene la llamada corta, clara y profesional para ambas personas."}},
+  {en:{q:"When answering a business phone call, professional etiquette means you should ________.",opts:["identify yourself and your company right away","wait silently for the caller to speak first","never take notes during the call","transfer every call immediately without listening"],c:0,exp:"Identifying yourself and your company as soon as you pick up lets the caller know immediately they've reached the right place and who they're talking to."},
+   es:{q:"Al responder una llamada de negocios, la etiqueta profesional significa que debes ________.",opts:["identificarte a ti y a tu empresa de inmediato","esperar en silencio a que hable primero quien llama","nunca tomar notas durante la llamada","transferir cada llamada de inmediato sin escuchar"],c:0,exp:"Identificarte a ti y a tu empresa apenas contestas le permite a quien llama saber de inmediato que llegó al lugar correcto y con quién habla."}},
+  {en:{q:"A codebook such as the NFPA Life Safety Code is a resource used on the job to ________.",opts:["provide up-to-date safety standards and requirements","replace the need for a supervisor","give personal writing advice","track payroll hours"],c:0,exp:"Codebooks are official, regularly updated industry references — workers rely on them to stay current on the safety standards and requirements that apply to their trade."},
+   es:{q:"Un código como el NFPA Life Safety Code es un recurso que se usa en el trabajo para ________.",opts:["ofrecer estándares y requisitos de seguridad actualizados","reemplazar la necesidad de un supervisor","dar consejos personales de escritura","llevar el control de horas de nómina"],c:0,exp:"Los códigos son referencias oficiales de la industria que se actualizan regularmente — los trabajadores dependen de ellos para mantenerse al día con los estándares y requisitos de seguridad de su oficio."}},
+  {en:{q:"If you want to find every place a specific topic is mentioned in a book, you should check the ________.",opts:["index","cover","title page","dedication"],c:0,exp:"The index is the alphabetical list of every topic in a book along with all the page numbers it appears on — exactly the tool for tracking down a topic that might be scattered across several chapters."},
+   es:{q:"Si quieres encontrar cada lugar donde se menciona un tema específico en un libro, debes revisar el ________.",opts:["índice","portada","página de título","dedicatoria"],c:0,exp:"El índice es la lista alfabética de cada tema de un libro junto con todos los números de página donde aparece — justo la herramienta para rastrear un tema que puede estar disperso en varios capítulos."}},
+  {en:{q:"The table of contents of a book is usually ________.",opts:["at the front of the book, listing its chapters or sections","at the back of the book, listing definitions","found only on the cover","the same thing as the index"],c:0,exp:"The table of contents sits at the front of a book and lists its chapters or sections in order — it's the fastest way to get the big picture of what a book covers before you dive into any one part."},
+   es:{q:"La tabla de contenido de un libro usualmente está ________.",opts:["al frente del libro, listando sus capítulos o secciones","al final del libro, listando definiciones","solo en la portada","es lo mismo que el índice"],c:0,exp:"La tabla de contenido está al frente de un libro y lista sus capítulos o secciones en orden — es la forma más rápida de tener una idea general de lo que cubre un libro antes de entrar en una parte específica."}},
+  {en:{q:"A punch list on a construction job is ________.",opts:["an itemized list of tasks still needed before the job is finished","a list of tools used to punch holes","a payroll document","a type of codebook"],c:0,exp:"A punch list tracks the final loose ends on a job — the specific items that still need fixing or finishing before the client or contractor will consider the work complete."},
+   es:{q:"Una lista de pendientes (punch list) en un trabajo de construcción es ________.",opts:["una lista detallada de tareas que aún faltan antes de terminar el trabajo","una lista de herramientas para hacer agujeros","un documento de nómina","un tipo de código"],c:0,exp:"Una lista de pendientes rastrea los últimos detalles de un trabajo: los puntos específicos que todavía necesitan arreglarse o terminarse antes de que el cliente o contratista considere el trabajo completo."}},
+  {en:{q:"A change order on a construction project is ________.",opts:["a written order authorizing a change in a project's scope, amount, or time","a request for a coffee break","a type of punch list","a permit needed only for hot work"],c:0,exp:"A change order is the formal, written way to document any official change to a project's original scope, cost, or schedule — protecting both the contractor and the client by putting the change in writing."},
+   es:{q:"Una orden de cambio en un proyecto de construcción es ________.",opts:["una orden escrita que autoriza un cambio en el alcance, monto o tiempo de un proyecto","una solicitud de descanso para tomar café","un tipo de lista de pendientes","un permiso necesario solo para trabajo en caliente"],c:0,exp:"Una orden de cambio es la forma formal y escrita de documentar cualquier cambio oficial al alcance, costo o cronograma original de un proyecto, protegiendo tanto al contratista como al cliente al dejar el cambio por escrito."}},
+  {en:{q:"Before sending an important work email, you should ________.",opts:["proofread it and use spell-check","send it immediately without reading it over","avoid including a subject line","write the entire message in capital letters"],c:0,exp:"An email represents you and your company in writing — proofreading and spell-checking before you hit send catches careless mistakes that could hurt your professional image."},
+   es:{q:"Antes de enviar un correo importante de trabajo, debes ________.",opts:["revisarlo y usar el corrector ortográfico","enviarlo de inmediato sin volver a leerlo","evitar incluir un asunto","escribir todo el mensaje en mayúsculas"],c:0,exp:"Un correo te representa a ti y a tu empresa por escrito — revisarlo y usar el corrector ortográfico antes de enviarlo detecta descuidos que podrían dañar tu imagen profesional."}},
+  {en:{q:"Text messages are best used for ________.",opts:["brief messages that should be viewed right away","long conversations that must be preserved as a formal record","detailed or complex technical information","replacing every phone call at work"],c:0,exp:"Texting is built for quick, time-sensitive messages — not for detailed instructions or anything that needs to become a permanent, formal written record."},
+   es:{q:"Los mensajes de texto se usan mejor para ________.",opts:["mensajes breves que deben verse de inmediato","conversaciones largas que deben conservarse como registro formal","información técnica detallada o compleja","reemplazar toda llamada telefónica en el trabajo"],c:0,exp:"Los mensajes de texto están hechos para mensajes rápidos y urgentes, no para instrucciones detalladas ni nada que deba convertirse en un registro escrito formal y permanente."}},
+  {en:{q:"An electronic signature added to a digital document is used to ________.",opts:["confirm the sender's identity and that the content hasn't been altered","automatically translate the document","delete the document once it's been read","make the file smaller"],c:0,exp:"An electronic signature acts like a digital fingerprint — it confirms who sent the document and verifies the content hasn't changed since it was signed."},
+   es:{q:"Una firma electrónica agregada a un documento digital se usa para ________.",opts:["confirmar la identidad del remitente y que el contenido no fue alterado","traducir automáticamente el documento","eliminar el documento una vez leído","hacer el archivo más pequeño"],c:0,exp:"Una firma electrónica funciona como una huella digital — confirma quién envió el documento y verifica que el contenido no ha cambiado desde que se firmó."}}
+];
+
+const M3_CARDS = [
+  {en:{q:"What are the four parts of the basic communication process?",a:"Sender, communications channel, receiver, and feedback — feedback is what closes the loop and lets the sender know the message got through."}, es:{q:"¿Cuáles son las cuatro partes del proceso básico de comunicación?",a:"Emisor, canal de comunicación, receptor y retroalimentación — la retroalimentación cierra el ciclo y le indica al emisor que el mensaje llegó."}},
+  {en:{q:"What is jargon, and why can it be a communication barrier?",a:"Specialized terms used in a particular trade. It becomes a barrier when you use it with someone outside that trade who doesn't know what the terms mean."}, es:{q:"¿Qué es la jerga y por qué puede ser una barrera de comunicación?",a:"Términos especializados usados en un oficio particular. Se vuelve una barrera cuando la usas con alguien fuera de ese oficio que no conoce los términos."}},
+  {en:{q:"What is nonverbal communication?",a:"All communication that doesn't use words — facial expressions, gestures, posture, and eye contact that communicate feelings and attitudes."}, es:{q:"¿Qué es la comunicación no verbal?",a:"Toda comunicación que no usa palabras: expresiones faciales, gestos, postura y contacto visual que comunican sentimientos y actitudes."}},
+  {en:{q:"What does active listening mean?",a:"Listening for the total meaning — paying attention to both the speaker's words and their body language, and staying aware of what happens if you don't really listen."}, es:{q:"¿Qué significa la escucha activa?",a:"Escuchar el significado total: prestar atención tanto a las palabras de quien habla como a su lenguaje corporal, y estar consciente de qué pasa si no escuchas de verdad."}},
+  {en:{q:"What two barriers to listening does the module name specifically?",a:"Emotion and boredom — both make it much easier to tune out and miss important information."}, es:{q:"¿Qué dos barreras para escuchar nombra específicamente el módulo?",a:"La emoción y el aburrimiento — ambas facilitan desconectarse y perderse información importante."}},
+  {en:{q:"What is paraphrasing, and why is it useful?",a:"Restating what you heard in your own words. It's a direct way to confirm you understood instructions correctly before you act on them."}, es:{q:"¿Qué es parafrasear, y por qué es útil?",a:"Repetir lo que escuchaste con tus propias palabras. Es una forma directa de confirmar que entendiste bien las instrucciones antes de actuar según ellas."}},
+  {en:{q:"What's one nonverbal way appropriate, neat dress helps you on a new job site?",a:"It shows respect to your new coworkers and supervisor before you've even said a word."}, es:{q:"¿De qué manera no verbal ayuda vestirse de forma apropiada y ordenada en un nuevo sitio de trabajo?",a:"Muestra respeto a tus nuevos compañeros y supervisor incluso antes de decir una palabra."}},
+  {en:{q:"What should you do before placing a business phone call?",a:"Plan what you want to say and have any information you'll need ready ahead of time."}, es:{q:"¿Qué debes hacer antes de hacer una llamada de negocios?",a:"Planear qué quieres decir y tener lista con anticipación la información que necesitarás."}},
+  {en:{q:"What should you do right away when you answer a business phone call?",a:"Identify yourself and your company, so the caller immediately knows they reached the right place."}, es:{q:"¿Qué debes hacer de inmediato al responder una llamada de negocios?",a:"Identificarte a ti y a tu empresa, para que quien llama sepa de inmediato que llegó al lugar correcto."}},
+  {en:{q:"What's the difference between a table of contents and an index?",a:"A table of contents lists chapters/sections at the front of the book. An index is an alphabetical list of specific topics, with every page number each one appears on."}, es:{q:"¿Cuál es la diferencia entre una tabla de contenido y un índice?",a:"La tabla de contenido lista capítulos/secciones al frente del libro. El índice es una lista alfabética de temas específicos, con cada número de página donde aparece cada uno."}},
+  {en:{q:"What is a codebook, and give an example.",a:"An official industry reference of current standards and requirements — for example, the NFPA Life Safety Code."}, es:{q:"¿Qué es un código, y da un ejemplo?",a:"Una referencia oficial de la industria con estándares y requisitos actuales — por ejemplo, el NFPA Life Safety Code."}},
+  {en:{q:"What is a punch list?",a:"An itemized list of tasks that still need to be completed before a construction job is considered finished."}, es:{q:"¿Qué es una lista de pendientes (punch list)?",a:"Una lista detallada de tareas que aún deben completarse antes de considerar terminado un trabajo de construcción."}},
+  {en:{q:"What is a change order?",a:"A written order authorizing a change in a project's scope, amount, or time — it documents the change officially for both the contractor and the client."}, es:{q:"¿Qué es una orden de cambio?",a:"Una orden escrita que autoriza un cambio en el alcance, monto o tiempo de un proyecto — documenta el cambio oficialmente para el contratista y el cliente."}},
+  {en:{q:"What are the four writing tips this module recommends for job-site writing?",a:"Be clear, be concise, be correct, and be complete."}, es:{q:"¿Cuáles son los cuatro consejos de escritura que recomienda este módulo para el sitio de trabajo?",a:"Ser claro, ser conciso, ser correcto y ser completo."}},
+  {en:{q:"What should you always do before sending an important work email?",a:"Proofread it and use spell-check — it represents you and your company in writing."}, es:{q:"¿Qué debes hacer siempre antes de enviar un correo importante de trabajo?",a:"Revisarlo y usar el corrector ortográfico — te representa a ti y a tu empresa por escrito."}},
+  {en:{q:"What are text messages best used for, according to this module?",a:"Brief messages that should be viewed right away — not long, detailed, or formal information."}, es:{q:"¿Para qué se usan mejor los mensajes de texto, según este módulo?",a:"Mensajes breves que deben verse de inmediato — no información larga, detallada o formal."}},
+  {en:{q:"What does an electronic signature confirm on a digital document?",a:"The sender's identity, and that the document's content hasn't been altered since it was signed."}, es:{q:"¿Qué confirma una firma electrónica en un documento digital?",a:"La identidad del remitente, y que el contenido del documento no ha sido alterado desde que se firmó."}}
+];
+
 /* ============ MODULES REGISTRY ============ */
 // Slot in Module 2's content the same way Module 1 is built, then flip comingSoon to false.
 const MODULES = [
@@ -676,7 +854,14 @@ const MODULES = [
   // Order below matches this class's actual syllabus teaching sequence (not the
   // textbook's numeric module order) — module numbers/titles confirmed against
   // the NCCER Core, 6th Edition course map on the book's inside cover.
-  { id:'m3', comingSoon:true, title:{en:"Module 00107: Basic Communication Skills", es:"Módulo 00107: Habilidades Básicas de Comunicación"} },
+  { id:'m3', comingSoon:false, openTest:true,
+    title:{en:"Module 00107: Basic Communication Skills", es:"Módulo 00107: Habilidades Básicas de Comunicación"},
+    sections:[
+      {key:'s1', label:{en:"1. Communication", es:"1. Comunicación"}, bank:M3_SECTION1},
+      {key:'s2', label:{en:"2. Reading and Writing", es:"2. Lectura y Escritura"}, bank:M3_SECTION2}
+    ],
+    moduleTest: M3_TEST, cards: M3_CARDS
+  },
   { id:'m4', comingSoon:true, title:{en:"Module 00108: Basic Employability Skills", es:"Módulo 00108: Habilidades Básicas de Empleabilidad"} },
   { id:'m5', comingSoon:true, title:{en:"Module 00103: Introduction to Hand Tools", es:"Módulo 00103: Introducción a las Herramientas Manuales"} },
   { id:'m6', comingSoon:true, title:{en:"Module 00104: Introduction to Power Tools", es:"Módulo 00104: Introducción a las Herramientas Eléctricas"} },
@@ -711,7 +896,7 @@ function ensureProgress(modId){
 function t(key){ return T[lang][key]; }
 
 /* ---- missed-question tracking (simple spaced repetition) ---- */
-function missedKey(item){ return item && item.en ? item.en.q : null; }
+function missedKey(item){ return item && item.en ? (item.en.q || item.en.prompt) : null; }
 function addMissed(item){
   const k = missedKey(item); if(!k) return;
   if(!missed.find(x=>x.key===k)) missed.push({key:k, item});
@@ -963,7 +1148,14 @@ function showOptionDefinition(text){
 function renderQuizQuestion(){
   stopSpeaking();
   const panel = document.getElementById('panel');
-  const item = quizState.bank[quizState.idx][lang];
+  const fullItem = quizState.bank[quizState.idx];
+  const itemType = fullItem.type || 'mc';
+  // Duolingo-style mixed format: matching questions get a completely different tap-to-pair
+  // UI, rendered by renderMatchQuestion. Multiple-choice and fill-in-the-blank share the same
+  // data shape ({q,opts,c,exp}) and grading code below — fill-in-the-blank just renders its
+  // options as word-bank chips instead of full-width stacked buttons.
+  if(itemType==='match'){ renderMatchQuestion(panel, fullItem); return; }
+  const item = fullItem[lang];
   // The official module/cumulative test mimics a real exam: no auto-highlighted glossary
   // terms (a neutral "?" gives lookup on demand instead), you can change your pick before
   // submitting, and right/wrong isn't revealed until the full test is done.
@@ -978,11 +1170,13 @@ function renderQuizQuestion(){
     }
   });
   const officialNextLabel = quizState.idx+1===quizState.bank.length ? t('finishBtn') : t('nextBtn');
+  const typeTag = itemType==='fillBlank' ? `<div class="type-tag">✏️ ${t('typeTagFill')}</div>` : '';
   panel.innerHTML = `
     <div class="q-count">${t('question')} ${quizState.idx+1} ${t('of')} ${quizState.bank.length}</div>
+    ${typeTag}
     <div class="q-text">${annotate(item.q)}</div>
     <button id="readAloudBtn" style="background:none;border:1px solid var(--accent2);color:var(--accent2);border-radius:6px;padding:4px 10px;font-size:0.78rem;margin-bottom:10px;cursor:pointer;">${t('readAloud')}</button>
-    <div id="optsWrap">${optsHtml}</div>
+    <div id="optsWrap"${itemType==='fillBlank' ? ' class="chips"' : ''}>${optsHtml}</div>
     ${isOfficialTest ? '' : `<div class="explain" id="explainBox">${annotate(item.exp)}</div>`}
     <br>
     <button class="primary" id="nextBtn" style="${isOfficialTest ? (quizState.selected===null?'opacity:0.5;':'') : 'display:none;'}">${isOfficialTest ? officialNextLabel : (quizState.idx+1===quizState.bank.length ? t('finishBtn') : t('nextBtn'))}</button>
@@ -1041,6 +1235,76 @@ function renderQuizQuestion(){
     if(quizState.idx+1 < quizState.bank.length){ quizState.idx++; quizState.answered=false; renderQuizQuestion(); }
     else finishQuiz();
   };
+}
+
+// Duolingo-style tap-to-pair matching question. Data shape: fullItem.type==='match',
+// fullItem[lang] = { prompt, pairs:[{term,def}, ...], exp }. The pairs array's index IS the
+// answer key — pairs[i].term correctly matches pairs[i].def. Left/right columns are shuffled
+// independently for display; quizState.matchPick tracks in-progress taps and is reset whenever
+// a new question loads.
+function renderMatchQuestion(panel, fullItem){
+  const item = fullItem[lang];
+  if(!quizState.matchPick || quizState.matchPick.forIdx !== quizState.idx){
+    const leftOrder = shuffleArray(item.pairs.map((p,i)=>i));
+    const rightOrder = shuffleArray(item.pairs.map((p,i)=>i));
+    quizState.matchPick = { forIdx: quizState.idx, leftOrder, rightOrder, selectedLeft:null, paired:{}, done:false };
+  }
+  const ms = quizState.matchPick;
+  const leftHtml = ms.leftOrder.map(i=>{
+    let cls = 'match-btn';
+    if(ms.paired[i]!==undefined) cls += ' locked ' + (ms.paired[i]===i ? 'correct' : 'incorrect');
+    else if(ms.selectedLeft===i) cls += ' selected';
+    // Note: term/def text is deliberately NOT run through annotate() here — these buttons
+    // are often glossary words themselves (that's the whole point of a matching question),
+    // and a clickable glossary-popup span inside the button would intercept the tap-to-pair
+    // click instead of registering the pairing.
+    return `<button class="${cls}" data-side="left" data-i="${i}" ${ms.paired[i]!==undefined?'disabled':''}>${item.pairs[i].term}</button>`;
+  }).join('');
+  const rightHtml = ms.rightOrder.map(i=>{
+    const pairedLeft = Object.keys(ms.paired).find(l=>ms.paired[l]===i);
+    let cls = 'match-btn';
+    if(pairedLeft!==undefined) cls += ' locked ' + (parseInt(pairedLeft)===i ? 'correct' : 'incorrect');
+    return `<button class="${cls}" data-side="right" data-i="${i}" ${pairedLeft!==undefined?'disabled':''}>${item.pairs[i].def}</button>`;
+  }).join('');
+  panel.innerHTML = `
+    <div class="q-count">${t('question')} ${quizState.idx+1} ${t('of')} ${quizState.bank.length}</div>
+    <div class="type-tag">🔗 ${t('typeTagMatch')}</div>
+    <div class="q-text">${annotate(item.prompt)}</div>
+    <div class="match-hint">${t('matchHint')}</div>
+    <div class="match-cols">
+      <div class="match-col">${leftHtml}</div>
+      <div class="match-col">${rightHtml}</div>
+    </div>
+    ${ms.done ? `<div class="explain show">${annotate(item.exp)}</div><br>` : ''}
+    <button class="primary" id="nextBtn" style="${ms.done?'':'display:none;'}">${quizState.idx+1===quizState.bank.length ? t('finishBtn') : t('nextBtn')}</button>
+  `;
+  attachGlossaryHandlers(panel);
+  if(!ms.done){
+    panel.querySelectorAll('.match-btn[data-side="left"]').forEach(btn=>{
+      btn.onclick = ()=>{ ms.selectedLeft = parseInt(btn.dataset.i); renderQuizQuestion(); };
+    });
+    panel.querySelectorAll('.match-btn[data-side="right"]').forEach(btn=>{
+      btn.onclick = ()=>{
+        if(ms.selectedLeft===null) return;
+        ms.paired[ms.selectedLeft] = parseInt(btn.dataset.i);
+        ms.selectedLeft = null;
+        if(Object.keys(ms.paired).length === item.pairs.length){
+          ms.done = true;
+          const allRight = Object.keys(ms.paired).every(l=> ms.paired[l]===parseInt(l));
+          if(allRight) quizState.correctCount++;
+          quizState.records.push({ right: allRight, full: fullItem });
+        }
+        renderQuizQuestion();
+      };
+    });
+  }
+  if(ms.done){
+    document.getElementById('nextBtn').onclick = ()=>{
+      quizState.matchPick = null;
+      if(quizState.idx+1 < quizState.bank.length){ quizState.idx++; renderQuizQuestion(); }
+      else finishQuiz();
+    };
+  }
 }
 
 function finishQuiz(){
