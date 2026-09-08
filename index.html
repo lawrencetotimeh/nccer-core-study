@@ -157,6 +157,7 @@
   <h1 id="appTitle">NCCER Core Study Tool</h1>
   <div class="topbar-right">
     <button id="btnGoHome" class="icon-btn" title="Go home" style="background:#2563eb;border-color:#2563eb;color:#fff;">🏠 Home</button>
+    <button id="btnCode" class="icon-btn" title="Class code">🔑</button>
     <button id="btnTextSize" class="icon-btn" title="Text size">Aa</button>
     <button id="btnTheme" class="icon-btn" title="Light / dark">🌙</button>
     <div class="lang-toggle">
@@ -197,6 +198,16 @@
     <div id="studyPrefCadenceOpts" style="margin-bottom:16px;"></div>
     <button class="primary" id="studyPrefSaveBtn"></button>
     <button class="primary" id="studyPrefCancelBtn" style="background:#475569;margin-top:8px;"></button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="syncOverlay">
+  <div class="modal-box">
+    <div class="modal-term" id="syncTitle"></div>
+    <div class="modal-def" id="syncBody" style="white-space:pre-line;"></div>
+    <input type="text" id="syncCodeInput" autocomplete="off" autocapitalize="characters" spellcheck="false" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);font-size:1.1rem;letter-spacing:.06em;text-align:center;margin-bottom:14px;background:var(--panel-bg,#fff);color:inherit;display:none;">
+    <button class="primary" id="syncPrimaryBtn"></button>
+    <button class="primary" id="syncSecondaryBtn" style="background:#475569;margin-top:8px;"></button>
   </div>
 </div>
 
@@ -1044,6 +1055,173 @@ function removeMissed(item){
    student has actually locked in versus which ones keep tripping them up. */
 let srs = JSON.parse(localStorage.getItem('ncc_srs') || '{}'); // key -> {ease, interval, reps, lapses, due}
 function saveSRS(){ localStorage.setItem('ncc_srs', JSON.stringify(srs)); }
+
+/* ============ CLASS SYNC ENGINE (v2) ============
+   Design rules (locked with Lawrence):
+   - No logins, no student PII. The only identifier is a short code the
+     TEACHER invents and hands out (e.g. 3B-07). School IDs are never used.
+   - Local-first: everything works with no network and no code. Sync is a
+     bonus layer that mirrors scores to the teacher's own Google Sheet.
+   - Content + progress stay teacher-owned: the endpoint is a free Google
+     Apps Script the teacher deploys on their own Sheet. Nothing touches
+     any server of ours.
+   - Storage is versioned with a migration runner so future updates never
+     wipe a student's progress. */
+const SYNC = {
+  // Teacher setup: paste the Apps Script web-app URL between the quotes.
+  // Leave empty to run the tool fully offline (everything still works;
+  // score events just queue locally and never leave the phone).
+  url: '',
+  toolId: 'nccer-core'
+};
+// Optional local override so the sync endpoint can be tested without editing
+// the file (set once from the console: localStorage.setItem('core_sync_url', ...)).
+function syncUrl(){ return localStorage.getItem('core_sync_url') || SYNC.url; }
+
+/* ---- storage schema version + migrations ---- */
+(function migrateStorage(){
+  const KEY = 'core_schema_v';
+  const TARGET = 2;
+  let v = parseInt(localStorage.getItem(KEY) || '0', 10);
+  // v0 -> v1: the original nccer_* keys ARE the v1 layout — stamp only.
+  // v1 -> v2: adds core_class / core_student_code / core_syncq (created lazily).
+  const migrations = {
+    1: function(){},
+    2: function(){}
+    // Future content/schema changes: add 3, 4, ... here. Each migration must
+    // transform old keys in place and NEVER delete progress it can't convert.
+  };
+  for(let n = v + 1; n <= TARGET; n++){
+    if(migrations[n]){ try{ migrations[n](); }catch(e){ /* keep going — never brick the tool */ } }
+  }
+  localStorage.setItem(KEY, String(TARGET));
+})();
+
+/* ---- class code (from QR / link) + student code (teacher-assigned) ---- */
+let classCode = localStorage.getItem('core_class') || '';
+(function captureClassParam(){
+  try{
+    const p = new URLSearchParams(location.search).get('class');
+    if(p){ classCode = p.toUpperCase().slice(0,24); localStorage.setItem('core_class', classCode); }
+  }catch(e){}
+})();
+let studentCode = localStorage.getItem('core_student_code') || '';
+
+/* ---- event queue (survives offline; flushed on load + after each event) ---- */
+let syncQueue = JSON.parse(localStorage.getItem('core_syncq') || '[]');
+function saveQueue(){ localStorage.setItem('core_syncq', JSON.stringify(syncQueue.slice(-200))); }
+let syncBusy = false;
+function flushSync(){
+  const url = syncUrl();
+  if(!url || syncBusy || !syncQueue.length) return;
+  syncBusy = true;
+  const batch = syncQueue.slice(0, 25);
+  fetch(url, {
+    method:'POST',
+    // text/plain keeps this a "simple request" (no CORS preflight, which
+    // Apps Script web apps don't answer). The script JSON-parses the body.
+    headers: {'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify({tool: SYNC.toolId, events: batch})
+  }).then(r=>{
+    if(r.ok){ syncQueue = syncQueue.slice(batch.length); saveQueue(); }
+  }).catch(()=>{ /* offline — events stay queued */ })
+    .finally(()=>{ syncBusy = false; if(syncQueue.length && syncUrl()) setTimeout(flushSync, 4000); });
+}
+function recordSyncEvent(qs, pct, passed){
+  const m = (typeof qs.modIdx === 'number') ? MODULES[qs.modIdx] : null;
+  syncQueue.push({
+    ts: new Date().toISOString(),
+    code: studentCode || '',
+    cls: classCode || '',
+    kind: qs.kind,                          // section | moduleTest | cumulative | quick | missed | mixed
+    module: m ? m.num : '',
+    section: qs.sectionKey || '',
+    score: pct,
+    total: qs.bank.length,
+    passed: passed,
+    lang: lang
+  });
+  saveQueue();
+  flushSync();
+}
+
+/* ---- student code UI (bilingual, confirm-on-entry, teacher can reset) ---- */
+const SYNC_T = {
+  en: {
+    chipTitle:"Class code",
+    enterTitle:"Your class code",
+    enterBody:"Type the code your teacher gave YOU (example: 3B-07).\nIt's not your name and not your school ID — just your class code, so your teacher can see your practice scores.",
+    confirmTitle:"Double-check your code",
+    confirmBody:(c)=>`You entered:\n\n${c}\n\nMake sure this is YOUR code from your teacher. If you use someone else's, your scores go to their row.`,
+    manageTitle:"Your class code",
+    manageBody:(c,cl)=>`Code: ${c}${cl? "\nClass: "+cl : ""}\n\nYour practice scores are shared with your teacher under this code. No name, no email, no school ID.`,
+    save:"Save", confirm:"Yes, that's my code", back:"Go back",
+    change:"Change my code", close:"Close", skip:"Not now",
+    nudge:"🔑 Got a class code from your teacher? Tap the key up top so your scores count."
+  },
+  es: {
+    chipTitle:"Código de clase",
+    enterTitle:"Tu código de clase",
+    enterBody:"Escribe el código que TU maestro te dio (ejemplo: 3B-07).\nNo es tu nombre ni tu ID escolar — solo tu código de clase, para que tu maestro vea tus resultados de práctica.",
+    confirmTitle:"Verifica tu código",
+    confirmBody:(c)=>`Escribiste:\n\n${c}\n\nAsegúrate de que este es TU código. Si usas el de otra persona, tus resultados irán a su fila.`,
+    manageTitle:"Tu código de clase",
+    manageBody:(c,cl)=>`Código: ${c}${cl? "\nClase: "+cl : ""}\n\nTus resultados de práctica se comparten con tu maestro bajo este código. Sin nombre, sin correo, sin ID escolar.`,
+    save:"Guardar", confirm:"Sí, ese es mi código", back:"Regresar",
+    change:"Cambiar mi código", close:"Cerrar", skip:"Ahora no",
+    nudge:"🔑 ¿Tu maestro te dio un código de clase? Toca la llave arriba para que tus resultados cuenten."
+  }
+};
+function st(key){ return SYNC_T[lang][key]; }
+function updateCodeChip(){
+  const b = document.getElementById('btnCode');
+  if(!b) return;
+  b.textContent = studentCode ? ('🔑 ' + studentCode) : '🔑';
+  b.title = st('chipTitle');
+}
+function openSyncModal(mode){
+  const ov = document.getElementById('syncOverlay');
+  const title = document.getElementById('syncTitle');
+  const body = document.getElementById('syncBody');
+  const input = document.getElementById('syncCodeInput');
+  const primary = document.getElementById('syncPrimaryBtn');
+  const secondary = document.getElementById('syncSecondaryBtn');
+  ov.style.display = 'flex';
+  if(mode === 'manage' && studentCode){
+    title.textContent = st('manageTitle');
+    body.textContent = st('manageBody')(studentCode, classCode);
+    input.style.display = 'none';
+    primary.textContent = st('change');
+    primary.onclick = ()=> openSyncModal('enter');
+    secondary.textContent = st('close');
+    secondary.onclick = ()=> ov.style.display = 'none';
+  } else if(mode === 'confirm'){
+    const pending = input.value.trim().toUpperCase();
+    if(!pending){ openSyncModal('enter'); return; }
+    title.textContent = st('confirmTitle');
+    body.textContent = st('confirmBody')(pending);
+    input.style.display = 'none';
+    primary.textContent = st('confirm');
+    primary.onclick = ()=>{
+      studentCode = pending;
+      localStorage.setItem('core_student_code', studentCode);
+      updateCodeChip();
+      ov.style.display = 'none';
+    };
+    secondary.textContent = st('back');
+    secondary.onclick = ()=> openSyncModal('enter');
+  } else {
+    title.textContent = st('enterTitle');
+    body.textContent = st('enterBody');
+    input.style.display = 'block';
+    input.value = studentCode || '';
+    primary.textContent = st('save');
+    primary.onclick = ()=>{ if(input.value.trim()) openSyncModal('confirm'); };
+    secondary.textContent = st('skip');
+    secondary.onclick = ()=> ov.style.display = 'none';
+    setTimeout(()=> input.focus(), 50);
+  }
+}
 function addDays(dateStr, days){
   const d = new Date(dateStr + 'T00:00:00');
   d.setDate(d.getDate() + days);
@@ -1349,6 +1527,7 @@ function setLang(l){
     document.getElementById('onboardBody').textContent = t('onboardBody');
     document.getElementById('onboardCloseBtn').textContent = t('onboardClose');
   }
+  updateCodeChip();
   renderTopTabs(); renderPanel();
 }
 
@@ -1874,6 +2053,10 @@ function finishQuiz(){
   } else if(quizState.kind==='cumulative'){
     cumulative['after_'+MODULES[quizState.modIdx].id] = {score:pct, passed}; saveCumulative();
   }
+  // Every finished round — sections, tests, AND review reps — becomes one row
+  // in the teacher's Sheet (when sync is configured), keyed only by the
+  // teacher-assigned code. Reps at home are visible reps.
+  recordSyncEvent(quizState, pct, passed);
   const failMsg = quizState.kind==='section' ? t('failMsgSection') : t('failMsgTest');
   const passMsg = quizState.kind==='section' ? t('passMsgSection') : t('passMsgTest');
   const isOfficialTest = (quizState.kind==='moduleTest' || quizState.kind==='cumulative');
@@ -1900,6 +2083,7 @@ function finishQuiz(){
       <div class="result-msg" style="margin-top:8px; font-weight:600;">${t('retakeEncourage')}</div>
       ${!passed ? `<div class="result-msg" style="margin-top:6px; color:var(--muted); font-size:0.88rem;">${t('retakeTips')}</div>` : ''}
       ${passed ? `<div class="donate-nudge" id="resultDonateNudge" style="margin-top:12px; padding:10px 14px; border-radius:10px; background:var(--card-alt, rgba(250,204,21,0.1)); cursor:pointer; font-size:0.88rem; text-align:left;">${t('donateNudge')}</div>` : ''}
+      ${(!studentCode && syncUrl()) ? `<div id="resultCodeNudge" style="margin-top:10px; padding:10px 14px; border-radius:10px; border:1px dashed var(--accent2); cursor:pointer; font-size:0.86rem; text-align:left;">${st('nudge')}</div>` : ''}
     </div>
     <button class="primary" id="retakeQBtn">${t('retakeBtn')}</button><br><br>
     ${nextStep ? `<button class="primary" id="nextPartBtn" style="background:#16a34a;">${nextStep.label}</button><br><br>` : ''}
@@ -1934,6 +2118,8 @@ function finishQuiz(){
     // back to the module detail page — regardless of what kind of quiz this was.
     homeView = null; topTab = 'home'; quizState = null; renderTopTabs(); renderPanel();
   };
+  const codeNudge = document.getElementById('resultCodeNudge');
+  if(codeNudge) codeNudge.onclick = ()=> openSyncModal('enter');
 }
 
 function renderCards(panel){
@@ -2009,6 +2195,11 @@ document.getElementById('btnGoHome').onclick = ()=>{
   // detail, mid-quiz, flashcards, support tab, or the post-quiz review screen).
   homeView = null; topTab = 'home'; quizState = null; renderTopTabs(); renderPanel();
 };
+document.getElementById('btnCode').onclick = ()=> openSyncModal(studentCode ? 'manage' : 'enter');
+document.getElementById('syncOverlay').addEventListener('click', function(e){ if(e.target===this) this.style.display='none'; });
+document.getElementById('syncCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter' && this.value.trim()) openSyncModal('confirm'); });
+updateCodeChip();
+flushSync(); // push any rounds finished offline last session
 applyTextScale();
 applyTheme();
 
