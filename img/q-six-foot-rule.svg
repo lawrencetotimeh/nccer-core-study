@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" font-family="ui-monospace, monospace">
+  <rect width="400" height="260" fill="#ffffff"/>
+  <!-- upper work surface -->
+  <rect x="30" y="110" width="190" height="14" fill="#334155"/>
+  <rect x="30" y="124" width="30" height="106" fill="#cbd5e1"/>
+  <!-- unprotected edge marker -->
+  <line x1="220" y1="104" x2="220" y2="130" stroke="#dc2626" stroke-width="3"/>
+  <!-- worker near edge -->
+  <g stroke="#0f1720" stroke-width="3" fill="none" stroke-linecap="round">
+    <circle cx="185" cy="66" r="10" fill="#ffffff"/>
+    <line x1="185" y1="76" x2="185" y2="98"/>
+    <line x1="185" y1="84" x2="170" y2="94"/>
+    <line x1="185" y1="84" x2="200" y2="92"/>
+    <line x1="185" y1="98" x2="175" y2="110"/>
+    <line x1="185" y1="98" x2="196" y2="110"/>
+  </g>
+  <!-- hard hat -->
+  <path d="M 175 62 A 10 10 0 0 1 195 62 Z" fill="#f59e0b"/>
+  <!-- lower level -->
+  <rect x="30" y="230" width="340" height="10" fill="#334155"/>
+  <!-- drop dimension with ? -->
+  <line x1="270" y1="124" x2="270" y2="230" stroke="#2563eb" stroke-width="2.5"/>
+  <polygon points="264,132 270,120 276,132" fill="#2563eb"/>
+  <polygon points="264,222 270,234 276,222" fill="#2563eb"/>
+  <circle cx="270" cy="177" r="20" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+  <text x="270" y="186" text-anchor="middle" font-size="24" font-weight="bold" fill="#2563eb">?</text>
+  <!-- caution: no guardrail on edge -->
+  <text x="330" y="115" text-anchor="middle" font-size="26" fill="#dc2626">⚠</text>
+</svg>

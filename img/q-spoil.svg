@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" font-family="ui-monospace, monospace">
+  <rect width="400" height="260" fill="#ffffff"/>
+  <!-- ground surface -->
+  <rect x="20" y="140" width="360" height="8" fill="#334155"/>
+  <!-- trench cut -->
+  <rect x="150" y="140" width="100" height="110" fill="#e2e8f0"/>
+  <line x1="150" y1="140" x2="150" y2="250" stroke="#334155" stroke-width="4"/>
+  <line x1="250" y1="140" x2="250" y2="250" stroke="#334155" stroke-width="4"/>
+  <rect x="150" y="246" width="100" height="6" fill="#334155"/>
+  <!-- worker in trench -->
+  <g stroke="#0f1720" stroke-width="2.5" fill="none" stroke-linecap="round">
+    <circle cx="200" cy="185" r="8" fill="#ffffff"/>
+    <line x1="200" y1="193" x2="200" y2="220"/>
+    <line x1="200" y1="200" x2="188" y2="210"/>
+    <line x1="200" y1="200" x2="212" y2="210"/>
+    <line x1="200" y1="220" x2="192" y2="240"/>
+    <line x1="200" y1="220" x2="208" y2="240"/>
+  </g>
+  <path d="M 192 182 A 8 8 0 0 1 208 182 Z" fill="#f59e0b"/>
+  <!-- spoil pile -->
+  <path d="M 300 140 Q 320 96 340 118 Q 356 100 372 140 Z" fill="#a16207"/>
+  <path d="M 306 140 Q 322 112 338 126 Q 350 112 366 140 Z" fill="#ca8a04"/>
+  <!-- distance from edge with ? -->
+  <line x1="252" y1="126" x2="300" y2="126" stroke="#dc2626" stroke-width="2.5"/>
+  <polygon points="260,120 248,126 260,132" fill="#dc2626"/>
+  <polygon points="292,120 304,126 292,132" fill="#dc2626"/>
+  <circle cx="276" cy="106" r="15" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+  <text x="276" y="113" text-anchor="middle" font-size="18" font-weight="bold" fill="#dc2626">?</text>
+</svg>

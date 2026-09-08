@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" font-family="ui-monospace, monospace">
+  <rect width="400" height="260" fill="#ffffff"/>
+  <!-- triangle -->
+  <path d="M 200 34 L 330 226 L 70 226 Z" fill="none" stroke="#0f1720" stroke-width="4" stroke-linejoin="round"/>
+  <!-- flame in center -->
+  <path d="M 200 122 Q 214 142 208 160 Q 222 154 222 172 Q 222 194 200 196 Q 178 194 178 172 Q 178 158 188 150 Q 184 136 200 122 Z" fill="#f97316"/>
+  <path d="M 200 148 Q 208 160 205 170 Q 212 176 206 186 Q 200 192 194 186 Q 188 176 195 168 Q 192 158 200 148 Z" fill="#fbbf24"/>
+  <!-- side label: fuel (left) -->
+  <rect x="32" y="112" width="86" height="30" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+  <path d="M 62 118 Q 70 128 70 133 A 8 8 0 0 1 54 133 Q 54 128 62 118 Z" fill="#334155"/>
+  <rect x="82" y="121" width="24" height="14" rx="2" fill="none" stroke="#334155" stroke-width="2"/>
+  <line x1="86" y1="128" x2="102" y2="128" stroke="#334155" stroke-width="2"/>
+  <!-- side label: oxygen (right) -->
+  <rect x="286" y="112" width="86" height="30" rx="6" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+  <text x="329" y="133" text-anchor="middle" font-size="14" fill="#0f1720">O₂</text>
+  <!-- bottom: ? -->
+  <rect x="157" y="226" width="86" height="34" rx="6" fill="#ffffff" stroke="#dc2626" stroke-width="2.5" transform="translate(0,-17)"/>
+  <text x="200" y="233" text-anchor="middle" font-size="22" font-weight="bold" fill="#dc2626">?</text>
+</svg>

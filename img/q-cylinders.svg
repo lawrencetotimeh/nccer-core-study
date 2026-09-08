@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" font-family="ui-monospace, monospace">
+  <rect width="400" height="260" fill="#ffffff"/>
+  <!-- ground -->
+  <rect x="20" y="228" width="360" height="8" fill="#334155"/>
+  <!-- LEFT option: separated by distance -->
+  <g>
+    <rect x="40" y="120" width="34" height="108" rx="8" fill="#16a34a"/>
+    <rect x="51" y="106" width="12" height="16" fill="#334155"/>
+    <text x="57" y="180" text-anchor="middle" font-size="13" fill="#ffffff">O₂</text>
+    <rect x="150" y="120" width="34" height="108" rx="8" fill="#dc2626"/>
+    <rect x="161" y="106" width="12" height="16" fill="#334155"/>
+    <path d="M 160 168 L 172 152 L 166 166 L 174 164 L 158 184 L 164 168 Z" fill="#ffffff"/>
+    <line x1="78" y1="96" x2="146" y2="96" stroke="#0f1720" stroke-width="2"/>
+    <polygon points="86,91 74,96 86,101" fill="#0f1720"/>
+    <polygon points="138,91 150,96 138,101" fill="#0f1720"/>
+    <text x="112" y="86" text-anchor="middle" font-size="13" fill="#0f1720">20 ft</text>
+  </g>
+  <!-- OR -->
+  <text x="222" y="180" text-anchor="middle" font-size="14" font-weight="bold" fill="#6b7280">OR</text>
+  <!-- RIGHT option: barrier ? -->
+  <g>
+    <rect x="252" y="120" width="34" height="108" rx="8" fill="#16a34a"/>
+    <rect x="263" y="106" width="12" height="16" fill="#334155"/>
+    <text x="269" y="180" text-anchor="middle" font-size="13" fill="#ffffff">O₂</text>
+    <rect x="346" y="120" width="34" height="108" rx="8" fill="#dc2626"/>
+    <rect x="357" y="106" width="12" height="16" fill="#334155"/>
+    <path d="M 356 168 L 368 152 L 362 166 L 370 164 L 354 184 L 360 168 Z" fill="#ffffff"/>
+    <!-- barrier wall with ? -->
+    <rect x="308" y="72" width="18" height="156" fill="#94a3b8" stroke="#334155" stroke-width="2"/>
+    <circle cx="317" cy="52" r="16" fill="#ffffff" stroke="#dc2626" stroke-width="2.5"/>
+    <text x="317" y="60" text-anchor="middle" font-size="20" font-weight="bold" fill="#dc2626">?</text>
+  </g>
+</svg>
