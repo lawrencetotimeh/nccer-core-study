@@ -149,8 +149,6 @@
   @keyframes matchShake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
   .match-tries{ font-size:0.78rem; color:var(--muted); margin-top:4px; }
   .match-hint{ font-size:0.78rem; color:var(--muted); margin-bottom:8px; }
-  .q-img{ display:block; width:100%; max-height:250px; object-fit:contain; border:1px solid var(--border); border-radius:12px; margin:0 0 12px; background:#fff; }
-  .q-img-sm{ max-height:160px; margin:6px 0 8px; }
 </style>
 </head>
 <body>
@@ -159,7 +157,6 @@
   <h1 id="appTitle">NCCER Core Study Tool</h1>
   <div class="topbar-right">
     <button id="btnGoHome" class="icon-btn" title="Go home" style="background:#2563eb;border-color:#2563eb;color:#fff;">🏠 Home</button>
-    <button id="btnCode" class="icon-btn" title="Class code">🔑</button>
     <button id="btnTextSize" class="icon-btn" title="Text size">Aa</button>
     <button id="btnTheme" class="icon-btn" title="Light / dark">🌙</button>
     <div class="lang-toggle">
@@ -200,16 +197,6 @@
     <div id="studyPrefCadenceOpts" style="margin-bottom:16px;"></div>
     <button class="primary" id="studyPrefSaveBtn"></button>
     <button class="primary" id="studyPrefCancelBtn" style="background:#475569;margin-top:8px;"></button>
-  </div>
-</div>
-
-<div class="modal-overlay" id="syncOverlay">
-  <div class="modal-box">
-    <div class="modal-term" id="syncTitle"></div>
-    <div class="modal-def" id="syncBody" style="white-space:pre-line;"></div>
-    <input type="text" id="syncCodeInput" autocomplete="off" autocapitalize="characters" spellcheck="false" style="width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);font-size:1.1rem;letter-spacing:.06em;text-align:center;margin-bottom:14px;background:var(--panel-bg,#fff);color:inherit;display:none;">
-    <button class="primary" id="syncPrimaryBtn"></button>
-    <button class="primary" id="syncSecondaryBtn" style="background:#475569;margin-top:8px;"></button>
   </div>
 </div>
 
@@ -463,18 +450,6 @@ function openStudyPrefModal(onSave){
 }
 
 /* ============ READ ALOUD (TEXT-TO-SPEECH) ============ */
-// Per-question visual support. Usage on any item: img:'img/q-fall-distance.svg'
-// (repo path or full URL), alt:{en:"...",es:"..."} or alt:"..." — img is shared
-// across languages. Returns '' when the item has no visual.
-function qImg(fullItem, small){
-  if(!fullItem || !fullItem.img) return '';
-  let altText = '';
-  if(typeof fullItem.alt === 'string') altText = fullItem.alt;
-  else if(fullItem.alt && fullItem.alt[lang]) altText = fullItem.alt[lang];
-  const esc = altText.replace(/"/g,'&quot;');
-  return `<img class="q-img${small?' q-img-sm':''}" src="${fullItem.img}" alt="${esc}" loading="lazy">`;
-}
-
 function stripHtml(html){
   const tmp = document.createElement('div');
   tmp.innerHTML = html;
@@ -625,19 +600,19 @@ const M2_SECTION1 = [
    es:{q:"Según los estudios citados en el módulo, ¿cuántos cuasi accidentes ocurren aproximadamente por cada lesión grave o incapacitante?",opts:["10","100","600","1,000"],c:2,exp:"Ocurren unos 600 cuasi accidentes por cada lesión grave o incapacitante, una buena razón para siempre reportarlos. 📖 pág. 36"}}
 ];
 const M2_SECTION2 = [
-  {img:'img/q-six-foot-rule.svg', alt:{en:"Worker near an unprotected edge with a question-marked drop height to the level below", es:"Trabajador cerca de un borde sin protección con la altura de caída marcada con interrogación"}, en:{q:"Fall protection is generally required whenever a work surface has unprotected sides or edges ________ or higher above the level below — the 'six-foot rule.'",opts:["3 feet (0.9 m)","6 feet (~2 m)","10 feet (3 m)","15 feet (4.6 m)"],c:1,exp:"6 feet (~2 m) — the six-foot rule, though some regulations/policies require protection at lower heights too. 📖 p.52"},
+  {en:{q:"Fall protection is generally required whenever a work surface has unprotected sides or edges ________ or higher above the level below — the 'six-foot rule.'",opts:["3 feet (0.9 m)","6 feet (~2 m)","10 feet (3 m)","15 feet (4.6 m)"],c:1,exp:"6 feet (~2 m) — the six-foot rule, though some regulations/policies require protection at lower heights too. 📖 p.52"},
    es:{q:"Generalmente se requiere protección contra caídas cuando una superficie de trabajo tiene lados o bordes desprotegidos de ________ o más sobre el nivel inferior: la 'regla de los seis pies.'",opts:["3 pies (0.9 m)","6 pies (~2 m)","10 pies (3 m)","15 pies (4.6 m)"],c:1,exp:"6 pies (~2 m): la regla de los seis pies, aunque algunas regulaciones/políticas exigen protección a alturas menores también. 📖 pág. 52"}},
-  {img:'img/q-pfas.svg', alt:{en:"Fall arrest setup: anchor point (1), connecting lanyard (2), and a question-marked third component on the worker's torso (3)", es:"Sistema anticaídas: anclaje (1), conector (2) y un tercer componente marcado con interrogación en el torso (3)"}, en:{q:"A complete personal fall arrest system (PFAS) consists of anchor points, connecting devices, and a(n) ________.",opts:["hard hat","body harness","tool belt","safety net"],c:1,exp:"A body harness — the system of belts, rings, and hooks worn by the worker. 📖 p.54-57"},
+  {en:{q:"A complete personal fall arrest system (PFAS) consists of anchor points, connecting devices, and a(n) ________.",opts:["hard hat","body harness","tool belt","safety net"],c:1,exp:"A body harness — the system of belts, rings, and hooks worn by the worker. 📖 p.54-57"},
    es:{q:"Un sistema personal de detención de caídas (PFAS) completo consiste en puntos de anclaje, dispositivos de conexión, y un(a) ________.",opts:["casco","arnés de cuerpo entero","cinturón de herramientas","red de seguridad"],c:1,exp:"Un arnés de cuerpo entero: el sistema de correas, anillos y ganchos que usa el trabajador. 📖 pág. 54-57"},},
   {en:{q:"Anchor points for primary fall arrest must be rated at or equal to ________, or twice the intended load.",opts:["500 pounds (227 kg)","1,000 pounds (454 kg)","5,000 pounds (2,267 kg)","10,000 pounds (4,536 kg)"],c:2,exp:"5,000 pounds (2,267 kg) breaking/tensile strength, or twice the intended load. 📖 p.54-57"},
    es:{q:"Los puntos de anclaje para la detención primaria de caídas deben tener una capacidad de ________, o el doble de la carga prevista.",opts:["500 libras (227 kg)","1,000 libras (454 kg)","5,000 libras (2,267 kg)","10,000 libras (4,536 kg)"],c:2,exp:"5,000 libras (2,267 kg) de resistencia a la rotura/tensión, o el doble de la carga prevista. 📖 pág. 54-57"}},
   {en:{q:"On a full body harness, which D-ring is used to connect to the anchor point for PRIMARY fall arrest (except when climbing a ladder)?",opts:["Hip D-ring","Shoulder D-ring","Back D-ring","Waist D-ring"],c:2,exp:"The back D-ring — positioned between the shoulder blades. Hip D-rings are for positioning/restraint only. 📖 p.54-57"},
    es:{q:"En un arnés de cuerpo entero, ¿qué anillo en D se usa para conectar al punto de anclaje para la detención PRIMARIA de caídas (excepto al subir una escalera)?",opts:["Anillo D de cadera","Anillo D de hombro","Anillo D de espalda","Anillo D de cintura"],c:2,exp:"El anillo D de espalda, ubicado entre los omóplatos. Los anillos D de cadera son solo para posicionamiento/restricción. 📖 pág. 54-57"}},
-  {img:'img/q-ladder-4to1.svg', alt:{en:"Ladder leaning on a wall of height H, with a question-marked distance from the wall to the ladder base", es:"Escalera apoyada en una pared de altura H, con la distancia de la base marcada con interrogación"}, en:{q:"When positioning a straight ladder against a wall, the base should be set back from the wall by about ________ of the height to the point of contact (the 4-to-1 ratio).",opts:["one-eighth","one-fourth","one-half","the full height"],c:1,exp:"One-fourth the distance — e.g., a 16-foot wall means the base sits 4 feet out. 📖 p.63"},
+  {en:{q:"When positioning a straight ladder against a wall, the base should be set back from the wall by about ________ of the height to the point of contact (the 4-to-1 ratio).",opts:["one-eighth","one-fourth","one-half","the full height"],c:1,exp:"One-fourth the distance — e.g., a 16-foot wall means the base sits 4 feet out. 📖 p.63"},
    es:{q:"Al colocar una escalera recta contra una pared, la base debe alejarse de la pared aproximadamente ________ de la altura hasta el punto de contacto (proporción 4 a 1).",opts:["un octavo","un cuarto","la mitad","toda la altura"],c:1,exp:"Un cuarto de la distancia; por ejemplo, una pared de 16 pies significa que la base debe estar a 4 pies. 📖 pág. 63"}},
   {en:{q:"On an extension ladder, the highest safe standing level is ________.",opts:["the very top rung","the second rung from the top","the fourth rung from the top","there is no limit if you hold on"],c:2,exp:"The fourth rung from the top. Standing higher risks losing your balance and falling. 📖 p.65-66"},
    es:{q:"En una escalera de extensión, el nivel más alto seguro para pararse es ________.",opts:["el peldaño más alto","el segundo peldaño desde arriba","el cuarto peldaño desde arriba","no hay límite si te sostienes"],c:2,exp:"El cuarto peldaño desde arriba. Pararse más arriba arriesga perder el equilibrio y caer. 📖 pág. 65-66"}},
-  {img:'img/q-guardrail.svg', alt:{en:"Guardrail 42 inches high with a question-marked force arrow pushing on the top rail", es:"Barandal de 42 pulgadas con una flecha de fuerza marcada con interrogación sobre el riel superior"}, en:{q:"A guardrail's top rail must be 42 inches (±3 in) high and support at least ________ of force applied in any direction.",opts:["50 pounds (23 kg)","100 pounds (45 kg)","150 pounds (68 kg)","200 pounds (90 kg)"],c:3,exp:"200 pounds (90 kg) to the top rail (150 pounds/68 kg to the midrail). 📖 p.52-54"},
+  {en:{q:"A guardrail's top rail must be 42 inches (±3 in) high and support at least ________ of force applied in any direction.",opts:["50 pounds (23 kg)","100 pounds (45 kg)","150 pounds (68 kg)","200 pounds (90 kg)"],c:3,exp:"200 pounds (90 kg) to the top rail (150 pounds/68 kg to the midrail). 📖 p.52-54"},
    es:{q:"El riel superior de una barandilla debe medir 42 pulgadas (±3 in) de alto y soportar al menos ________ de fuerza aplicada en cualquier dirección.",opts:["50 libras (23 kg)","100 libras (45 kg)","150 libras (68 kg)","200 libras (90 kg)"],c:3,exp:"200 libras (90 kg) en el riel superior (150 libras/68 kg en el riel intermedio). 📖 pág. 52-54"}},
   {en:{q:"A scaffold tagged with a GREEN tag means ________.",opts:["it is being put up or taken down — never use it","it meets all OSHA standards and is safe to use","it does not meet all standards but extra precautions allow use","it is condemned and must be dismantled"],c:1,exp:"Green = meets all OSHA standards, safe to use. Yellow = doesn't fully meet standards (extra precautions needed). Red = being erected/dismantled, never use. 📖 p.70-71"},
    es:{q:"Un andamio con etiqueta VERDE significa ________.",opts:["se está armando o desarmando: nunca usarlo","cumple con todos los estándares de OSHA y es seguro de usar","no cumple con todos los estándares pero se permite usar con precauciones extra","está condenado y debe desarmarse"],c:1,exp:"Verde = cumple todos los estándares de OSHA, seguro de usar. Amarillo = no cumple totalmente (se necesitan precauciones extra). Rojo = en montaje/desmontaje, nunca usar. 📖 pág. 70-71"}},
@@ -657,7 +632,7 @@ const M2_SECTION3 = [
    es:{q:"¿Qué tipo de suelo se asume por defecto (el más seguro) a menos que se demuestre lo contrario, por ser el menos estable?",opts:["Roca sólida","Tipo A","Tipo B","Tipo C"],c:3,exp:"El suelo Tipo C (de grano grueso y granular: arena, grava, arena arcillosa) es el menos estable, por lo que se asume por defecto como medida de seguridad. 📖 pág. 74"}},
   {en:{q:"A trench box (shielding structure) works by ________, while shoring works by ________.",opts:["protecting workers inside it during a cave-in; actually supporting the trench walls to prevent a cave-in","supporting the walls; protecting workers inside a box","filling the trench with water; draining the trench","doing the same thing — they're interchangeable terms"],c:0,exp:"Shielding (trench boxes) protect workers within their confines during a cave-in; shoring actually supports the trench walls and helps prevent the cave-in from happening. 📖 p.74"},
    es:{q:"Una caja de zanja (estructura de blindaje) funciona ________, mientras que el apuntalamiento funciona ________.",opts:["protegiendo a los trabajadores dentro durante un derrumbe; en realidad sosteniendo las paredes de la zanja para prevenir el derrumbe","sosteniendo las paredes; protegiendo a los trabajadores dentro de una caja","llenando la zanja de agua; drenando la zanja","de la misma forma, son términos intercambiables"],c:0,exp:"El blindaje (cajas de zanja) protege a los trabajadores dentro de sus límites durante un derrumbe; el apuntalamiento realmente sostiene las paredes de la zanja y ayuda a prevenir que ocurra el derrumbe. 📖 pág. 74"}},
-  {img:'img/q-spoil.svg', alt:{en:"Trench with a worker inside and a spoil pile, question-marked distance between trench edge and pile", es:"Zanja con un trabajador y una pila de material excavado; distancia al borde marcada con interrogación"}, en:{q:"Spoil (excavated material) must be kept at least ________ from the edge of an excavation.",opts:["6 inches (15 cm)","1 foot (30 cm)","2 feet (0.6 m)","10 feet (3 m)"],c:2,exp:"2 feet (0.6 m) — loose spoil closer than that risks rolling or falling back into the excavation, or overloading and collapsing the walls. 📖 p.74"},
+  {en:{q:"Spoil (excavated material) must be kept at least ________ from the edge of an excavation.",opts:["6 inches (15 cm)","1 foot (30 cm)","2 feet (0.6 m)","10 feet (3 m)"],c:2,exp:"2 feet (0.6 m) — loose spoil closer than that risks rolling or falling back into the excavation, or overloading and collapsing the walls. 📖 p.74"},
    es:{q:"El material excavado (sobrante) debe mantenerse al menos a ________ del borde de una excavación.",opts:["6 pulgadas (15 cm)","1 pie (30 cm)","2 pies (0.6 m)","10 pies (3 m)"],c:2,exp:"2 pies (0.6 m); el material suelto más cerca corre el riesgo de rodar o caer de nuevo a la excavación, o sobrecargar y colapsar las paredes. 📖 pág. 74"}},
   {en:{q:"Before any digging project begins, contractors should call 811 (or the state's One-Call center) at least ________ in advance.",opts:["30 minutes","24 hours","a week or two","six months"],c:2,exp:"A week or two in advance — waiting to hear back from all utilities can take days to weeks. 📖 p.74"},
    es:{q:"Antes de iniciar cualquier proyecto de excavación, los contratistas deben llamar al 811 (o al centro de aviso único del estado) con al menos ________ de anticipación.",opts:["30 minutos","24 horas","una o dos semanas","seis meses"],c:2,exp:"Una o dos semanas de anticipación; esperar respuesta de todas las empresas de servicios públicos puede tardar de días a semanas. 📖 pág. 74"}},
@@ -677,7 +652,7 @@ const M2_SECTION4 = [
    es:{q:"Un GFCI (interruptor de circuito por falla a tierra) interrumpe la energía cuando la corriente que sale y la que regresa de un dispositivo difieren en más de ________.",opts:["1 miliamperio","5 miliamperios","1 amperio","5 amperios"],c:1,exp:"5 miliamperios; el GFCI corta la energía en 1/40 de segundo. 📖 pág. 80-84"}},
   {en:{q:"The minimum safe working distance from an exposed electrical conductor ________.",opts:["is always exactly 6 inches (15 cm)","is always exactly 1 foot (30 cm)","depends on the voltage — higher voltage requires greater distance","does not matter as long as you wear gloves"],c:2,exp:"It depends on the voltage. A minimum of 10 feet (3 m) applies for conductors carrying 50,000 volts or less; greater distances are required for higher voltages. 📖 p.80-84"},
    es:{q:"La distancia mínima de trabajo segura desde un conductor eléctrico expuesto ________.",opts:["siempre es exactamente 6 pulgadas (15 cm)","siempre es exactamente 1 pie (30 cm)","depende del voltaje: a mayor voltaje, mayor distancia","no importa mientras uses guantes"],c:2,exp:"Depende del voltaje. Se aplica un mínimo de 10 pies (3 m) para conductores de 50,000 voltios o menos; se requieren distancias mayores para voltajes más altos. 📖 pág. 80-84"}},
-  {img:'img/q-shock-scene.svg', alt:{en:"A shocked worker still in contact with an energized cable from a power panel; a bystander wonders what to do", es:"Trabajador electrocutado aún en contacto con un cable energizado; otra persona se pregunta qué hacer"}, en:{q:"If you find someone who has been shocked and is still in contact with the power source, you should ________.",opts:["pull them away with your bare hands immediately","touch them with a metal tool to break contact","immediately shut off the power to the circuit, without touching the victim","wait for them to let go on their own"],c:2,exp:"Immediately shut off the power. Never touch the victim or the source with your hand, foot, or any object — you could become part of the circuit. 📖 p.80-84"},
+  {en:{q:"If you find someone who has been shocked and is still in contact with the power source, you should ________.",opts:["pull them away with your bare hands immediately","touch them with a metal tool to break contact","immediately shut off the power to the circuit, without touching the victim","wait for them to let go on their own"],c:2,exp:"Immediately shut off the power. Never touch the victim or the source with your hand, foot, or any object — you could become part of the circuit. 📖 p.80-84"},
    es:{q:"Si encuentras a alguien que ha recibido una descarga y sigue en contacto con la fuente de energía, debes ________.",opts:["jalarlo de inmediato con las manos desnudas","tocarlo con una herramienta de metal para romper el contacto","apagar de inmediato la energía del circuito, sin tocar a la víctima","esperar a que se suelte por sí solo"],c:2,exp:"Apagar de inmediato la energía. Nunca toques a la víctima ni la fuente con la mano, el pie o cualquier objeto; podrías convertirte en parte del circuito. 📖 pág. 80-84"}},
   {en:{q:"Circuit breakers and disconnect switches used in a lockout are examples of ________.",opts:["energy-isolating devices","tagout-only devices","PPE","GFCIs"],c:0,exp:"Energy-isolating devices — placed in the Off position and then locked so the equipment can't be re-energized. 📖 p.84-85"},
    es:{q:"Los disyuntores e interruptores de desconexión usados en un bloqueo son ejemplos de ________.",opts:["dispositivos aislantes de energía","dispositivos solo de etiquetado","EPP","GFCIs"],c:0,exp:"Dispositivos aislantes de energía: se colocan en posición de apagado y luego se bloquean para que el equipo no pueda reenergizarse. 📖 pág. 84-85"}},
@@ -717,9 +692,9 @@ const M2_SECTION6 = [
    es:{q:"Para prevenir el estrés por calor, se anima a los trabajadores a beber cerca de ________ de agua por hora cuando el índice de calor es de 103°F (39.5°C) o más.",opts:["1 taza (237 ml)","4 tazas (~1 L)","10 tazas (2.4 L)","1 galón (3.8 L)"],c:1,exp:"4 tazas (~1 litro) por hora, pero el consumo de agua no debe exceder 6 tazas (1.4 L)/hora o 3 galones (11.4 L)/día. 📖 pág. 101"}},
   {en:{q:"A serious, potentially fatal drop in body temperature — which does NOT require below-freezing air to occur — is called ________.",opts:["heat exhaustion","frostbite","hypothermia","heat stroke"],c:2,exp:"Hypothermia. It can happen on land or in water and its effects can go unnoticed until too late. 📖 p.103-104"},
    es:{q:"Una caída grave y potencialmente mortal de la temperatura corporal, que NO requiere aire bajo cero para ocurrir, se llama ________.",opts:["agotamiento por calor","congelación","hipotermia","golpe de calor"],c:2,exp:"Hipotermia. Puede ocurrir en tierra o en agua, y sus efectos pueden pasar desapercibidos hasta que es demasiado tarde. 📖 pág. 103-104"}},
-  {img:'img/q-fire-triangle.svg', alt:{en:"Fire triangle: fuel and oxygen labeled on two sides, third side marked with a question mark", es:"Triángulo del fuego: combustible y oxígeno en dos lados, el tercer lado con interrogación"}, en:{q:"For a fire to start, three things are needed in the same place at the same time: fuel, oxygen, and ________.",opts:["heat","water","carbon dioxide","pressure"],c:0,exp:"Heat — together these make up the 'fire triangle.' Remove any one element and a fire can't start (or will go out). 📖 p.109"},
+  {en:{q:"For a fire to start, three things are needed in the same place at the same time: fuel, oxygen, and ________.",opts:["heat","water","carbon dioxide","pressure"],c:0,exp:"Heat — together these make up the 'fire triangle.' Remove any one element and a fire can't start (or will go out). 📖 p.109"},
    es:{q:"Para que un fuego comience, se necesitan tres cosas en el mismo lugar al mismo tiempo: combustible, oxígeno y ________.",opts:["calor","agua","dióxido de carbono","presión"],c:0,exp:"Calor; juntos forman el 'triángulo del fuego'. Si se elimina cualquiera de los elementos, el fuego no puede comenzar (o se apagará). 📖 pág. 109"}},
-  {img:'img/q-cylinders.svg', alt:{en:"Oxygen and fuel-gas cylinders separated by 20 feet, or by a question-marked barrier between them", es:"Cilindros de oxígeno y gas separados por 20 pies, o por una barrera marcada con interrogación"}, en:{q:"When storing oxygen and fuel-gas cylinders for oxyfuel cutting, they must be separated by 20 feet (6.1 m) or by ________.",opts:["a wooden fence","a 5-foot (1.5 m) high, half-hour fire-rated barrier","a chain-link fence only","nothing else is required"],c:1,exp:"A 5-foot (1.5 m) high barrier with at least a half-hour fire rating. 📖 p.106"},
+  {en:{q:"When storing oxygen and fuel-gas cylinders for oxyfuel cutting, they must be separated by 20 feet (6.1 m) or by ________.",opts:["a wooden fence","a 5-foot (1.5 m) high, half-hour fire-rated barrier","a chain-link fence only","nothing else is required"],c:1,exp:"A 5-foot (1.5 m) high barrier with at least a half-hour fire rating. 📖 p.106"},
    es:{q:"Al almacenar cilindros de oxígeno y gas combustible para corte oxicombustible, deben separarse por 20 pies (6.1 m) o por ________.",opts:["una cerca de madera","una barrera de 5 pies (1.5 m) de alto con clasificación contra incendio de media hora","solo una cerca de malla metálica","no se requiere nada más"],c:1,exp:"Una barrera de 5 pies (1.5 m) de alto con una clasificación contra incendio de al menos media hora. 📖 pág. 106"}},
   {en:{q:"Which fire extinguisher class is used for electrical equipment fires?",opts:["Class A","Class B","Class C","Class D"],c:2,exp:"Class C — for fires in energized electrical equipment. Class A is ordinary combustibles, Class B is flammable liquids, Class D is combustible metals. 📖 p.111-113"},
    es:{q:"¿Qué clase de extintor se usa para incendios en equipos eléctricos?",opts:["Clase A","Clase B","Clase C","Clase D"],c:2,exp:"Clase C: para incendios en equipos eléctricos energizados. La Clase A es combustibles ordinarios, la Clase B líquidos inflamables, y la Clase D metales combustibles. 📖 pág. 111-113"}},
@@ -972,6 +947,135 @@ const M3_CARDS = [
   {en:{q:"What does an electronic signature confirm on a digital document?",a:"The sender's identity, and that the document's content hasn't been altered since it was signed."}, es:{q:"¿Qué confirma una firma electrónica en un documento digital?",a:"La identidad del remitente, y que el contenido del documento no ha sido alterado desde que se firmó."}}
 ];
 
+const M4_SECTION1 = [
+  {en:{q:"What is the first step in the problem-solving process?",opts:["Identify the problem","Implement the solution","Evaluate the final result","Monitor the results"],c:0,exp:"Before you can analyze or fix anything, you have to pin down exactly what the problem actually is. 📖 p.372-374"},
+   es:{q:"¿Cuál es el primer paso en el proceso de resolución de problemas?",opts:["Identificar el problema","Implementar la solución","Evaluar el resultado final","Monitorear los resultados"],c:0,exp:"Antes de poder analizar o resolver algo, hay que definir exactamente cuál es el problema. 📖 pág. 372-374"}},
+  {en:{q:"After you've analyzed a problem's possible causes and options, the next step is to ________.",opts:["decide on a plan of action","forget about it and move on","implement the solution with no plan","skip straight to evaluating the result"],c:0,exp:"Analysis comes before action: once you understand the causes, you decide on a plan before you implement anything. 📖 p.372-374"},
+   es:{q:"Después de analizar las posibles causas y opciones de un problema, el siguiente paso es ________.",opts:["decidir un plan de acción","olvidarlo y seguir adelante","implementar la solución sin ningún plan","pasar directo a evaluar el resultado"],c:0,exp:"El análisis va antes que la acción: una vez que entiendes las causas, decides un plan antes de implementar nada. 📖 pág. 372-374"}},
+  {type:'fillBlank', en:{q:"Once a solution is put into effect, you need to ___ it to make sure it's actually working.",opts:["monitor","ignore","delay","cancel"],c:0,exp:"Implementing a solution isn't the end of the process — you have to monitor it to see whether it's really solving the problem. 📖 p.372-374"},
+   es:{q:"Una vez que una solución se pone en marcha, hay que ___ para asegurarte de que realmente está funcionando.",opts:["monitorear","ignorar","retrasar","cancelar"],c:0,exp:"Implementar una solución no es el final del proceso — hay que monitorearla para ver si de verdad está resolviendo el problema. 📖 pág. 372-374"}},
+  {en:{q:"Which of these is one of the main categories used when planning and scheduling a job?",opts:["Materials","Weather forecasting","Marketing","Transportation only"],c:0,exp:"Planning and scheduling breaks a job down into categories like materials, equipment, tools, and labor — materials is one of the core ones. 📖 p.372-374"},
+   es:{q:"¿Cuál de estas es una de las categorías principales al planificar y programar un trabajo?",opts:["Materiales","Pronóstico del clima","Mercadeo","Solo transporte"],c:0,exp:"Planificar y programar divide un trabajo en categorías como materiales, equipo, herramientas y mano de obra — materiales es una de las principales. 📖 pág. 372-374"}},
+  {en:{q:"Depending on the type of project and region of work, one of the most expensive components of a project is often ________.",opts:["hand tools","equipment rental","power tools","labor"],c:3,exp:"Labor is often the single most expensive part of a job, depending on the type of project and where the work is happening. 📖 p.389"},
+   es:{q:"Dependiendo del tipo de proyecto y la región de trabajo, uno de los componentes más costosos de un proyecto suele ser ________.",opts:["herramientas manuales","alquiler de equipo","herramientas eléctricas","la mano de obra"],c:3,exp:"La mano de obra suele ser la parte más costosa de un trabajo, dependiendo del tipo de proyecto y la región. 📖 pág. 389"}},
+  {type:'fillBlank', en:{q:"An employee who is repeatedly late to work is showing a pattern of ___.",opts:["tardiness","absenteeism","initiative","dependability"],c:0,exp:"Tardiness means showing up late on a regular basis. It's a different problem than absenteeism, which means missing work entirely. 📖 p.372-374"},
+   es:{q:"Un empleado que llega tarde al trabajo de forma repetida muestra un patrón de ___.",opts:["impuntualidad","ausentismo","iniciativa","confiabilidad"],c:0,exp:"La impuntualidad significa llegar tarde de forma habitual. Es un problema distinto al ausentismo, que significa faltar por completo al trabajo. 📖 pág. 372-374"}},
+  {en:{q:"Missing work entirely, without a valid reason, is called ________.",opts:["tardiness","absenteeism","procrastination","negligence"],c:1,exp:"Absenteeism is missing work entirely — a bigger problem for a crew than tardiness, which is just showing up late. 📖 p.372-374"},
+   es:{q:"Faltar por completo al trabajo, sin una razón válida, se llama ________.",opts:["impuntualidad","ausentismo","procrastinación","negligencia"],c:1,exp:"El ausentismo es faltar por completo al trabajo — un problema mayor para una cuadrilla que la impuntualidad, que es solo llegar tarde. 📖 pág. 372-374"}},
+  {en:{q:"Why do delays on a construction job matter so much?",opts:["They can throw off the whole project schedule and cost money","They only ever affect the crew leader personally","They rarely have any real effect on the project","They are required by OSHA on every job"],c:0,exp:"A delay anywhere in the schedule can ripple out and affect the whole project's timeline and budget — that's why handling delays well is part of good planning. 📖 p.372-374"},
+   es:{q:"¿Por qué importan tanto los retrasos en un trabajo de construcción?",opts:["Pueden descontrolar todo el cronograma del proyecto y costar dinero","Solo afectan personalmente al líder de cuadrilla","Rara vez tienen algún efecto real en el proyecto","Son requeridos por OSHA en cada trabajo"],c:0,exp:"Un retraso en cualquier parte del cronograma puede afectar todo el calendario y presupuesto del proyecto — por eso manejar bien los retrasos es parte de una buena planificación. 📖 pág. 372-374"}},
+  {type:'match', en:{prompt:"Match each step of the problem-solving process to what happens during it.", pairs:[
+      {term:"Identify", def:"Figure out exactly what the problem is"},
+      {term:"Analyze", def:"Look at the possible causes and options"},
+      {term:"Implement and monitor", def:"Put the plan into action and track how it's going"},
+      {term:"Evaluate", def:"Check whether the final result actually solved the problem"}
+    ], exp:"These are the core steps of the problem-solving process taught in this module. 📖 p.372-374"},
+   es:{prompt:"Relaciona cada paso del proceso de resolución de problemas con lo que ocurre en él.", pairs:[
+      {term:"Identificar", def:"Definir exactamente cuál es el problema"},
+      {term:"Analizar", def:"Revisar las posibles causas y opciones"},
+      {term:"Implementar y monitorear", def:"Poner el plan en marcha y darle seguimiento"},
+      {term:"Evaluar", def:"Comprobar si el resultado final realmente resolvió el problema"}
+    ], exp:"Estos son los pasos principales del proceso de resolución de problemas de este módulo. 📖 pág. 372-374"}}
+];
+
+const M4_SECTION2 = [
+  {type:'fillBlank', en:{q:"Work ethic is defined as the way a person ___, speaks, acts, and interacts with others.",opts:["dresses","eats","sleeps","travels"],c:0,exp:"Work ethic: the way a person dresses, speaks, acts, and interacts with others. 📖 p.384"},
+   es:{q:"La ética laboral se define como la forma en que una persona se ___, habla, actúa e interactúa con los demás.",opts:["viste","alimenta","duerme","transporta"],c:0,exp:"Ética laboral: la forma en que una persona se viste, habla, actúa e interactúa con los demás. 📖 pág. 384"}},
+  {en:{q:"A person's own decision to take action or do something without being told is called ________.",opts:["initiative","compromise","tact","confidentiality"],c:0,exp:"Initiative means acting on your own — making the decision to take action or do something without needing to be told. 📖 p.384"},
+   es:{q:"La decisión propia de una persona de actuar o hacer algo sin que se lo pidan se llama ________.",opts:["iniciativa","compromiso","tacto","confidencialidad"],c:0,exp:"La iniciativa significa actuar por cuenta propia — tomar la decisión de hacer algo sin que te lo digan. 📖 pág. 384"}},
+  {en:{q:"Keeping sensitive company or co-worker information private is called ________.",opts:["professionalism","confidentiality","tact","business ethics"],c:1,exp:"Confidentiality means keeping sensitive information private instead of sharing it around. 📖 p.384"},
+   es:{q:"Mantener privada la información sensible de la empresa o de un compañero se llama ________.",opts:["profesionalismo","confidencialidad","tacto","ética empresarial"],c:1,exp:"La confidencialidad significa mantener privada la información sensible en lugar de compartirla. 📖 pág. 384"}},
+  {type:'fillBlank', en:{q:"Reaching an agreement where each side gives up something to reach a mutually acceptable solution is called a ___.",opts:["compromise","confrontation","referral","complaint"],c:0,exp:"Compromise: reaching an agreement in which each party gives up something to reach a mutually acceptable solution. 📖 p.386"},
+   es:{q:"Llegar a un acuerdo donde cada parte cede algo para lograr una solución mutuamente aceptable se llama ___.",opts:["compromiso","confrontación","referencia","queja"],c:0,exp:"Compromiso: llegar a un acuerdo en el que cada parte cede algo para lograr una solución mutuamente aceptable. 📖 pág. 386"}},
+  {en:{q:"Being able to say something honest without being needlessly hurtful about it is called being ________.",opts:["tactful","autocratic","goal-oriented","confidential"],c:0,exp:"Tactful means having a sense of what to say or do to maintain good relations with others, or to avoid giving offense. 📖 p.386"},
+   es:{q:"Poder decir algo honesto sin ser innecesariamente hiriente se llama tener ________.",opts:["tacto","autocracia","orientación a metas","confidencialidad"],c:0,exp:"Tener tacto significa saber qué decir o hacer para mantener buenas relaciones con los demás, o evitar ofender. 📖 pág. 386"}},
+  {en:{q:"Criticism that's meant to genuinely help someone improve is called ________ criticism.",opts:["destructive","constructive","personal","harsh"],c:1,exp:"Constructive criticism is meant to help the person improve — that's what separates it from criticism that just tears someone down. 📖 p.386-387"},
+   es:{q:"La crítica que busca ayudar genuinamente a alguien a mejorar se llama crítica ________.",opts:["destructiva","constructiva","personal","dura"],c:1,exp:"La crítica constructiva busca ayudar a la persona a mejorar — eso la diferencia de la crítica que solo desanima a alguien. 📖 pág. 386-387"}},
+  {en:{q:"Criticism that tears someone down instead of helping them improve is called ________ criticism.",opts:["constructive","destructive","professional","formal"],c:1,exp:"Destructive criticism doesn't help anyone improve — it just puts the person down. 📖 p.386-387"},
+   es:{q:"La crítica que desanima a alguien en vez de ayudarlo a mejorar se llama crítica ________.",opts:["constructiva","destructiva","profesional","formal"],c:1,exp:"La crítica destructiva no ayuda a nadie a mejorar — solo desanima a la persona. 📖 pág. 386-387"}},
+  {type:'fillBlank', en:{q:"Unwelcome sexual advances, requests for sexual favors, or other unwelcome verbal or physical behavior of a sexual nature is called sexual ___.",opts:["harassment","discrimination","bullying","criticism"],c:0,exp:"Sexual harassment: a type of discrimination that results from unwelcome sexual advances, requests for sexual favors, or other unwelcome verbal or physical behavior. 📖 p.382"},
+   es:{q:"Las insinuaciones sexuales no deseadas, solicitudes de favores sexuales, u otro comportamiento verbal o físico no deseado de naturaleza sexual se llama ___ sexual.",opts:["acoso","discriminación","intimidación","crítica"],c:0,exp:"Acoso sexual: un tipo de discriminación que resulta de insinuaciones sexuales no deseadas, solicitudes de favores sexuales, u otro comportamiento verbal o físico no deseado. 📖 pág. 382"}},
+  {en:{q:"A broad term for negative social behavior that can be based on race, age, disabilities, sex, religion, or language barriers is ________.",opts:["harassment","absenteeism","tardiness","initiative"],c:0,exp:"Harassment: a type of discrimination that results from unwelcome behavior based on race, color, age, disabilities, health, religion, cultural issues, or language barriers, among others. 📖 p.382"},
+   es:{q:"Un término amplio para el comportamiento social negativo que puede basarse en raza, edad, discapacidades, sexo, religión o barreras del idioma es ________.",opts:["acoso","ausentismo","impuntualidad","iniciativa"],c:0,exp:"Acoso: un tipo de discriminación que resulta de comportamiento no deseado basado en raza, color, edad, discapacidades, salud, religión, temas culturales o barreras del idioma, entre otros. 📖 pág. 382"}},
+  {en:{q:"Repeated, aggressive behavior meant to intimidate someone, often involving a real or perceived power imbalance, is called ________.",opts:["bullying","harassment","tardiness","negligence"],c:0,exp:"Bullying is described as aggressive behavior that creates an intimidating or offensive environment, often tied to a real or perceived power imbalance. 📖 p.382"},
+   es:{q:"El comportamiento agresivo y repetido con la intención de intimidar a alguien, que a menudo implica un desequilibrio de poder real o percibido, se llama ________.",opts:["intimidación (bullying)","acoso","impuntualidad","negligencia"],c:0,exp:"El bullying se describe como comportamiento agresivo que crea un ambiente intimidante u ofensivo, a menudo ligado a un desequilibrio de poder real o percibido. 📖 pág. 382"}},
+  {en:{q:"Bullying that happens through emailed or texted messages and social media is called ________.",opts:["school-age bullying","cyberbullying","adult bullying","harassment"],c:1,exp:"Cyberbullying uses electronic technology such as emailed or texted messages and social media, and can be just as harmful as bullying in person. 📖 p.383"},
+   es:{q:"La intimidación que ocurre por mensajes de correo, texto o redes sociales se llama ________.",opts:["intimidación escolar","ciberacoso","intimidación adulta","acoso"],c:1,exp:"El ciberacoso usa tecnología electrónica como mensajes de correo o texto y redes sociales, y puede ser igual de dañino que la intimidación en persona. 📖 pág. 383"}},
+  {en:{q:"A workplace policy of zero tolerance most often applies to ________.",opts:["vacation requests","alcohol and drug abuse","overtime pay","the company dress code"],c:1,exp:"Zero tolerance: applying laws or penalties to even minor infringements of a code, typically related to drug and alcohol abuse when applied to the workplace. 📖 p.383"},
+   es:{q:"Una política de tolerancia cero en el trabajo suele aplicarse más a menudo a ________.",opts:["solicitudes de vacaciones","el abuso de alcohol y drogas","el pago de horas extra","el código de vestimenta"],c:1,exp:"Tolerancia cero: aplicar leyes o sanciones incluso a infracciones menores de un código, típicamente relacionado con el abuso de alcohol y drogas en el trabajo. 📖 pág. 383"}},
+  {type:'fillBlank', en:{q:"A class of drugs that induces relaxation and slows down a person's reaction times is called ___.",opts:["barbiturates","amphetamines","hallucinogens","cannabinoids"],c:0,exp:"Barbiturates: a class of drugs that induces relaxation, slowing the body's ability to react. 📖 p.383"},
+   es:{q:"Una clase de drogas que induce relajación y hace más lentos los tiempos de reacción de una persona se llama ___.",opts:["barbitúricos","anfetaminas","alucinógenos","cannabinoides"],c:0,exp:"Barbitúricos: una clase de drogas que induce relajación, haciendo más lenta la capacidad de reacción del cuerpo. 📖 pág. 383"}},
+  {en:{q:"When every member of a team stays focused on the shared objective, the team is described as ________.",opts:["goal-oriented","autocratic","tactful","confidential"],c:0,exp:"Goal-oriented team members concentrate on achieving the team's shared goals — everyone knows the desired result and works toward it together. 📖 p.384"},
+   es:{q:"Cuando cada integrante de un equipo se mantiene enfocado en el objetivo compartido, se dice que el equipo está ________.",opts:["orientado a metas","siendo autocrático","siendo con tacto","siendo confidencial"],c:0,exp:"Los integrantes orientados a metas se concentran en lograr los objetivos compartidos del equipo — todos conocen el resultado deseado y trabajan juntos para lograrlo. 📖 pág. 384"}},
+  {en:{q:"A leader who makes decisions independently, without seeking much input from the team, is using a(n) ________ style.",opts:["autocratic","democratic","hands-off","situational"],c:0,exp:"Autocratic leaders make decisions independently, without seeking suggestions or input from the team before deciding. 📖 p.385-386"},
+   es:{q:"Un líder que toma decisiones de forma independiente, sin buscar mucha opinión del equipo, usa un estilo ________.",opts:["autocrático","democrático","de manos libres (hands-off)","situacional"],c:0,exp:"Los líderes autocráticos toman decisiones de forma independiente, sin buscar sugerencias u opinión del equipo antes de decidir. 📖 pág. 385-386"}},
+  {en:{q:"A leader who leaves most decisions and recommendations to the team members themselves is using a(n) ________ style.",opts:["autocratic","democratic","hands-off","situational"],c:2,exp:"Hands-off leaders leave decision-making and recommendations largely up to the team members themselves. 📖 p.385-386"},
+   es:{q:"Un líder que deja la mayoría de las decisiones y recomendaciones a los propios integrantes del equipo usa un estilo ________.",opts:["autocrático","democrático","de manos libres (hands-off)","situacional"],c:2,exp:"Los líderes de manos libres (hands-off) dejan la toma de decisiones y las recomendaciones principalmente a los propios integrantes del equipo. 📖 pág. 385-386"}},
+  {type:'match', en:{prompt:"Match each leadership style to how it makes decisions.", pairs:[
+      {term:"Autocratic", def:"Leader decides independently, without much team input"},
+      {term:"Democratic", def:"Leader takes team input into account before deciding"},
+      {term:"Hands-off", def:"Leader leaves most decisions and recommendations to the team"}
+    ], exp:"These are the three broad categories of leadership styles covered in this module. 📖 p.385-386"},
+   es:{prompt:"Relaciona cada estilo de liderazgo con la forma en que toma decisiones.", pairs:[
+      {term:"Autocrático", def:"El líder decide de forma independiente, sin mucha opinión del equipo"},
+      {term:"Democrático", def:"El líder toma en cuenta la opinión del equipo antes de decidir"},
+      {term:"Manos libres (hands-off)", def:"El líder deja la mayoría de las decisiones y recomendaciones al equipo"}
+    ], exp:"Estas son las tres categorías generales de estilos de liderazgo de este módulo. 📖 pág. 385-386"}}
+];
+
+const M4_TEST = [
+  {en:{q:"Someone who can vouch for your skills, experience, and work habits is called a(n) ________.",opts:["mission statement","entrepreneur","interviewer","reference"],c:3,exp:"A reference is someone who can vouch for your skills, experience, and work habits when you're applying for a job. 📖 p.389"},
+   es:{q:"Alguien que puede dar fe de tus habilidades, experiencia y hábitos de trabajo se llama ________.",opts:["declaración de misión","emprendedor","entrevistador","referencia"],c:3,exp:"Una referencia es alguien que puede dar fe de tus habilidades, experiencia y hábitos de trabajo cuando solicitas un empleo. 📖 pág. 389"}},
+  {en:{q:"One of the most important and productive ways to identify job opportunities is by ________.",opts:["networking with family and friends","posting a \"Seeking Employment\" ad on Facebook","trying to call Human Resource offices directly","checking the Help Wanted section of the online local newspaper"],c:0,exp:"Networking with family and friends is called out as one of the most important and productive ways to find job opportunities. 📖 p.389"},
+   es:{q:"Una de las formas más importantes y productivas de identificar oportunidades de empleo es ________.",opts:["hacer networking con familiares y amigos","publicar un anuncio de \"Busco empleo\" en Facebook","tratar de llamar directamente a las oficinas de Recursos Humanos","revisar la sección de empleos del periódico local en línea"],c:0,exp:"Hacer networking con familiares y amigos se menciona como una de las formas más importantes y productivas de encontrar oportunidades de empleo. 📖 pág. 389"}},
+  {en:{q:"A common barrier to effective problem solving includes ________.",opts:["overwork","fear of change","inadequate supervision","procrastination"],c:1,exp:"Fear of change is named as a common barrier that can get in the way of effective problem solving on the job. 📖 p.372-374"},
+   es:{q:"Una barrera común para la resolución efectiva de problemas incluye ________.",opts:["exceso de trabajo","miedo al cambio","supervisión inadecuada","procrastinación"],c:1,exp:"El miedo al cambio se menciona como una barrera común que puede dificultar la resolución efectiva de problemas en el trabajo. 📖 pág. 372-374"}},
+  {en:{q:"After putting a solution to a problem into effect, it is important to ________.",opts:["stop considering other solutions","insist it become a company procedure","monitor the results","develop a business plan for it"],c:2,exp:"Implementing a solution isn't the last step — you need to monitor the results to make sure it's actually working. 📖 p.372-374"},
+   es:{q:"Después de poner en marcha una solución a un problema, es importante ________.",opts:["dejar de considerar otras soluciones","insistir en que se vuelva un procedimiento de la empresa","monitorear los resultados","desarrollar un plan de negocios para ella"],c:2,exp:"Implementar una solución no es el último paso — hay que monitorear los resultados para asegurarse de que realmente está funcionando. 📖 pág. 372-374"}},
+  {en:{q:"Depending on the type of project and region of work, one of the most expensive components of a project is often ________.",opts:["equipment rental","power tools","hand tools","labor"],c:3,exp:"Labor is often one of the most expensive components of a project, depending on the type of project and the region of work. 📖 p.389"},
+   es:{q:"Dependiendo del tipo de proyecto y la región de trabajo, uno de los componentes más costosos de un proyecto suele ser ________.",opts:["el alquiler de equipo","las herramientas eléctricas","las herramientas manuales","la mano de obra"],c:3,exp:"La mano de obra suele ser uno de los componentes más costosos de un proyecto, dependiendo del tipo de proyecto y la región de trabajo. 📖 pág. 389"}},
+  {en:{q:"Positive or negative interactions affect ________.",opts:["managerial skills","tool use","relationships","work schedules"],c:2,exp:"How people interact, positively or negatively, directly affects their relationships with co-workers and supervisors. 📖 p.384"},
+   es:{q:"Las interacciones positivas o negativas afectan ________.",opts:["las habilidades gerenciales","el uso de herramientas","las relaciones","los horarios de trabajo"],c:2,exp:"La forma en que las personas interactúan, positiva o negativamente, afecta directamente sus relaciones con compañeros y supervisores. 📖 pág. 384"}},
+  {en:{q:"A person who works without constant supervision is showing ________.",opts:["initiative","fortitude","respect","self-presentation"],c:0,exp:"Working without needing constant supervision is a sign of initiative — taking action on your own. 📖 p.384"},
+   es:{q:"Una persona que trabaja sin supervisión constante está mostrando ________.",opts:["iniciativa","fortaleza","respeto","autopresentación"],c:0,exp:"Trabajar sin necesitar supervisión constante es señal de iniciativa: actuar por cuenta propia. 📖 pág. 384"}},
+  {en:{q:"The process of solving disagreements between co-workers is called ________.",opts:["tactfulness","conflict resolution","relationship crafting","addressing conflict"],c:1,exp:"Conflict resolution is the process used to solve disagreements between co-workers. 📖 p.386"},
+   es:{q:"El proceso de resolver desacuerdos entre compañeros de trabajo se llama ________.",opts:["tacto","resolución de conflictos","construcción de relaciones","abordar el conflicto"],c:1,exp:"La resolución de conflictos es el proceso que se usa para resolver desacuerdos entre compañeros de trabajo. 📖 pág. 386"}},
+  {en:{q:"Constructive criticism should not be given unless ________.",opts:["it will actually help the person improve","you happen to be in the mood to give it","it can be given in front of the whole crew","the other person asks for it in writing"],c:0,exp:"The whole point of constructive criticism is helping someone improve — if it won't actually help, it isn't worth giving. 📖 p.386-387"},
+   es:{q:"La crítica constructiva no debe darse a menos que ________.",opts:["realmente vaya a ayudar a la persona a mejorar","tengas ganas de darla en ese momento","se pueda dar frente a toda la cuadrilla","la otra persona la pida por escrito"],c:0,exp:"El objetivo de la crítica constructiva es ayudar a alguien a mejorar — si no lo va a lograr, no vale la pena darla. 📖 pág. 386-387"}},
+  {en:{q:"A broad term identifying negative social behavior that can be based on race, age, disabilities, sex, religion, cultural issues, or language barriers is ________.",opts:["absenteeism","racism","cyberbullying","harassment"],c:3,exp:"Harassment: a type of discrimination that results from unwelcome behavior based on race, color, age, disabilities, health, religion, cultural issues, or language barriers. 📖 p.382"},
+   es:{q:"Un término amplio que identifica el comportamiento social negativo basado en raza, edad, discapacidades, sexo, religión, temas culturales o barreras del idioma es ________.",opts:["ausentismo","racismo","ciberacoso","acoso"],c:3,exp:"Acoso: un tipo de discriminación que resulta de comportamiento no deseado basado en raza, color, edad, discapacidades, salud, religión, temas culturales o barreras del idioma. 📖 pág. 382"}},
+  {en:{q:"Zero tolerance refers to an employer's policy regarding ________.",opts:["being sick","training","alcohol and drug abuse","overtime"],c:2,exp:"Zero tolerance typically refers to an employer's policy on alcohol and drug abuse — applying penalties even to minor infringements. 📖 p.383"},
+   es:{q:"La tolerancia cero se refiere a la política de un empleador respecto a ________.",opts:["estar enfermo","la capacitación","el abuso de alcohol y drogas","las horas extra"],c:2,exp:"La tolerancia cero suele referirse a la política de un empleador sobre el abuso de alcohol y drogas — aplicando sanciones incluso a infracciones menores. 📖 pág. 383"}},
+  {en:{q:"Barbiturates typically cause a person to ________.",opts:["hallucinate","accelerate their reaction times","slow their reaction times","be deprived of oxygen"],c:2,exp:"Barbiturates induce relaxation, slowing down the body's ability to react. 📖 p.383"},
+   es:{q:"Los barbitúricos típicamente hacen que una persona ________.",opts:["alucine","acelere sus tiempos de reacción","haga más lentos sus tiempos de reacción","se prive de oxígeno"],c:2,exp:"Los barbitúricos inducen relajación, haciendo más lenta la capacidad de reacción del cuerpo. 📖 pág. 383"}},
+  {en:{q:"When everyone in a group stays focused on the final objective, it is called ________.",opts:["being goal-oriented","being team players","taking initiative","being leaders"],c:0,exp:"Being goal-oriented means everyone on the team stays focused on the shared, final objective. 📖 p.384"},
+   es:{q:"Cuando todos en un grupo se mantienen enfocados en el objetivo final, se llama ________.",opts:["estar orientado a metas","ser buenos compañeros de equipo","tomar la iniciativa","ser líderes"],c:0,exp:"Estar orientado a metas significa que todo el equipo se mantiene enfocado en el objetivo final compartido. 📖 pág. 384"}},
+  {en:{q:"To progress steadily through your career, you will need to develop and learn how to use ________.",opts:["leadership skills","classroom skills","studying skills","diversity skills"],c:0,exp:"Progressing steadily through your career means developing and learning how to use leadership skills. 📖 p.385"},
+   es:{q:"Para avanzar de forma constante en tu carrera, necesitarás desarrollar y aprender a usar ________.",opts:["habilidades de liderazgo","habilidades de salón de clase","habilidades de estudio","habilidades de diversidad"],c:0,exp:"Avanzar de forma constante en tu carrera significa desarrollar y aprender a usar habilidades de liderazgo. 📖 pág. 385"}},
+  {en:{q:"The three broad categories of leadership styles are hands-off, democratic, and ________.",opts:["automatic","liberal","autocratic","conservative"],c:2,exp:"The three broad categories of leadership styles are autocratic, democratic, and hands-off. 📖 p.385-386"},
+   es:{q:"Las tres categorías generales de estilos de liderazgo son manos libres (hands-off), democrático y ________.",opts:["automático","liberal","autocrático","conservador"],c:2,exp:"Las tres categorías generales de estilos de liderazgo son autocrático, democrático y de manos libres (hands-off). 📖 pág. 385-386"}}
+];
+
+const M4_CARDS = [
+  {en:{q:"What is a reference, in a job-search context?",a:"Someone who can vouch for your skills, experience, and work habits to a potential employer."}, es:{q:"¿Qué es una referencia, en el contexto de buscar empleo?",a:"Alguien que puede dar fe de tus habilidades, experiencia y hábitos de trabajo ante un posible empleador."}},
+  {en:{q:"What is named as one of the most important and productive ways to find job opportunities?",a:"Networking with family and friends."}, es:{q:"¿Qué se menciona como una de las formas más importantes y productivas de encontrar empleo?",a:"Hacer networking con familiares y amigos."}},
+  {en:{q:"What are the basic steps of the problem-solving process?",a:"Identify the problem, analyze it, decide on a plan, implement and monitor it, then evaluate the final result."}, es:{q:"¿Cuáles son los pasos básicos del proceso de resolución de problemas?",a:"Identificar el problema, analizarlo, decidir un plan, implementarlo y monitorearlo, y luego evaluar el resultado final."}},
+  {en:{q:"What's the difference between tardiness and absenteeism?",a:"Tardiness is repeatedly showing up late. Absenteeism is missing work entirely."}, es:{q:"¿Cuál es la diferencia entre impuntualidad y ausentismo?",a:"La impuntualidad es llegar tarde de forma repetida. El ausentismo es faltar por completo al trabajo."}},
+  {en:{q:"What is work ethic?",a:"The way a person dresses, speaks, acts, and interacts with others."}, es:{q:"¿Qué es la ética laboral?",a:"La forma en que una persona se viste, habla, actúa e interactúa con los demás."}},
+  {en:{q:"What is initiative?",a:"A person's own decision to take action or do something without being told."}, es:{q:"¿Qué es la iniciativa?",a:"La decisión propia de una persona de actuar o hacer algo sin que se lo pidan."}},
+  {en:{q:"What is confidentiality, in a workplace sense?",a:"Keeping sensitive company or co-worker information private instead of sharing it around."}, es:{q:"¿Qué es la confidencialidad en el trabajo?",a:"Mantener privada la información sensible de la empresa o de un compañero, en lugar de compartirla."}},
+  {en:{q:"What is a compromise?",a:"Reaching an agreement in which each party gives up something to reach a mutually acceptable solution."}, es:{q:"¿Qué es un compromiso (compromise)?",a:"Llegar a un acuerdo en el que cada parte cede algo para lograr una solución mutuamente aceptable."}},
+  {en:{q:"What does it mean to be tactful?",a:"Having a sense of what to say or do to maintain good relations with others, or avoid giving offense."}, es:{q:"¿Qué significa tener tacto?",a:"Saber qué decir o hacer para mantener buenas relaciones con los demás, o evitar ofender."}},
+  {en:{q:"What's the difference between constructive and destructive criticism?",a:"Constructive criticism is meant to genuinely help someone improve. Destructive criticism just tears the person down."}, es:{q:"¿Cuál es la diferencia entre crítica constructiva y destructiva?",a:"La crítica constructiva busca ayudar genuinamente a alguien a mejorar. La crítica destructiva solo desanima a la persona."}},
+  {en:{q:"What is sexual harassment?",a:"Unwelcome sexual advances, requests for sexual favors, or other unwelcome verbal or physical behavior of a sexual nature."}, es:{q:"¿Qué es el acoso sexual?",a:"Insinuaciones sexuales no deseadas, solicitudes de favores sexuales, u otro comportamiento verbal o físico no deseado de naturaleza sexual."}},
+  {en:{q:"What is bullying, as described in this module?",a:"Aggressive behavior that creates an intimidating or offensive environment, often involving a real or perceived power imbalance."}, es:{q:"¿Qué es el bullying, según este módulo?",a:"Comportamiento agresivo que crea un ambiente intimidante u ofensivo, a menudo con un desequilibrio de poder real o percibido."}},
+  {en:{q:"What is cyberbullying?",a:"Bullying that happens through electronic technology like emailed or texted messages and social media."}, es:{q:"¿Qué es el ciberacoso?",a:"Intimidación que ocurre a través de tecnología electrónica como mensajes de correo, texto o redes sociales."}},
+  {en:{q:"What does a zero tolerance policy usually apply to at work?",a:"Alcohol and drug abuse — applying penalties to even minor infringements of the policy."}, es:{q:"¿A qué suele aplicarse una política de tolerancia cero en el trabajo?",a:"Al abuso de alcohol y drogas — aplicando sanciones incluso a infracciones menores de la política."}},
+  {en:{q:"What do barbiturates typically do to a person?",a:"They induce relaxation and slow the body's ability to react."}, es:{q:"¿Qué les hacen típicamente los barbitúricos a las personas?",a:"Inducen relajación y hacen más lenta la capacidad de reacción del cuerpo."}},
+  {en:{q:"What does it mean for a team to be goal-oriented?",a:"Every member stays focused on achieving the team's shared, final objective."}, es:{q:"¿Qué significa que un equipo esté orientado a metas?",a:"Que cada integrante se mantiene enfocado en lograr el objetivo final compartido del equipo."}},
+  {en:{q:"What are the three broad categories of leadership styles?",a:"Autocratic (decides independently), democratic (takes team input into account), and hands-off (leaves most decisions to the team)."}, es:{q:"¿Cuáles son las tres categorías generales de estilos de liderazgo?",a:"Autocrático (decide de forma independiente), democrático (toma en cuenta la opinión del equipo) y de manos libres/hands-off (deja la mayoría de las decisiones al equipo)."}}
+];
+
 /* ============ MODULES REGISTRY ============ */
 // Listed in the order this CLASS actually teaches them (per the confirmed
 // BLD-1010/Satterwhite syllabus schedule) — NOT the textbook's numeric module
@@ -1015,7 +1119,15 @@ const MODULES = [
     ],
     moduleTest: M3_TEST, cards: M3_CARDS
   },
-  { id:'m4', comingSoon:true, num:'00108', startDate:'2026-09-11', examDate:'2026-09-18', title:{en:"Module 00108: Basic Employability Skills", es:"Módulo 00108: Habilidades Básicas de Empleabilidad"} },
+  { id:'m4', comingSoon:false, openTest:true, num:'00108',
+    startDate:'2026-09-11', examDate:'2026-09-18',
+    title:{en:"Module 00108: Basic Employability Skills", es:"Módulo 00108: Habilidades Básicas de Empleabilidad"},
+    sections:[
+      {key:'s1', label:{en:"1. Problem Solving and Planning", es:"1. Resolución de Problemas y Planificación"}, bank:M4_SECTION1},
+      {key:'s2', label:{en:"2. Relationships, Professionalism and Conduct", es:"2. Relaciones, Profesionalismo y Conducta"}, bank:M4_SECTION2}
+    ],
+    moduleTest: M4_TEST, cards: M4_CARDS
+  },
   { id:'m5', comingSoon:true, num:'00103', startDate:'2026-09-23', examDate:'2026-10-02', title:{en:"Module 00103: Introduction to Hand Tools", es:"Módulo 00103: Introducción a las Herramientas Manuales"} },
   { id:'m6', comingSoon:true, num:'00104', startDate:'2026-10-07', examDate:'2026-10-14', title:{en:"Module 00104: Introduction to Power Tools", es:"Módulo 00104: Introducción a las Herramientas Eléctricas"} },
   { id:'m7', comingSoon:true, num:'00102', startDate:'2026-10-16', examDate:'2026-10-23', title:{en:"Module 00102: Introduction to Construction Math", es:"Módulo 00102: Introducción a las Matemáticas de Construcción"} },
@@ -1069,173 +1181,6 @@ function removeMissed(item){
    student has actually locked in versus which ones keep tripping them up. */
 let srs = JSON.parse(localStorage.getItem('ncc_srs') || '{}'); // key -> {ease, interval, reps, lapses, due}
 function saveSRS(){ localStorage.setItem('ncc_srs', JSON.stringify(srs)); }
-
-/* ============ CLASS SYNC ENGINE (v2) ============
-   Design rules (locked with Lawrence):
-   - No logins, no student PII. The only identifier is a short code the
-     TEACHER invents and hands out (e.g. 3B-07). School IDs are never used.
-   - Local-first: everything works with no network and no code. Sync is a
-     bonus layer that mirrors scores to the teacher's own Google Sheet.
-   - Content + progress stay teacher-owned: the endpoint is a free Google
-     Apps Script the teacher deploys on their own Sheet. Nothing touches
-     any server of ours.
-   - Storage is versioned with a migration runner so future updates never
-     wipe a student's progress. */
-const SYNC = {
-  // Teacher setup: paste the Apps Script web-app URL between the quotes.
-  // Leave empty to run the tool fully offline (everything still works;
-  // score events just queue locally and never leave the phone).
-  url: '',
-  toolId: 'nccer-core'
-};
-// Optional local override so the sync endpoint can be tested without editing
-// the file (set once from the console: localStorage.setItem('core_sync_url', ...)).
-function syncUrl(){ return localStorage.getItem('core_sync_url') || SYNC.url; }
-
-/* ---- storage schema version + migrations ---- */
-(function migrateStorage(){
-  const KEY = 'core_schema_v';
-  const TARGET = 2;
-  let v = parseInt(localStorage.getItem(KEY) || '0', 10);
-  // v0 -> v1: the original nccer_* keys ARE the v1 layout — stamp only.
-  // v1 -> v2: adds core_class / core_student_code / core_syncq (created lazily).
-  const migrations = {
-    1: function(){},
-    2: function(){}
-    // Future content/schema changes: add 3, 4, ... here. Each migration must
-    // transform old keys in place and NEVER delete progress it can't convert.
-  };
-  for(let n = v + 1; n <= TARGET; n++){
-    if(migrations[n]){ try{ migrations[n](); }catch(e){ /* keep going — never brick the tool */ } }
-  }
-  localStorage.setItem(KEY, String(TARGET));
-})();
-
-/* ---- class code (from QR / link) + student code (teacher-assigned) ---- */
-let classCode = localStorage.getItem('core_class') || '';
-(function captureClassParam(){
-  try{
-    const p = new URLSearchParams(location.search).get('class');
-    if(p){ classCode = p.toUpperCase().slice(0,24); localStorage.setItem('core_class', classCode); }
-  }catch(e){}
-})();
-let studentCode = localStorage.getItem('core_student_code') || '';
-
-/* ---- event queue (survives offline; flushed on load + after each event) ---- */
-let syncQueue = JSON.parse(localStorage.getItem('core_syncq') || '[]');
-function saveQueue(){ localStorage.setItem('core_syncq', JSON.stringify(syncQueue.slice(-200))); }
-let syncBusy = false;
-function flushSync(){
-  const url = syncUrl();
-  if(!url || syncBusy || !syncQueue.length) return;
-  syncBusy = true;
-  const batch = syncQueue.slice(0, 25);
-  fetch(url, {
-    method:'POST',
-    // text/plain keeps this a "simple request" (no CORS preflight, which
-    // Apps Script web apps don't answer). The script JSON-parses the body.
-    headers: {'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({tool: SYNC.toolId, events: batch})
-  }).then(r=>{
-    if(r.ok){ syncQueue = syncQueue.slice(batch.length); saveQueue(); }
-  }).catch(()=>{ /* offline — events stay queued */ })
-    .finally(()=>{ syncBusy = false; if(syncQueue.length && syncUrl()) setTimeout(flushSync, 4000); });
-}
-function recordSyncEvent(qs, pct, passed){
-  const m = (typeof qs.modIdx === 'number') ? MODULES[qs.modIdx] : null;
-  syncQueue.push({
-    ts: new Date().toISOString(),
-    code: studentCode || '',
-    cls: classCode || '',
-    kind: qs.kind,                          // section | moduleTest | cumulative | quick | missed | mixed
-    module: m ? m.num : '',
-    section: qs.sectionKey || '',
-    score: pct,
-    total: qs.bank.length,
-    passed: passed,
-    lang: lang
-  });
-  saveQueue();
-  flushSync();
-}
-
-/* ---- student code UI (bilingual, confirm-on-entry, teacher can reset) ---- */
-const SYNC_T = {
-  en: {
-    chipTitle:"Class code",
-    enterTitle:"Your class code",
-    enterBody:"Type the code your teacher gave YOU (example: 3B-07).\nIt's not your name and not your school ID — just your class code, so your teacher can see your practice scores.",
-    confirmTitle:"Double-check your code",
-    confirmBody:(c)=>`You entered:\n\n${c}\n\nMake sure this is YOUR code from your teacher. If you use someone else's, your scores go to their row.`,
-    manageTitle:"Your class code",
-    manageBody:(c,cl)=>`Code: ${c}${cl? "\nClass: "+cl : ""}\n\nYour practice scores are shared with your teacher under this code. No name, no email, no school ID.`,
-    save:"Save", confirm:"Yes, that's my code", back:"Go back",
-    change:"Change my code", close:"Close", skip:"Not now",
-    nudge:"🔑 Got a class code from your teacher? Tap the key up top so your scores count."
-  },
-  es: {
-    chipTitle:"Código de clase",
-    enterTitle:"Tu código de clase",
-    enterBody:"Escribe el código que TU maestro te dio (ejemplo: 3B-07).\nNo es tu nombre ni tu ID escolar — solo tu código de clase, para que tu maestro vea tus resultados de práctica.",
-    confirmTitle:"Verifica tu código",
-    confirmBody:(c)=>`Escribiste:\n\n${c}\n\nAsegúrate de que este es TU código. Si usas el de otra persona, tus resultados irán a su fila.`,
-    manageTitle:"Tu código de clase",
-    manageBody:(c,cl)=>`Código: ${c}${cl? "\nClase: "+cl : ""}\n\nTus resultados de práctica se comparten con tu maestro bajo este código. Sin nombre, sin correo, sin ID escolar.`,
-    save:"Guardar", confirm:"Sí, ese es mi código", back:"Regresar",
-    change:"Cambiar mi código", close:"Cerrar", skip:"Ahora no",
-    nudge:"🔑 ¿Tu maestro te dio un código de clase? Toca la llave arriba para que tus resultados cuenten."
-  }
-};
-function st(key){ return SYNC_T[lang][key]; }
-function updateCodeChip(){
-  const b = document.getElementById('btnCode');
-  if(!b) return;
-  b.textContent = studentCode ? ('🔑 ' + studentCode) : '🔑';
-  b.title = st('chipTitle');
-}
-function openSyncModal(mode){
-  const ov = document.getElementById('syncOverlay');
-  const title = document.getElementById('syncTitle');
-  const body = document.getElementById('syncBody');
-  const input = document.getElementById('syncCodeInput');
-  const primary = document.getElementById('syncPrimaryBtn');
-  const secondary = document.getElementById('syncSecondaryBtn');
-  ov.style.display = 'flex';
-  if(mode === 'manage' && studentCode){
-    title.textContent = st('manageTitle');
-    body.textContent = st('manageBody')(studentCode, classCode);
-    input.style.display = 'none';
-    primary.textContent = st('change');
-    primary.onclick = ()=> openSyncModal('enter');
-    secondary.textContent = st('close');
-    secondary.onclick = ()=> ov.style.display = 'none';
-  } else if(mode === 'confirm'){
-    const pending = input.value.trim().toUpperCase();
-    if(!pending){ openSyncModal('enter'); return; }
-    title.textContent = st('confirmTitle');
-    body.textContent = st('confirmBody')(pending);
-    input.style.display = 'none';
-    primary.textContent = st('confirm');
-    primary.onclick = ()=>{
-      studentCode = pending;
-      localStorage.setItem('core_student_code', studentCode);
-      updateCodeChip();
-      ov.style.display = 'none';
-    };
-    secondary.textContent = st('back');
-    secondary.onclick = ()=> openSyncModal('enter');
-  } else {
-    title.textContent = st('enterTitle');
-    body.textContent = st('enterBody');
-    input.style.display = 'block';
-    input.value = studentCode || '';
-    primary.textContent = st('save');
-    primary.onclick = ()=>{ if(input.value.trim()) openSyncModal('confirm'); };
-    secondary.textContent = st('skip');
-    secondary.onclick = ()=> ov.style.display = 'none';
-    setTimeout(()=> input.focus(), 50);
-  }
-}
 function addDays(dateStr, days){
   const d = new Date(dateStr + 'T00:00:00');
   d.setDate(d.getDate() + days);
@@ -1541,7 +1486,6 @@ function setLang(l){
     document.getElementById('onboardBody').textContent = t('onboardBody');
     document.getElementById('onboardCloseBtn').textContent = t('onboardClose');
   }
-  updateCodeChip();
   renderTopTabs(); renderPanel();
 }
 
@@ -1806,14 +1750,9 @@ function renderQuizQuestion(){
   });
   const officialNextLabel = quizState.idx+1===quizState.bank.length ? t('finishBtn') : t('nextBtn');
   const typeTag = itemType==='fillBlank' ? `<div class="type-tag">✏️ ${t('typeTagFill')}</div>` : '';
-  // Optional visual: any question item can carry img (path or URL, shared across
-  // languages) + alt ({en,es} or a plain string). Rendered above the question so
-  // the picture is part of reading the question, not a reward after it.
-  const qImgHtml = qImg(fullItem);
   panel.innerHTML = `
     <div class="q-count">${t('question')} ${quizState.idx+1} ${t('of')} ${quizState.bank.length}</div>
     ${typeTag}
-    ${qImgHtml}
     <div class="q-text">${annotate(item.q)}</div>
     <button id="readAloudBtn" style="background:none;border:1px solid var(--accent2);color:var(--accent2);border-radius:6px;padding:4px 10px;font-size:0.78rem;margin-bottom:10px;cursor:pointer;">${t('readAloud')}</button>
     <div id="optsWrap"${itemType==='fillBlank' ? ' class="chips"' : ''}>${optsHtml}</div>
@@ -2072,10 +2011,6 @@ function finishQuiz(){
   } else if(quizState.kind==='cumulative'){
     cumulative['after_'+MODULES[quizState.modIdx].id] = {score:pct, passed}; saveCumulative();
   }
-  // Every finished round — sections, tests, AND review reps — becomes one row
-  // in the teacher's Sheet (when sync is configured), keyed only by the
-  // teacher-assigned code. Reps at home are visible reps.
-  recordSyncEvent(quizState, pct, passed);
   const failMsg = quizState.kind==='section' ? t('failMsgSection') : t('failMsgTest');
   const passMsg = quizState.kind==='section' ? t('passMsgSection') : t('passMsgTest');
   const isOfficialTest = (quizState.kind==='moduleTest' || quizState.kind==='cumulative');
@@ -2085,7 +2020,6 @@ function finishQuiz(){
       const yourOpt = r.opts[r.chosen];
       const correctOpt = r.opts[r.correct];
       return `<div class="review-item">
-        ${qImg(r.full, true)}
         <div class="rq">${i+1}. ${annotate(r.q)}</div>
         <div class="ra ${r.right?'right':'wrong'}">${t('yourAnswer')}: ${yourOpt} ${r.right?'✓':'✗'}</div>
         ${r.right ? '' : `<div class="ra right">${t('correctAnswer')}: ${correctOpt}</div>`}
@@ -2103,7 +2037,6 @@ function finishQuiz(){
       <div class="result-msg" style="margin-top:8px; font-weight:600;">${t('retakeEncourage')}</div>
       ${!passed ? `<div class="result-msg" style="margin-top:6px; color:var(--muted); font-size:0.88rem;">${t('retakeTips')}</div>` : ''}
       ${passed ? `<div class="donate-nudge" id="resultDonateNudge" style="margin-top:12px; padding:10px 14px; border-radius:10px; background:var(--card-alt, rgba(250,204,21,0.1)); cursor:pointer; font-size:0.88rem; text-align:left;">${t('donateNudge')}</div>` : ''}
-      ${(!studentCode && syncUrl()) ? `<div id="resultCodeNudge" style="margin-top:10px; padding:10px 14px; border-radius:10px; border:1px dashed var(--accent2); cursor:pointer; font-size:0.86rem; text-align:left;">${st('nudge')}</div>` : ''}
     </div>
     <button class="primary" id="retakeQBtn">${t('retakeBtn')}</button><br><br>
     ${nextStep ? `<button class="primary" id="nextPartBtn" style="background:#16a34a;">${nextStep.label}</button><br><br>` : ''}
@@ -2138,8 +2071,6 @@ function finishQuiz(){
     // back to the module detail page — regardless of what kind of quiz this was.
     homeView = null; topTab = 'home'; quizState = null; renderTopTabs(); renderPanel();
   };
-  const codeNudge = document.getElementById('resultCodeNudge');
-  if(codeNudge) codeNudge.onclick = ()=> openSyncModal('enter');
 }
 
 function renderCards(panel){
@@ -2158,7 +2089,7 @@ function renderCards(panel){
     <div style="text-align:center; font-size:0.8rem; color:var(--muted); margin-bottom:8px;">${deck.length? (cardState.idx+1)+' / '+deck.length : ''}</div>
     <div class="scene">
       <div class="card" id="flashCard">
-        <div class="face front"><div class="tag">${lang==='en'?'Question':'Pregunta'}</div>${qImg(deck[cardState.idx], true)}<div>${annotate(card.q||'')}</div><div style="margin-top:10px;font-size:0.75rem;color:var(--muted);">${t('flipHint')}</div></div>
+        <div class="face front"><div class="tag">${lang==='en'?'Question':'Pregunta'}</div><div>${annotate(card.q||'')}</div><div style="margin-top:10px;font-size:0.75rem;color:var(--muted);">${t('flipHint')}</div></div>
         <div class="face back"><div class="tag">${lang==='en'?'Answer':'Respuesta'}</div><div style="font-weight:500;font-size:0.95rem;">${annotate(card.a||'')}</div><div style="margin-top:10px;font-size:0.75rem;color:var(--muted);">${t('flipBackHint')}</div></div>
       </div>
     </div>
@@ -2215,11 +2146,6 @@ document.getElementById('btnGoHome').onclick = ()=>{
   // detail, mid-quiz, flashcards, support tab, or the post-quiz review screen).
   homeView = null; topTab = 'home'; quizState = null; renderTopTabs(); renderPanel();
 };
-document.getElementById('btnCode').onclick = ()=> openSyncModal(studentCode ? 'manage' : 'enter');
-document.getElementById('syncOverlay').addEventListener('click', function(e){ if(e.target===this) this.style.display='none'; });
-document.getElementById('syncCodeInput').addEventListener('keydown', function(e){ if(e.key==='Enter' && this.value.trim()) openSyncModal('confirm'); });
-updateCodeChip();
-flushSync(); // push any rounds finished offline last session
 applyTextScale();
 applyTheme();
 
