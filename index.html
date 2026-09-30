@@ -149,6 +149,25 @@
   @keyframes matchShake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-4px);} 75%{transform:translateX(4px);} }
   .match-tries{ font-size:0.78rem; color:var(--muted); margin-top:4px; }
   .match-hint{ font-size:0.78rem; color:var(--muted); margin-bottom:8px; }
+
+  /* ===== Math Walkthrough (Module 00102) ===== */
+  .walk-progress{ font-size:0.78rem; color:var(--muted); margin-bottom:4px; }
+  .walk-dots{ display:flex; gap:6px; margin-bottom:14px; }
+  .walk-dot{ width:10px; height:10px; border-radius:50%; background:var(--border); }
+  .walk-dot.done{ background:#16a34a; }
+  .walk-dot.active{ background:var(--accent); box-shadow:0 0 0 3px rgba(37,99,235,0.18); }
+  .walk-role-tag{ display:inline-block; font-size:0.72rem; font-weight:800; letter-spacing:0.06em; padding:3px 10px; border-radius:20px; margin-bottom:10px; }
+  .walk-role-tag.worked{ background:#e0e7ff; color:#3730a3; }
+  .walk-role-tag.guided{ background:#fef3c7; color:#92400e; }
+  .walk-role-tag.practice{ background:#dcfce7; color:#14532d; }
+  .walk-sub{ font-size:0.82rem; color:var(--muted); margin:-6px 0 10px; }
+  .walk-text{ font-size:1rem; line-height:1.55; margin-bottom:14px; }
+  .ruler-wrap{ background:var(--card-alt, rgba(148,163,184,0.08)); border-radius:12px; padding:10px 6px; margin-bottom:16px; overflow-x:auto; }
+  .ruler-svg{ width:100%; max-width:640px; height:auto; display:block; margin:0 auto; color:var(--fg, #1e293b); }
+  .walk-unit-title{ font-weight:700; font-size:1.05rem; margin-bottom:2px; }
+  .walk-feedback{ margin-top:12px; padding:12px 14px; border-radius:10px; font-size:0.9rem; line-height:1.5; }
+  .walk-feedback.correct{ background:#dcfce7; color:#14532d; }
+  .walk-feedback.incorrect{ background:#fee2e2; color:#7f1d1d; }
 </style>
 </head>
 <body>
@@ -211,6 +230,17 @@ const T = {
     locked:"Locked", unlocked:"Unlocked", completed:"Completed", comingSoon:"Coming soon", inProgress:"In progress",
     openModule:"Open", backToModules:"← Back to modules",
     scoreLabel:"Best score", notStarted:"Not started", passed:"Passed", tryAgainSection:"Below 85% — try again", tryAgainTest:"Below 70% — try again",
+    walkthroughTag:"Walkthrough", walkthroughNotStarted:"Not started yet",
+    walkthroughRoleWorked:"I DO", walkthroughRoleGuided:"WE DO", walkthroughRoleGuidedSub:"Let's try one together",
+    walkthroughRolePractice:"YOU DO", walkthroughRolePracticeSub:"Your turn — this one counts",
+    walkthroughNextBtn:"Next →", walkthroughCheckBtn:"Check my answer",
+    walkthroughCorrect:"That's it. You've got this.", walkthroughIncorrect:"Not quite — here's why, then we'll try another:",
+    walkthroughTryAgainStep:"Try it again", walkthroughUnitDone:"Unit done", walkthroughUnitOf:(a,b)=>`Unit ${a} of ${b}`,
+    walkthroughStartBtn:"Start the walkthrough", walkthroughContinueBtn:"Continue walkthrough",
+    walkthroughIntro:"This isn't a quiz. It's a slow walk through how to actually read a tape measure and use it — one small step at a time. Nobody's timing you.",
+    walkthroughFinishTitle:"Walkthrough complete", walkthroughFinishPass:"You got every unit on the first try. That's real mastery of reading a tape measure — nice work.",
+    walkthroughFinishRetry:"Some units took more than one try, and that's completely normal — this is genuinely hard material. Go through it again whenever you want; each pass builds it in deeper.",
+    walkthroughUnitResult:(n,total)=>`${n} of ${total} units passed on the first try`,
     startBtn:"Start quiz", question:"Question", of:"of",
     nextBtn:"Next question", finishBtn:"See results",
     yourScore:"Your score",
@@ -282,6 +312,17 @@ const T = {
     locked:"Bloqueado", unlocked:"Desbloqueado", completed:"Completado", comingSoon:"Próximamente", inProgress:"En progreso",
     openModule:"Abrir", backToModules:"← Volver a los módulos",
     scoreLabel:"Mejor puntaje", notStarted:"No iniciado", passed:"Aprobado", tryAgainSection:"Menos de 85% — inténtalo de nuevo", tryAgainTest:"Menos de 70% — inténtalo de nuevo",
+    walkthroughTag:"Guía Paso a Paso", walkthroughNotStarted:"Aún no iniciado",
+    walkthroughRoleWorked:"YO HAGO", walkthroughRoleGuided:"LO HACEMOS JUNTOS", walkthroughRoleGuidedSub:"Intentemos uno juntos",
+    walkthroughRolePractice:"TÚ HACES", walkthroughRolePracticeSub:"Tu turno — este sí cuenta",
+    walkthroughNextBtn:"Siguiente →", walkthroughCheckBtn:"Revisar mi respuesta",
+    walkthroughCorrect:"Así es. Lo estás logrando.", walkthroughIncorrect:"No es correcto — aquí está el por qué, luego probamos otro:",
+    walkthroughTryAgainStep:"Inténtalo de nuevo", walkthroughUnitDone:"Unidad terminada", walkthroughUnitOf:(a,b)=>`Unidad ${a} de ${b}`,
+    walkthroughStartBtn:"Comenzar la guía paso a paso", walkthroughContinueBtn:"Continuar guía paso a paso",
+    walkthroughIntro:"Esto no es un examen. Es un recorrido lento sobre cómo leer realmente una cinta métrica y usarla — un pequeño paso a la vez. Nadie te está cronometrando.",
+    walkthroughFinishTitle:"Guía paso a paso completada", walkthroughFinishPass:"Lograste cada unidad al primer intento. Eso es dominio real de leer una cinta métrica — bien hecho.",
+    walkthroughFinishRetry:"Algunas unidades tomaron más de un intento, y eso es completamente normal — este material es genuinamente difícil. Repásalo cuando quieras; cada repaso lo afianza más.",
+    walkthroughUnitResult:(n,total)=>`${n} de ${total} unidades aprobadas al primer intento`,
     startBtn:"Comenzar cuestionario", question:"Pregunta", of:"de",
     nextBtn:"Siguiente pregunta", finishBtn:"Ver resultados",
     yourScore:"Tu puntaje",
@@ -1279,6 +1320,405 @@ const M5_CARDS = [
   {en:{q:"What's the difference between a shovel and a pick?",a:"A shovel digs holes and moves loose soil; a pick breaks up hard or compacted ground first."}, es:{q:"¿Cuál es la diferencia entre una pala y un pico?",a:"La pala cava agujeros y mueve tierra suelta; el pico primero rompe terreno duro o compactado."}}
 ];
 
+const M105_SECTION1 = [
+{en:{q:"What is the title block of a construction drawing used for?",opts:["Identifying company, project, drawing title, scale, and sheet number","Recording only the revision history","Showing the north arrow and legend","Listing material specifications only"],c:0,exp:"The title block sits in the lower-right corner of a drawing and identifies the company, project, drawing/sheet title, drawn-by/checked-by, scale, date, and sheet number — everything needed to know what you're looking at. 📖 p.268"},
+ es:{q:"¿Para qué sirve el bloque de título de un plano de construcción?",opts:["Identificar la empresa, el proyecto, el título del plano, la escala y el número de hoja","Registrar solo el historial de revisiones","Mostrar la flecha de norte y la leyenda","Listar solo las especificaciones de materiales"],c:0,exp:"El bloque de título va en la esquina inferior derecha e identifica la empresa, el proyecto, el título del plano/hoja, quién lo dibujó/revisó, la escala, la fecha y el número de hoja. 📖 pág. 268"}},
+{type:'fillBlank', en:{q:"The ___ records every revision made to a drawing, numbered so the date and reason for each change can be tracked.",opts:["revision block","legend","border","north arrow"],c:0,exp:"The revision block sits near the title block and logs each revision with a number, date, and brief description — so anyone can tell what changed and when. 📖 p.268"},
+ es:{q:"El ___ registra cada revisión hecha a un plano, numerada para poder rastrear la fecha y el motivo de cada cambio.",opts:["bloque de revisión","leyenda","borde","flecha de norte"],c:0,exp:"El bloque de revisión está cerca del bloque de título y registra cada revisión con un número, fecha y breve descripción. 📖 pág. 268"}},
+{en:{q:"What is the drawing area (or drafting area) of a construction drawing?",opts:["The clear space where the building, structure, or machinery is actually drawn","Only the title block","The revision block plus the border","The legend and north arrow together"],c:0,exp:"The drawing area is the large clear space, usually in the upper-right portion, where the actual building or component is drawn — everything else on the sheet supports it. 📖 p.268-269"},
+ es:{q:"¿Qué es el área de dibujo de un plano de construcción?",opts:["El espacio despejado donde se dibuja realmente el edificio, estructura o maquinaria","Solo el bloque de título","El bloque de revisión más el borde","La leyenda y la flecha de norte juntas"],c:0,exp:"El área de dibujo es el espacio despejado, generalmente en la parte superior derecha, donde se dibuja el edificio o componente real. 📖 pág. 268-269"}},
+{en:{q:"What does the border of a construction drawing do?",opts:["Frames the printed area on the sheet and is usually drafted on the company's standard","Only shows the revisions","Lists the abbreviations used on the drawing","Shows the scale used for the drawing"],c:0,exp:"The border frames the usable printed area of the sheet, usually drafted to the company's own standard template. 📖 p.269"},
+ es:{q:"¿Qué hace el borde de un plano de construcción?",opts:["Enmarca el área impresa de la hoja y generalmente sigue el estándar de la empresa","Solo muestra las revisiones","Lista las abreviaturas usadas en el plano","Muestra la escala usada en el plano"],c:0,exp:"El borde enmarca el área impresa utilizable de la hoja, generalmente dibujado según la plantilla estándar de la empresa. 📖 pág. 269"}},
+{en:{q:"A legend on a construction drawing provides ________.",opts:["a key explaining the symbols used on that drawing","the building's total square footage","a list of subcontractors on the project","the project's completion date"],c:0,exp:"A legend is a key that explains what each symbol on the drawing means — different companies may use different symbols, so the legend is essential for reading a specific drawing correctly. 📖 p.269"},
+ es:{q:"Una leyenda en un plano de construcción proporciona ________.",opts:["una clave que explica los símbolos usados en ese plano","el total de pies cuadrados del edificio","una lista de subcontratistas del proyecto","la fecha de finalización del proyecto"],c:0,exp:"Una leyenda es una clave que explica qué significa cada símbolo del plano — diferentes empresas pueden usar símbolos distintos, así que la leyenda es esencial. 📖 pág. 269"}},
+{en:{q:"On most construction drawings, which direction does the north arrow's point typically indicate?",opts:["True or magnetic north on the site","The direction of the front door only","The direction water drains on the roof","The direction of prevailing wind"],c:0,exp:"The north arrow shows true or magnetic north on the site, which helps orient the drawing relative to the real world and is important for tasks like solar orientation and site logistics. 📖 p.269"},
+ es:{q:"En la mayoría de los planos de construcción, ¿qué dirección indica típicamente la punta de la flecha de norte?",opts:["El norte verdadero o magnético del sitio","Solo la dirección de la puerta principal","La dirección en que drena el agua del techo","La dirección del viento predominante"],c:0,exp:"La flecha de norte muestra el norte verdadero o magnético del sitio, lo que ayuda a orientar el plano respecto al mundo real. 📖 pág. 269"}},
+{type:'match', en:{prompt:"Match each line type to what it represents on a construction drawing.", pairs:[
+    {term:"Dimension line", def:"A line with arrows on a drawing that shows a measurement between two points"},
+    {term:"Leader line", def:"A line with an arrowhead that points from a note to the specific part of the drawing it describes"},
+    {term:"Property line", def:"Establishes the boundaries of a piece of land on a site or plot plan"},
+    {term:"Hidden line", def:"A dashed line showing an object concealed from view, like a pipe behind a wall"},
+    {term:"Break line", def:"A zigzag or wavy line showing that part of an object has been left out of the drawing"}
+  ], exp:"These five line types are part of the basic drawing vocabulary every craft professional needs before a print makes any sense at all. 📖 p.269-270"},
+ es:{prompt:"Relaciona cada tipo de línea con lo que representa en un plano de construcción.", pairs:[
+    {term:"Línea de dimensión", def:"Una línea con flechas que muestra una medida entre dos puntos"},
+    {term:"Línea líder", def:"Una línea con punta de flecha que señala de una nota a la parte específica del plano que describe"},
+    {term:"Línea de propiedad", def:"Establece los límites de un terreno en un plano de sitio o parcela"},
+    {term:"Línea oculta", def:"Una línea discontinua que muestra un objeto oculto a la vista, como una tubería detrás de una pared"},
+    {term:"Línea de ruptura", def:"Una línea en zigzag u ondulada que muestra que parte de un objeto se omitió del dibujo"}
+  ], exp:"Estos cinco tipos de línea son parte del vocabulario básico de dibujo que todo profesional del oficio necesita antes de que un plano tenga sentido. 📖 pág. 269-270"}},
+{en:{q:"A center line on a construction drawing is used to ________.",opts:["show the exact center of an object, often for symmetrical parts or hole locations","mark the site's property boundary","show a dimension between two walls","represent a break in the drawing"],c:0,exp:"A center line (often drawn as a long dash-short dash pattern) marks the exact center of a symmetrical object or feature, such as the center of a column or a hole. 📖 p.270"},
+ es:{q:"Una línea central en un plano de construcción se usa para ________.",opts:["mostrar el centro exacto de un objeto, a menudo para partes simétricas o ubicaciones de agujeros","marcar el límite de propiedad del sitio","mostrar una dimensión entre dos paredes","representar una ruptura en el dibujo"],c:0,exp:"Una línea central (a menudo una línea larga-corta) marca el centro exacto de un objeto o característica simétrica, como el centro de una columna o un agujero. 📖 pág. 270"}},
+{en:{q:"What does a section cut (or cutting-plane) line indicate on a drawing?",opts:["The location and direction of an imaginary slice through the building shown in a separate section view","The building's true north orientation","The edge of the property line","A dimension that has not yet been finalized"],c:0,exp:"A section-cut line shows exactly where an imaginary slice was taken through the object, with arrows indicating which direction you're looking — that slice is then drawn in detail as its own section view elsewhere in the set. 📖 p.270"},
+ es:{q:"¿Qué indica una línea de corte de sección en un plano?",opts:["La ubicación y dirección de un corte imaginario a través del edificio, mostrado en una vista de sección aparte","La orientación al norte verdadero del edificio","El borde de la línea de propiedad","Una dimensión que aún no se ha finalizado"],c:0,exp:"Una línea de corte de sección muestra exactamente dónde se tomó un corte imaginario del objeto, con flechas que indican la dirección de la vista — ese corte se dibuja en detalle como su propia vista de sección en otra parte del juego de planos. 📖 pág. 270"}}
+];
+
+const M105_SECTION2 = [
+{en:{q:"On a construction project, who is typically a licensed professional with scientific and technical knowledge who creates a set of construction drawings?",opts:["An engineer","A craft professional","A project owner","A code inspector"],c:0,exp:"Engineers are licensed professionals who apply scientific principles in design and construction and are responsible for producing a set of construction drawings for a project. 📖 p.271"},
+ es:{q:"En un proyecto de construcción, ¿quién suele ser un profesional con licencia y conocimiento científico y técnico que crea un juego de planos de construcción?",opts:["Un ingeniero","Un profesional del oficio","El dueño del proyecto","Un inspector de código"],c:0,exp:"Los ingenieros son profesionales con licencia que aplican principios científicos en el diseño y la construcción y son responsables de producir el juego de planos de un proyecto. 📖 pág. 271"}},
+{type:'fillBlank', en:{q:"A short note on a drawing that points to a specific location with a symbol like a circled number or letter, referring to more detailed information elsewhere, is called a ___.",opts:["keynote","legend","title block","border"],c:0,exp:"A keynote uses a symbol (often a circled number) to link a specific point on the drawing to a fuller description in a keynote list — this keeps the drawing itself from getting too cluttered with text. 📖 p.270"},
+ es:{q:"Una nota corta en un plano que señala una ubicación específica con un símbolo como un número o letra encerrado en un círculo, y que remite a información más detallada en otro lugar, se llama ___.",opts:["nota clave","leyenda","bloque de título","borde"],c:0,exp:"Una nota clave usa un símbolo (a menudo un número encerrado en un círculo) para vincular un punto específico del plano con una descripción más completa en una lista de notas clave. 📖 pág. 270"}},
+{en:{q:"Which of the following is good practice for the care of printed construction drawings on a job site?",opts:["Fold them so the title block stays visible, and avoid tearing","Store them anywhere convenient, including in direct sunlight","Write directly on the original set whenever a question comes up","Leave them unfolded and unprotected near wet materials"],c:0,exp:"Printed drawings should be folded so the title block is visible (so they can be quickly identified), kept away from water, sun, heat, and dirt, and handled carefully to avoid tearing. 📖 p.273"},
+ es:{q:"¿Cuál de las siguientes es una buena práctica para el cuidado de los planos impresos en un sitio de trabajo?",opts:["Doblarlos de modo que el bloque de título quede visible, y evitar rasgarlos","Guardarlos en cualquier lugar conveniente, incluida la luz solar directa","Escribir directamente en el juego original cada vez que surja una duda","Dejarlos desdoblados y sin protección cerca de materiales mojados"],c:0,exp:"Los planos impresos deben doblarse de modo que el bloque de título quede visible, mantenerse lejos del agua, el sol, el calor y la suciedad, y manejarse con cuidado para evitar rasgaduras. 📖 pág. 273"}},
+{en:{q:"A Request for Information (RFI) is used on a construction project to ________.",opts:["formally ask the design team to clarify a discrepancy or missing detail in the drawings","request additional workers from a subcontractor","request a change in the project's completion date","file a safety incident report"],c:0,exp:"An RFI is the formal way a contractor asks the architect or engineer to clarify something that's unclear, missing, or contradictory in the construction drawings or specifications. 📖 p.273"},
+ es:{q:"Una Solicitud de Información (RFI) se usa en un proyecto de construcción para ________.",opts:["pedir formalmente al equipo de diseño que aclare una discrepancia o detalle faltante en los planos","solicitar trabajadores adicionales a un subcontratista","solicitar un cambio en la fecha de finalización del proyecto","presentar un informe de incidente de seguridad"],c:0,exp:"Una RFI es la forma formal en que un contratista pide al arquitecto o ingeniero que aclare algo poco claro, faltante o contradictorio en los planos o especificaciones. 📖 pág. 273"}},
+{en:{q:"Architectural symbols on a drawing (for materials like concrete, brick, or insulation) are useful mainly because they let you ________.",opts:["identify a material at a glance without reading a lengthy written description every time","calculate the building's exact cost","determine which subcontractor installed each material","replace the need for a legend entirely"],c:0,exp:"Standardized architectural symbols (hatching patterns for concrete, brick, insulation, etc.) let a trained reader recognize a material instantly on a plan or section view. 📖 p.272"},
+ es:{q:"Los símbolos arquitectónicos en un plano (para materiales como concreto, ladrillo o aislamiento) son útiles principalmente porque permiten ________.",opts:["identificar un material de un vistazo sin leer una descripción escrita larga cada vez","calcular el costo exacto del edificio","determinar qué subcontratista instaló cada material","reemplazar por completo la necesidad de una leyenda"],c:0,exp:"Los símbolos arquitectónicos estandarizados (patrones de rayado para concreto, ladrillo, aislamiento, etc.) permiten a un lector capacitado reconocer un material al instante. 📖 pág. 272"}},
+{type:'fillBlank', en:{q:"On mechanical and plumbing drawings, symbols like a globe valve, check valve, or gate valve are examples of ___ symbols.",opts:["mechanical/plumbing","architectural","civil","electrical"],c:0,exp:"Mechanical and plumbing symbols represent components like valves, pumps, dampers, and fixtures (a lavatory, water closet, hose bibb) that make up HVAC and piping systems. 📖 p.272"},
+ es:{q:"En los planos mecánicos y de plomería, símbolos como una válvula de globo, válvula de retención o válvula de compuerta son ejemplos de símbolos ___.",opts:["mecánicos/de plomería","arquitectónicos","civiles","eléctricos"],c:0,exp:"Los símbolos mecánicos y de plomería representan componentes como válvulas, bombas, amortiguadores y accesorios (un lavabo, inodoro, grifo de manguera) de los sistemas de HVAC y tuberías. 📖 pág. 272"}}
+];
+
+const M105_SECTION3 = [
+{en:{q:"On a construction drawing, dimensions are typically written ________.",opts:["along dimension lines, showing the actual measured distance between two points","only inside the title block","as a single number for the whole building with no breakdown","only in the legend"],c:0,exp:"Dimensions are written directly on or near dimension lines in the drawing area, giving the actual size or distance for that specific part of the building. 📖 p.274"},
+ es:{q:"En un plano de construcción, las dimensiones normalmente se escriben ________.",opts:["a lo largo de las líneas de dimensión, mostrando la distancia real medida entre dos puntos","solo dentro del bloque de título","como un solo número para todo el edificio sin desglose","solo en la leyenda"],c:0,exp:"Las dimensiones se escriben directamente sobre o cerca de las líneas de dimensión en el área de dibujo, dando el tamaño o distancia real para esa parte específica del edificio. 📖 pág. 274"}},
+{en:{q:"Drawing scale refers to ________.",opts:["the proportional relationship between the size of the drawing and the actual size of the object","the exact weight of the building materials","the number of sheets in a drawing set","the total square footage of a building"],c:0,exp:"Scale is the ratio between a measurement on the drawing and the real, full-size measurement it represents — for example, 1/4 inch on paper might represent 1 real foot. 📖 p.274-275"},
+ es:{q:"La escala de un plano se refiere a ________.",opts:["la relación proporcional entre el tamaño del plano y el tamaño real del objeto","el peso exacto de los materiales de construcción","el número de hojas en un juego de planos","el total de pies cuadrados de un edificio"],c:0,exp:"La escala es la proporción entre una medida en el plano y la medida real a tamaño completo que representa — por ejemplo, 1/4 de pulgada en papel puede representar 1 pie real. 📖 pág. 274-275"}},
+{en:{q:"An architect's scale is used mainly to ________.",opts:["measure and create scaled inch-pound drawings using several different scale ratios on one tool","measure angles only","calculate the weight of structural steel","convert Celsius to Fahrenheit"],c:0,exp:"An architect's scale is a triangular or flat ruler with several different inch-pound scale ratios printed on its edges, letting a worker measure a drawing directly in the scale it was drafted at. 📖 p.276"},
+ es:{q:"Una escala de arquitecto se usa principalmente para ________.",opts:["medir y crear planos a escala en el sistema inglés usando varias proporciones de escala distintas en una sola herramienta","medir solo ángulos","calcular el peso del acero estructural","convertir Celsius a Fahrenheit"],c:0,exp:"Una escala de arquitecto es una regla triangular o plana con varias proporciones de escala inglesas impresas en sus bordes, que permite medir un plano directamente en la escala en que fue dibujado. 📖 pág. 276"}},
+{type:'fillBlank', en:{q:"A ___ scale is a straightedge measuring device that is usually divided into metric units, unlike an architect's scale, which measures inch-pound units.",opts:["metric","engineer's","architect's","flat"],c:0,exp:"A metric scale works the same way as an architect's scale but is marked off in metric units like meters and millimeters instead of feet and inches. 📖 p.276"},
+ es:{q:"Una escala ___ es un instrumento de medición recto que normalmente está dividido en unidades métricas, a diferencia de la escala de arquitecto, que mide unidades del sistema inglés.",opts:["métrica","de ingeniero","de arquitecto","plana"],c:0,exp:"Una escala métrica funciona igual que una escala de arquitecto pero está marcada en unidades métricas como metros y milímetros en lugar de pies y pulgadas. 📖 pág. 276"}},
+{en:{q:"An engineer's scale is most commonly used for ________.",opts:["large civil and structural drawings, like site plans, that represent large real-world distances","kitchen cabinet elevations only","reading electrical symbol legends","converting Fahrenheit to Celsius"],c:0,exp:"An engineer's scale divides each inch into 10, 20, 30, 40, 50, or 60 parts, which makes it well suited for large-scale civil and structural drawings covering big real-world distances, like a site plan. 📖 p.277-278"},
+ es:{q:"Una escala de ingeniero se usa más comúnmente para ________.",opts:["planos civiles y estructurales grandes, como planos de sitio, que representan grandes distancias reales","solo elevaciones de gabinetes de cocina","leer leyendas de símbolos eléctricos","convertir Fahrenheit a Celsius"],c:0,exp:"Una escala de ingeniero divide cada pulgada en 10, 20, 30, 40, 50 o 60 partes, lo que la hace adecuada para planos civiles y estructurales a gran escala, como un plano de sitio. 📖 pág. 277-278"}},
+{en:{q:"If a drawing is marked NTS, this means ________.",opts:["Not To Scale — the dimensions should not be measured directly from the drawing","No Technical Specification is required","New Title Sheet is attached","Not Tested for Safety"],c:0,exp:"NTS stands for Not To Scale — it warns the reader that the drawing's proportions don't accurately represent the real object, so dimensions must be read from the written numbers, not measured with a scale. 📖 p.278"},
+ es:{q:"Si un plano está marcado NTS, esto significa ________.",opts:["No a Escala — las dimensiones no deben medirse directamente del plano","No se requiere Especificación Técnica","Se adjunta una Nueva Hoja de Título","No Probado por Seguridad"],c:0,exp:"NTS significa No a Escala (Not To Scale) — advierte que las proporciones del plano no representan con precisión el objeto real, así que las dimensiones deben leerse de los números escritos, no medirse con una escala. 📖 pág. 278"}}
+];
+
+const M105_SECTION4 = [
+{en:{q:"Which of the following is one of the six major types of construction drawings?",opts:["Civil","Culinary","Cosmetic","Custodial"],c:0,exp:"The six major types are civil, architectural, structural, mechanical, plumbing, and electrical — each covering a different part of the overall construction package. 📖 p.278"},
+ es:{q:"¿Cuál de los siguientes es uno de los seis tipos principales de planos de construcción?",opts:["Civil","Culinario","Cosmético","De custodia"],c:0,exp:"Los seis tipos principales son civil, arquitectónico, estructural, mecánico, de plomería y eléctrico. 📖 pág. 278"}},
+{en:{q:"Civil plans typically show ________.",opts:["the site itself, including topography, property boundaries, utilities, and grading","only the interior layout of each room","the HVAC ductwork routing","the electrical panel schedule"],c:0,exp:"Civil plans cover the site: property lines, topographical/contour lines, existing and proposed grading, utilities, and how the building sits on the land — established using a surveyor's benchmarks and coordinate system. 📖 p.279"},
+ es:{q:"Los planos civiles normalmente muestran ________.",opts:["el sitio en sí, incluyendo topografía, límites de propiedad, servicios públicos y nivelación","solo la distribución interior de cada habitación","el recorrido de los ductos de HVAC","el cuadro de circuitos eléctricos"],c:0,exp:"Los planos civiles cubren el sitio: líneas de propiedad, líneas topográficas/de contorno, nivelación existente y propuesta, servicios públicos y cómo se ubica el edificio en el terreno. 📖 pág. 279"}},
+{type:'fillBlank', en:{q:"An architectural drawing that shows the layout of rooms, walls, doors, and windows as if viewed from directly above is called a ___.",opts:["floor plan","roof plan","elevation","section"],c:0,exp:"A floor plan is essentially a horizontal slice through the building shown from a top-down view, laying out rooms, walls, doors, and windows. 📖 p.279"},
+ es:{q:"Un plano arquitectónico que muestra la distribución de habitaciones, paredes, puertas y ventanas como si se viera directamente desde arriba se llama ___.",opts:["planta de piso","plano de techo","elevación","sección"],c:0,exp:"Una planta de piso es esencialmente un corte horizontal del edificio visto desde arriba, mostrando habitaciones, paredes, puertas y ventanas. 📖 pág. 279"}},
+{en:{q:"A roof plan shows ________.",opts:["a view of the roof from above, including its shape, slope direction, and drainage features","the foundation footings only","the electrical panel locations","the plumbing riser diagram"],c:0,exp:"A roof plan is a top-down view of the roof, showing its shape and slope, plus features like gutters, downspouts, and roof penetrations. 📖 p.279, 283"},
+ es:{q:"Un plano de techo muestra ________.",opts:["una vista del techo desde arriba, incluyendo su forma, dirección de pendiente y elementos de drenaje","solo las zapatas de la cimentación","las ubicaciones del panel eléctrico","el diagrama de montantes de plomería"],c:0,exp:"Un plano de techo es una vista superior del techo, mostrando su forma y pendiente, además de elementos como canaletas, bajantes y penetraciones del techo. 📖 pág. 279, 283"}},
+{en:{q:"Structural plans are a set of engineered drawings used to support ________.",opts:["the architectural design, specifying materials, sizes, and strength requirements for the building's structure","only the electrical layout","only the landscape plan","only the HVAC ductwork"],c:0,exp:"Structural plans back up the architectural design with engineered details — the type and size of the structural framework, and the materials and strength requirements needed to build it. 📖 p.284"},
+ es:{q:"Los planos estructurales son un conjunto de planos de ingeniería usados para apoyar ________.",opts:["el diseño arquitectónico, especificando materiales, tamaños y requisitos de resistencia para la estructura del edificio","solo la distribución eléctrica","solo el plano de paisajismo","solo los ductos de HVAC"],c:0,exp:"Los planos estructurales respaldan el diseño arquitectónico con detalles de ingeniería: el tipo y tamaño del armazón estructural, y los materiales y requisitos de resistencia necesarios. 📖 pág. 284"}},
+{type:'fillBlank', en:{q:"A structural drawing that shows the layout and size of footings, foundation walls, and related elements is called a ___ plan.",opts:["foundation","electrical","plumbing riser","landscape"],c:0,exp:"A foundation plan shows the footings, foundation walls, columns, beams, and how the structure transfers its loads down into the ground. 📖 p.284-285"},
+ es:{q:"Un plano estructural que muestra la distribución y tamaño de las zapatas, muros de cimentación y elementos relacionados se llama plano de ___.",opts:["cimentación","eléctrico","montantes de plomería","paisajismo"],c:0,exp:"Un plano de cimentación muestra las zapatas, muros de cimentación, columnas, vigas y cómo la estructura transfiere sus cargas al terreno. 📖 pág. 284-285"}},
+{en:{q:"Mechanical plans on a construction project mainly cover ________.",opts:["heating, ventilating, air conditioning, and related piping and duct systems","the property boundary survey","the paint color schedule","the landscaping irrigation-only layout"],c:0,exp:"Mechanical plans are engineered drawings for HVAC systems — showing ductwork, piping, equipment locations, and the instrumentation/control details (P&IDs) a mechanical crew needs. 📖 p.289"},
+ es:{q:"Los planos mecánicos en un proyecto de construcción cubren principalmente ________.",opts:["calefacción, ventilación, aire acondicionado y los sistemas relacionados de tuberías y ductos","el levantamiento de límites de propiedad","el cuadro de colores de pintura","solo la distribución de riego del paisajismo"],c:0,exp:"Los planos mecánicos son planos de ingeniería para sistemas de HVAC — muestran ductos, tuberías, ubicaciones de equipos y los detalles de instrumentación/control (P&ID) que necesita una cuadrilla mecánica. 📖 pág. 289"}},
+{en:{q:"Plumbing/piping plans show ________.",opts:["the layout of the hot and cold water system, as well as waste and vent piping","the structural steel column grid","the electrical lighting layout","the landscape planting plan"],c:0,exp:"Plumbing (piping) plans lay out the hot and cold water supply along with the waste and vent system — often shown as both a plan view and an isometric drawing for clarity. 📖 p.296"},
+ es:{q:"Los planos de plomería/tuberías muestran ________.",opts:["la distribución del sistema de agua fría y caliente, así como las tuberías de desagüe y ventilación","la cuadrícula de columnas de acero estructural","la distribución de iluminación eléctrica","el plano de siembra del paisajismo"],c:0,exp:"Los planos de plomería (tuberías) distribuyen el suministro de agua fría y caliente junto con el sistema de desagüe y ventilación — a menudo se muestran tanto en vista de planta como en dibujo isométrico. 📖 pág. 296"}},
+{en:{q:"Electrical plans typically show all of the following EXCEPT ________.",opts:["structural footing sizes","locations of outlets, switches, and lighting fixtures","panel schedules and circuit breaker information","power and distribution wiring layout"],c:0,exp:"Electrical plans cover outlets, switches, lighting, panel schedules, wiring, and distribution — structural footing sizes belong on the structural (foundation) plan instead. 📖 p.297-299"},
+ es:{q:"Los planos eléctricos normalmente muestran todo lo siguiente EXCEPTO ________.",opts:["los tamaños de las zapatas estructurales","las ubicaciones de tomacorrientes, interruptores y luminarias","los cuadros de paneles e información de los interruptores automáticos","la distribución del cableado de energía y distribución"],c:0,exp:"Los planos eléctricos cubren tomacorrientes, interruptores, iluminación, cuadros de paneles, cableado y distribución — los tamaños de zapatas estructurales van en el plano estructural (de cimentación). 📖 pág. 297-299"}},
+{en:{q:"As-built drawings are created to ________.",opts:["reflect the final as-constructed conditions of a project, including any field changes made during construction","replace the need for a title block","show only the original design before construction began","list the project's subcontractors"],c:0,exp:"As-built drawings are revised after construction to show what was actually built, including any field changes, deviations, or unexpected obstacles encountered along the way. 📖 p.304"},
+ es:{q:"Los planos as-built (tal como se construyó) se crean para ________.",opts:["reflejar las condiciones finales tal como se construyó el proyecto, incluyendo cualquier cambio hecho en campo durante la construcción","reemplazar la necesidad de un bloque de título","mostrar solo el diseño original antes de que comenzara la construcción","listar los subcontratistas del proyecto"],c:0,exp:"Los planos as-built se revisan después de la construcción para mostrar lo que realmente se construyó, incluyendo cualquier cambio de campo o desviación. 📖 pág. 304"}}
+];
+
+const M105_TEST = [
+{en:{q:"Which part of a construction drawing identifies the company, project, and sheet number, and is usually located in the lower-right corner?",opts:["Title block","Legend","Border","North arrow"],c:0,exp:"The title block identifies the company, project, drawing title, scale, date, and sheet number. 📖 p.268"},
+ es:{q:"¿Qué parte de un plano identifica la empresa, el proyecto y el número de hoja, y suele ubicarse en la esquina inferior derecha?",opts:["Bloque de título","Leyenda","Borde","Flecha de norte"],c:0,exp:"El bloque de título identifica la empresa, el proyecto, el título del plano, la escala, la fecha y el número de hoja. 📖 pág. 268"}},
+{en:{q:"Where would you look to find the most recent revision date on a set of construction drawings?",opts:["The revision block","The legend","The north arrow","The drawing area"],c:0,exp:"The revision block logs every revision with its number, date, and description — the most recent entry shows the latest change. 📖 p.268"},
+ es:{q:"¿Dónde buscarías la fecha de revisión más reciente en un juego de planos de construcción?",opts:["El bloque de revisión","La leyenda","La flecha de norte","El área de dibujo"],c:0,exp:"El bloque de revisión registra cada revisión con su número, fecha y descripción. 📖 pág. 268"}},
+{en:{q:"A dashed line on a drawing that shows an object hidden from view, like a beam behind a ceiling, is called a ________.",opts:["hidden line","break line","center line","section line"],c:0,exp:"A hidden line is drawn dashed to represent an edge or object that's concealed from the viewer. 📖 p.269-270"},
+ es:{q:"Una línea discontinua en un plano que muestra un objeto oculto a la vista, como una viga detrás de un techo, se llama ________.",opts:["línea oculta","línea de ruptura","línea central","línea de sección"],c:0,exp:"Una línea oculta se dibuja discontinua para representar un borde u objeto oculto a la vista. 📖 pág. 269-270"}},
+{en:{q:"A leader line on a drawing is used to ________.",opts:["point from a note or dimension to the specific feature it describes","mark the property boundary","show a horizontal slice through the building","establish true north"],c:0,exp:"A leader line has an arrowhead pointing from explanatory text to the exact feature on the drawing it refers to. 📖 p.269"},
+ es:{q:"Una línea líder en un plano se usa para ________.",opts:["señalar desde una nota o dimensión hacia la característica específica que describe","marcar el límite de propiedad","mostrar un corte horizontal del edificio","establecer el norte verdadero"],c:0,exp:"Una línea líder tiene una punta de flecha que señala desde un texto explicativo hacia la característica exacta del plano. 📖 pág. 269"}},
+{en:{q:"Engineers who produce construction drawings are described as professionals who ________.",opts:["apply scientific and technical principles to design and construction","only inspect completed buildings for code violations","only manage the project's budget","only supervise craft professionals on-site"],c:0,exp:"Engineers are licensed to apply scientific principles to the design and construction of a project, and typically produce the technical drawing sets. 📖 p.271"},
+ es:{q:"Los ingenieros que producen planos de construcción se describen como profesionales que ________.",opts:["aplican principios científicos y técnicos al diseño y la construcción","solo inspeccionan edificios terminados en busca de violaciones de código","solo gestionan el presupuesto del proyecto","solo supervisan a los profesionales del oficio en el sitio"],c:0,exp:"Los ingenieros tienen licencia para aplicar principios científicos al diseño y la construcción de un proyecto. 📖 pág. 271"}},
+{en:{q:"A keynote on a drawing typically uses a ________ to link a point on the drawing to a fuller written description.",opts:["circled number or letter","colored highlight only","handwritten margin note","different line weight only"],c:0,exp:"Keynotes use a symbol, often a circled number, to connect a specific drawing location to a longer description kept elsewhere on the sheet or set. 📖 p.270"},
+ es:{q:"Una nota clave en un plano normalmente usa ________ para vincular un punto del plano con una descripción escrita más completa.",opts:["un número o letra encerrado en un círculo","solo un resaltado de color","una nota manuscrita en el margen","solo un peso de línea diferente"],c:0,exp:"Las notas clave usan un símbolo, a menudo un número encerrado en un círculo, para conectar una ubicación específica con una descripción más larga. 📖 pág. 270"}},
+{en:{q:"Why should construction drawings be folded with the title block visible when stored on a job site?",opts:["So the correct sheet can be identified quickly without unfolding every drawing","So they take up less space in a filing cabinet only","Because it's required by the revision block","Because unfolded drawings are illegal to use on-site"],c:0,exp:"Folding drawings with the title block showing lets a worker quickly identify the right sheet without unfolding the whole set every time. 📖 p.273"},
+ es:{q:"¿Por qué los planos de construcción deben doblarse con el bloque de título visible cuando se guardan en un sitio de trabajo?",opts:["Para poder identificar la hoja correcta rápidamente sin desdoblar cada plano","Solo para ocupar menos espacio en un archivero","Porque lo exige el bloque de revisión","Porque es ilegal usar planos desdoblados en el sitio"],c:0,exp:"Doblar los planos con el bloque de título visible permite identificar rápidamente la hoja correcta sin desdoblar todo el juego. 📖 pág. 273"}},
+{en:{q:"An RFI (Request for Information) is submitted when ________.",opts:["a contractor needs the design team to clarify something unclear or missing in the drawings","a worker requests time off from a supervisor","a subcontractor requests final payment","a client requests a change in building color"],c:0,exp:"An RFI is the formal process for asking the architect or engineer to clarify a discrepancy, error, or missing detail in the construction documents. 📖 p.273"},
+ es:{q:"Se presenta una RFI (Solicitud de Información) cuando ________.",opts:["un contratista necesita que el equipo de diseño aclare algo poco claro o faltante en los planos","un trabajador solicita tiempo libre a un supervisor","un subcontratista solicita el pago final","un cliente solicita un cambio en el color del edificio"],c:0,exp:"Una RFI es el proceso formal para pedir al arquitecto o ingeniero que aclare una discrepancia, error o detalle faltante. 📖 pág. 273"}},
+{en:{q:"Drawing scale describes ________.",opts:["the proportional relationship between the size shown on paper and the real, full-size object","the total cost of the drawing set","how many revisions a drawing has had","the type of paper the drawing is printed on"],c:0,exp:"Scale is the ratio between a distance on the drawing and the actual distance it represents in the real world. 📖 p.274-275"},
+ es:{q:"La escala de un plano describe ________.",opts:["la relación proporcional entre el tamaño mostrado en papel y el objeto real a tamaño completo","el costo total del juego de planos","cuántas revisiones ha tenido un plano","el tipo de papel en que se imprime el plano"],c:0,exp:"La escala es la proporción entre una distancia en el plano y la distancia real que representa. 📖 pág. 274-275"}},
+{en:{q:"Which scale tool is best suited for reading a large civil site plan covering hundreds of feet?",opts:["Engineer's scale","Architect's scale","Metric scale used for room elevations","A standard 12-inch ruler"],c:0,exp:"An engineer's scale divides each inch into 10, 20, 30, 40, 50, or 60 parts, making it well suited for large civil/site drawings covering big real-world distances. 📖 p.277-278"},
+ es:{q:"¿Qué herramienta de escala es la más adecuada para leer un plano civil de sitio grande que cubre cientos de pies?",opts:["Escala de ingeniero","Escala de arquitecto","Escala métrica usada para elevaciones de habitación","Una regla estándar de 12 pulgadas"],c:0,exp:"Una escala de ingeniero divide cada pulgada en 10, 20, 30, 40, 50 o 60 partes, lo que la hace adecuada para planos civiles/de sitio a gran escala. 📖 pág. 277-278"}},
+{en:{q:"A drawing marked NTS should be read by ________.",opts:["using the written dimension numbers, not measuring directly off the page","measuring directly with any scale tool since NTS means 1:1","ignoring all dimensions on that sheet","assuming the drawing uses the metric system"],c:0,exp:"NTS (Not To Scale) warns that the drawing's proportions are not accurate, so the reader must rely on the written dimension numbers instead of measuring the page. 📖 p.278"},
+ es:{q:"Un plano marcado NTS debe leerse ________.",opts:["usando los números de dimensión escritos, sin medir directamente en la página","midiendo directamente con cualquier herramienta de escala ya que NTS significa 1:1","ignorando todas las dimensiones de esa hoja","asumiendo que el plano usa el sistema métrico"],c:0,exp:"NTS (No a Escala) advierte que las proporciones del plano no son exactas, así que hay que usar los números de dimensión escritos. 📖 pág. 278"}},
+{en:{q:"Which of the six major drawing types would show property boundaries, topography, and site utilities?",opts:["Civil","Architectural","Mechanical","Electrical"],c:0,exp:"Civil plans cover the site itself: property lines, topography, grading, and utilities. 📖 p.279"},
+ es:{q:"¿Cuál de los seis tipos principales de planos mostraría los límites de propiedad, la topografía y los servicios del sitio?",opts:["Civil","Arquitectónico","Mecánico","Eléctrico"],c:0,exp:"Los planos civiles cubren el sitio en sí: líneas de propiedad, topografía, nivelación y servicios. 📖 pág. 279"}},
+{en:{q:"A floor plan is best described as ________.",opts:["a horizontal slice through the building viewed from directly above, showing rooms and walls","a side view of the building's exterior","a vertical slice through the building showing framing details","a list of finish materials for each room"],c:0,exp:"A floor plan is essentially a horizontal cut through the building shown from a top-down view. 📖 p.279"},
+ es:{q:"Una planta de piso se describe mejor como ________.",opts:["un corte horizontal del edificio visto directamente desde arriba, mostrando habitaciones y paredes","una vista lateral del exterior del edificio","un corte vertical del edificio que muestra detalles de enmarcado","una lista de materiales de acabado para cada habitación"],c:0,exp:"Una planta de piso es esencialmente un corte horizontal del edificio visto desde arriba. 📖 pág. 279"}},
+{en:{q:"Which plan shows the footings, foundation walls, and how structural loads transfer into the ground?",opts:["Foundation plan","Roof plan","Electrical panel schedule","Landscape plan"],c:0,exp:"The foundation plan is part of the structural drawing set and shows footings, foundation walls, and load paths into the ground. 📖 p.284-285"},
+ es:{q:"¿Qué plano muestra las zapatas, los muros de cimentación y cómo se transfieren las cargas estructurales al terreno?",opts:["Plano de cimentación","Plano de techo","Cuadro del panel eléctrico","Plano de paisajismo"],c:0,exp:"El plano de cimentación es parte del juego de planos estructurales y muestra zapatas, muros de cimentación y trayectorias de carga hacia el terreno. 📖 pág. 284-285"}},
+{en:{q:"Mechanical drawings mainly cover which building systems?",opts:["HVAC, ductwork, and related piping","Electrical wiring only","Structural steel only","Landscaping and irrigation only"],c:0,exp:"Mechanical plans are engineered drawings for HVAC systems, including ductwork, piping, and equipment layout. 📖 p.289"},
+ es:{q:"Los planos mecánicos cubren principalmente qué sistemas del edificio?",opts:["HVAC, ductos y tuberías relacionadas","Solo el cableado eléctrico","Solo el acero estructural","Solo el paisajismo y riego"],c:0,exp:"Los planos mecánicos son planos de ingeniería para sistemas de HVAC, incluyendo ductos, tuberías y distribución de equipos. 📖 pág. 289"}},
+{en:{q:"Plumbing (piping) plans typically show ________.",opts:["hot and cold water supply along with waste and vent systems","only the roof drainage slope","only the structural column grid","only the electrical panel schedule"],c:0,exp:"Plumbing plans lay out hot and cold water supply plus waste and vent piping, often shown in both plan and isometric views. 📖 p.296"},
+ es:{q:"Los planos de plomería (tuberías) normalmente muestran ________.",opts:["el suministro de agua fría y caliente junto con los sistemas de desagüe y ventilación","solo la pendiente de drenaje del techo","solo la cuadrícula de columnas estructurales","solo el cuadro del panel eléctrico"],c:0,exp:"Los planos de plomería distribuyen el suministro de agua fría y caliente más las tuberías de desagüe y ventilación. 📖 pág. 296"}},
+{en:{q:"Which of the following would you expect to find on an electrical plan?",opts:["Panel schedules, outlet locations, and lighting fixtures","Footing dimensions","Plot plan property lines","HVAC duct sizing"],c:0,exp:"Electrical plans show panel schedules, outlets, switches, lighting, and wiring/distribution layout. 📖 p.297-300"},
+ es:{q:"¿Cuál de los siguientes esperarías encontrar en un plano eléctrico?",opts:["Cuadros de paneles, ubicaciones de tomacorrientes y luminarias","Dimensiones de zapatas","Líneas de propiedad del plano de parcela","Dimensionamiento de ductos de HVAC"],c:0,exp:"Los planos eléctricos muestran cuadros de paneles, tomacorrientes, interruptores, iluminación y distribución de cableado. 📖 pág. 297-300"}},
+{en:{q:"As-built drawings are most useful because they ________.",opts:["document what was actually constructed, including any field changes made along the way","are always identical to the original design set","replace the need for a title block on future projects","are only required for civil site work"],c:0,exp:"As-built drawings record the final as-constructed conditions, including any changes made in the field during construction — valuable for future renovations or repairs. 📖 p.304"},
+ es:{q:"Los planos as-built son más útiles principalmente porque ________.",opts:["documentan lo que realmente se construyó, incluyendo cualquier cambio hecho en campo","siempre son idénticos al juego de diseño original","reemplazan la necesidad de un bloque de título en proyectos futuros","solo se requieren para trabajo civil de sitio"],c:0,exp:"Los planos as-built registran las condiciones finales tal como se construyó, incluyendo cualquier cambio hecho en campo. 📖 pág. 304"}},
+{en:{q:"A section view on a construction drawing is created by ________.",opts:["imagining a vertical slice through the object at the cutting-plane line and drawing what that slice reveals","measuring the building's total perimeter","listing every material used in the legend","tracing the property boundary"],c:0,exp:"A section view shows what you'd see if you sliced through the building at the cutting-plane line — it reveals internal framing, layers, and materials not visible from the outside. 📖 p.270, 284"},
+ es:{q:"Una vista de sección en un plano de construcción se crea ________.",opts:["imaginando un corte vertical del objeto en la línea de corte y dibujando lo que revela ese corte","midiendo el perímetro total del edificio","listando cada material usado en la leyenda","trazando el límite de propiedad"],c:0,exp:"Una vista de sección muestra lo que se vería si se cortara el edificio en la línea de corte — revela el enmarcado interno, las capas y los materiales no visibles desde afuera. 📖 pág. 270, 284"}}
+];
+
+const M105_CARDS = [
+{en:{q:"What is the title block?",a:"The part of a drawing (usually lower-right) that identifies company, project, title, scale, date, and sheet number."}, es:{q:"¿Qué es el bloque de título?",a:"La parte del plano (usualmente inferior derecha) que identifica empresa, proyecto, título, escala, fecha y número de hoja."}},
+{en:{q:"What is the revision block for?",a:"Logging every revision to a drawing with a number, date, and brief description."}, es:{q:"¿Para qué es el bloque de revisión?",a:"Registrar cada revisión de un plano con número, fecha y breve descripción."}},
+{en:{q:"What does a legend do?",a:"Provides a key explaining what each symbol on that drawing means."}, es:{q:"¿Qué hace una leyenda?",a:"Proporciona una clave que explica qué significa cada símbolo del plano."}},
+{en:{q:"What does a dimension line show?",a:"A measurement between two points, marked with arrows."}, es:{q:"¿Qué muestra una línea de dimensión?",a:"Una medida entre dos puntos, marcada con flechas."}},
+{en:{q:"What does a leader line do?",a:"Points from a note to the specific part of the drawing it describes."}, es:{q:"¿Qué hace una línea líder?",a:"Señala desde una nota hacia la parte específica del plano que describe."}},
+{en:{q:"What is a hidden line used for?",a:"Showing an object concealed from view, like a pipe behind a wall, drawn as a dashed line."}, es:{q:"¿Para qué se usa una línea oculta?",a:"Mostrar un objeto oculto a la vista, como una tubería detrás de una pared, dibujada punteada."}},
+{en:{q:"What is a keynote?",a:"A symbol (often a circled number) linking a point on the drawing to a fuller description elsewhere."}, es:{q:"¿Qué es una nota clave?",a:"Un símbolo (a menudo un número en círculo) que vincula un punto del plano con una descripción más completa en otro lugar."}},
+{en:{q:"What does drawing scale mean?",a:"The proportional relationship between the drawing's size on paper and the object's real size."}, es:{q:"¿Qué significa la escala de un plano?",a:"La relación proporcional entre el tamaño del plano en papel y el tamaño real del objeto."}},
+{en:{q:"When would you use an engineer's scale instead of an architect's scale?",a:"For large civil/site drawings covering big real-world distances — it divides each inch into 10, 20, 30, 40, 50, or 60 parts."}, es:{q:"¿Cuándo usarías una escala de ingeniero en lugar de una de arquitecto?",a:"Para planos civiles/de sitio grandes que cubren grandes distancias reales — divide cada pulgada en 10, 20, 30, 40, 50 o 60 partes."}},
+{en:{q:"What does NTS mean on a drawing?",a:"Not To Scale — read the written dimension numbers instead of measuring the page."}, es:{q:"¿Qué significa NTS en un plano?",a:"No a Escala — lee los números de dimensión escritos en lugar de medir la página."}},
+{en:{q:"Name the six major types of construction drawings.",a:"Civil, architectural, structural, mechanical, plumbing, and electrical."}, es:{q:"Nombra los seis tipos principales de planos de construcción.",a:"Civil, arquitectónico, estructural, mecánico, de plomería y eléctrico."}},
+{en:{q:"What does a civil plan show?",a:"The site itself: property boundaries, topography, grading, and utilities."}, es:{q:"¿Qué muestra un plano civil?",a:"El sitio en sí: límites de propiedad, topografía, nivelación y servicios."}},
+{en:{q:"What is a floor plan?",a:"A horizontal slice through the building viewed from directly above, showing rooms, walls, doors, and windows."}, es:{q:"¿Qué es una planta de piso?",a:"Un corte horizontal del edificio visto desde arriba, mostrando habitaciones, paredes, puertas y ventanas."}},
+{en:{q:"What does a foundation plan show?",a:"Footings, foundation walls, and how structural loads transfer into the ground."}, es:{q:"¿Qué muestra un plano de cimentación?",a:"Zapatas, muros de cimentación y cómo se transfieren las cargas estructurales al terreno."}},
+{en:{q:"What do mechanical plans cover?",a:"HVAC systems — ductwork, piping, and equipment locations."}, es:{q:"¿Qué cubren los planos mecánicos?",a:"Sistemas de HVAC: ductos, tuberías y ubicaciones de equipos."}},
+{en:{q:"What is an RFI?",a:"Request for Information — the formal way a contractor asks the design team to clarify something unclear in the drawings."}, es:{q:"¿Qué es una RFI?",a:"Solicitud de Información — la forma formal en que un contratista pide al equipo de diseño que aclare algo poco claro en los planos."}},
+{en:{q:"What are as-built drawings?",a:"Drawings revised after construction to show what was actually built, including field changes."}, es:{q:"¿Qué son los planos as-built?",a:"Planos revisados después de la construcción para mostrar lo que realmente se construyó, incluyendo cambios de campo."}},
+{en:{q:"How should printed drawings be stored/handled on a job site?",a:"Folded with the title block visible, kept away from water/sun/heat, and handled to avoid tearing."}, es:{q:"¿Cómo deben guardarse/manejarse los planos impresos en un sitio de trabajo?",a:"Doblados con el bloque de título visible, lejos del agua/sol/calor, y manejados con cuidado para evitar rasgaduras."}}
+];
+
+const M102_SECTION1 = [
+{en:{q:"In the order of operations, which step comes first?",opts:["Anything inside parentheses","Multiplication and division","Addition and subtraction","Exponents"],c:0,exp:"Order of operations (PEMDAS) always starts by resolving whatever is inside parentheses first, before any exponents, multiplication, division, addition, or subtraction. 📖 p.123-124"},
+ es:{q:"En el orden de operaciones, ¿qué paso va primero?",opts:["Cualquier cosa dentro de paréntesis","Multiplicación y división","Suma y resta","Exponentes"],c:0,exp:"El orden de operaciones (PEMDAS) siempre empieza resolviendo lo que está dentro de paréntesis primero. 📖 pág. 123-124"}},
+{type:'fillBlank', en:{q:"In 5 + 3 × 2, you must do the ___ before the addition, giving 5 + 6 = 11.",opts:["multiplication","addition first","subtraction","division of 5"],c:0,exp:"Multiplication and division always happen before addition and subtraction, regardless of left-to-right order on the page. 📖 p.123-124"},
+ es:{q:"En 5 + 3 × 2, debes hacer la ___ antes de la suma, dando 5 + 6 = 11.",opts:["multiplicación","suma primero","resta","división de 5"],c:0,exp:"La multiplicación y la división siempre se hacen antes que la suma y la resta. 📖 pág. 123-124"}},
+{en:{q:"What is 48 ÷ 6 + 2 × 3?",opts:["14","16","20","10"],c:0,exp:"Divide and multiply first: 48÷6=8 and 2×3=6. Then add: 8+6=14. 📖 p.123-124"},
+ es:{q:"¿Cuánto es 48 ÷ 6 + 2 × 3?",opts:["14","16","20","10"],c:0,exp:"Divide y multiplica primero: 48÷6=8 y 2×3=6. Luego suma: 8+6=14. 📖 pág. 123-124"}},
+{en:{q:"A crew needs 14 studs per wall for 6 walls, plus 8 extra for waste. How many total studs is that?",opts:["92","84","78","100"],c:0,exp:"14 × 6 = 84 studs for the walls, plus 8 extra = 92 total. Multiply first, then add, per order of operations. 📖 p.123-124"},
+ es:{q:"Una cuadrilla necesita 14 montantes por pared para 6 paredes, más 8 de más por desperdicio. ¿Cuántos montantes en total es eso?",opts:["92","84","78","100"],c:0,exp:"14 × 6 = 84 montantes para las paredes, más 8 extra = 92 en total. 📖 pág. 123-124"}},
+{en:{q:"Rounding 3,847 to the nearest hundred gives which value?",opts:["3,800","3,900","3,850","4,000"],c:0,exp:"Look at the tens digit (4). Since it's less than 5, round down, keeping the hundreds digit the same: 3,800. 📖 p.126"},
+ es:{q:"Redondear 3,847 a la centena más cercana da qué valor?",opts:["3,800","3,900","3,850","4,000"],c:0,exp:"Mira el dígito de las decenas (4). Como es menor que 5, se redondea hacia abajo: 3,800. 📖 pág. 126"}},
+{type:'fillBlank', en:{q:"When you round 3,847 to the nearest ten, the digit you check first is the ___ digit.",opts:["ones","hundreds","thousands","tens"],c:0,exp:"To round to the nearest ten, look at the ones digit to decide whether the tens digit rounds up or stays the same. 📖 p.126"},
+ es:{q:"Cuando redondeas 3,847 a la decena más cercana, el primer dígito que revisas es el de las ___.",opts:["unidades","centenas","millares","decenas"],c:0,exp:"Para redondear a la decena más cercana, mira el dígito de las unidades. 📖 pág. 126"}},
+{en:{q:"What is the correct order of the four basic operations shown in a long word problem that has no parentheses or exponents: add, then multiply, or multiply, then add?",opts:["Multiply first, then add","Add first, then multiply","Always work strictly left to right, ignoring operation type","Add and multiply at the same time"],c:0,exp:"Without parentheses or exponents, multiplication and division are always done before addition and subtraction — never simply left to right. 📖 p.123-124"},
+ es:{q:"¿Cuál es el orden correcto de las cuatro operaciones básicas en un problema sin paréntesis ni exponentes: sumar y luego multiplicar, o multiplicar y luego sumar?",opts:["Multiplicar primero, luego sumar","Sumar primero, luego multiplicar","Siempre trabajar estrictamente de izquierda a derecha","Sumar y multiplicar al mismo tiempo"],c:0,exp:"Sin paréntesis ni exponentes, la multiplicación y división siempre se hacen antes que la suma y resta. 📖 pág. 123-124"}},
+{en:{q:"A job requires 240 linear feet of baseboard, sold in 8-foot sticks. How many sticks are needed, rounding up to the nearest whole stick?",opts:["30","29","28","32"],c:0,exp:"240 ÷ 8 = 30 exactly, so 30 full sticks cover the job with none left over. 📖 p.126-127"},
+ es:{q:"Un trabajo requiere 240 pies lineales de zócalo, vendido en palos de 8 pies. ¿Cuántos palos se necesitan, redondeando hacia arriba al palo entero más cercano?",opts:["30","29","28","32"],c:0,exp:"240 ÷ 8 = 30 exactamente, así que 30 palos completos cubren el trabajo sin sobrantes. 📖 pág. 126-127"}}
+];
+
+const M102_SECTION2 = [
+{en:{q:"To add 1/3 and 1/6, what must you do first?",opts:["Find a common denominator so both fractions are in sixths","Add the numerators and denominators directly","Convert both to whole numbers","Multiply the two fractions together"],c:0,exp:"Fractions can only be added once they share a common denominator. 1/3 = 2/6, so 2/6 + 1/6 = 3/6, which simplifies to 1/2. 📖 p.135-138"},
+ es:{q:"Para sumar 1/3 y 1/6, ¿qué debes hacer primero?",opts:["Encontrar un denominador común para que ambas fracciones estén en sextos","Sumar los numeradores y denominadores directamente","Convertir ambos a números enteros","Multiplicar las dos fracciones"],c:0,exp:"Las fracciones solo se pueden sumar una vez que comparten un denominador común. 1/3 = 2/6, entonces 2/6 + 1/6 = 3/6, que se simplifica a 1/2. 📖 pág. 135-138"}},
+{en:{q:"What is 3/4 reduced to its simplest form multiplied by 2/3?",opts:["1/2","5/7","6/12","3/6"],c:0,exp:"Multiply numerators (3×2=6) and denominators (4×3=12) to get 6/12, which reduces to 1/2. Multiplying fractions never requires a common denominator. 📖 p.136-138"},
+ es:{q:"¿Cuánto es 3/4 multiplicado por 2/3, reducido a su forma más simple?",opts:["1/2","5/7","6/12","3/6"],c:0,exp:"Multiplica numeradores (3×2=6) y denominadores (4×3=12) para obtener 6/12, que se reduce a 1/2. 📖 pág. 136-138"}},
+{type:'fillBlank', en:{q:"To divide by a fraction, you multiply by its ___ (flip the numerator and denominator).",opts:["reciprocal","opposite sign","square root","common denominator"],c:0,exp:"Dividing by a fraction is the same as multiplying by its reciprocal — flip the fraction upside down, then multiply straight across. 📖 p.137"},
+ es:{q:"Para dividir entre una fracción, multiplicas por su ___ (inviertes el numerador y el denominador).",opts:["recíproco","signo opuesto","raíz cuadrada","denominador común"],c:0,exp:"Dividir entre una fracción es lo mismo que multiplicar por su recíproco. 📖 pág. 137"}},
+{en:{q:"What is the decimal equivalent of 3/8?",opts:["0.375","0.38","0.35","0.83"],c:0,exp:"3 divided by 8 equals 0.375 exactly — this is one of the standard trade fraction-decimal equivalents worth memorizing. 📖 p.143-145"},
+ es:{q:"¿Cuál es el equivalente decimal de 3/8?",opts:["0.375","0.38","0.35","0.83"],c:0,exp:"3 dividido entre 8 es igual a 0.375 exactamente. 📖 pág. 143-145"}},
+{en:{q:"What is 0.6 written as a fraction in simplest form?",opts:["3/5","6/10","3/10","6/100"],c:0,exp:"0.6 = 6/10, which reduces to 3/5 by dividing both numbers by 2. 📖 p.143-145"},
+ es:{q:"¿Qué es 0.6 escrito como fracción en su forma más simple?",opts:["3/5","6/10","3/10","6/100"],c:0,exp:"0.6 = 6/10, que se reduce a 3/5 al dividir ambos números entre 2. 📖 pág. 143-145"}},
+{type:'fillBlank', en:{q:"A ___ is a number expressed as a part of 100, often written with a % sign.",opts:["percentage","fraction","decimal","ratio"],c:0,exp:"A percentage represents a part out of 100 — 50% means 50 out of 100, or 1/2, or 0.5. 📖 p.146-147"},
+ es:{q:"Un ___ es un número expresado como parte de 100, a menudo escrito con un signo %.",opts:["porcentaje","fracción","decimal","proporción"],c:0,exp:"Un porcentaje representa una parte de 100 — 50% significa 50 de 100, o 1/2, o 0.5. 📖 pág. 146-147"}},
+{en:{q:"A material order is marked up by 15%. If the base cost is $400, what is the total cost after markup?",opts:["$460","$415","$440","$480"],c:0,exp:"15% of $400 is $60 (0.15 × 400). Add that to the base cost: $400 + $60 = $460. 📖 p.146-147"},
+ es:{q:"Un pedido de material tiene un margen del 15%. Si el costo base es $400, ¿cuál es el costo total después del margen?",opts:["$460","$415","$440","$480"],c:0,exp:"15% de $400 es $60 (0.15 × 400). Suma eso al costo base: $400 + $60 = $460. 📖 pág. 146-147"}},
+{en:{q:"Which fraction is equivalent to 62.5%?",opts:["5/8","6/25","5/6","2/5"],c:0,exp:"62.5% = 0.625, and 0.625 matches the memorized trade equivalent 5/8. 📖 p.143-147"},
+ es:{q:"¿Qué fracción es equivalente a 62.5%?",opts:["5/8","6/25","5/6","2/5"],c:0,exp:"62.5% = 0.625, y 0.625 coincide con el equivalente de oficio memorizado 5/8. 📖 pág. 143-147"}},
+{en:{q:"You need to compare 5/8\" and 0.6\" to see which is larger. Which is it?",opts:["5/8\" is larger (0.625 > 0.6)","0.6\" is larger","They are exactly equal","Cannot be determined without a ruler"],c:0,exp:"Converting 5/8\" to a decimal gives 0.625\", which is larger than 0.6\" — converting to a common form (decimal or fraction) is the reliable way to compare. 📖 p.143-147"},
+ es:{q:"Necesitas comparar 5/8\" y 0.6\" para ver cuál es mayor. ¿Cuál es?",opts:["5/8\" es mayor (0.625 > 0.6)","0.6\" es mayor","Son exactamente iguales","No se puede determinar sin una regla"],c:0,exp:"Convertir 5/8\" a decimal da 0.625\", que es mayor que 0.6\". 📖 pág. 143-147"}}
+];
+
+const M102_SECTION3 = [
+{en:{q:"How many inches are in 1 foot?",opts:["12","10","16","24"],c:0,exp:"There are 12 inches in a foot — one of the most-used inch-pound conversions in construction. 📖 p.155-157"},
+ es:{q:"¿Cuántas pulgadas hay en 1 pie?",opts:["12","10","16","24"],c:0,exp:"Hay 12 pulgadas en un pie. 📖 pág. 155-157"}},
+{type:'fillBlank', en:{q:"There are ___ feet in one yard.",opts:["3","4","2","36"],c:0,exp:"A yard is exactly 3 feet, or 36 inches. 📖 p.155-157"},
+ es:{q:"Hay ___ pies en una yarda.",opts:["3","4","2","36"],c:0,exp:"Una yarda es exactamente 3 pies, o 36 pulgadas. 📖 pág. 155-157"}},
+{en:{q:"A wall is measured at 9 feet 4 inches tall. What is that measurement in total inches?",opts:["112 inches","104 inches","94 inches","120 inches"],c:0,exp:"9 feet × 12 inches/foot = 108 inches, plus 4 inches = 112 inches total. 📖 p.155-157"},
+ es:{q:"Una pared mide 9 pies 4 pulgadas de alto. ¿Cuál es esa medida en pulgadas totales?",opts:["112 pulgadas","104 pulgadas","94 pulgadas","120 pulgadas"],c:0,exp:"9 pies × 12 pulgadas/pie = 108 pulgadas, más 4 pulgadas = 112 pulgadas en total. 📖 pág. 155-157"}},
+{en:{q:"Which of the following is the correct metric conversion: 1 meter equals how many centimeters?",opts:["100","10","1,000","1"],c:0,exp:"The metric system is based on powers of 10: 1 meter = 100 centimeters = 1,000 millimeters. 📖 p.158-160"},
+ es:{q:"¿Cuál de las siguientes es la conversión métrica correcta: 1 metro equivale a cuántos centímetros?",opts:["100","10","1,000","1"],c:0,exp:"El sistema métrico se basa en potencias de 10: 1 metro = 100 centímetros = 1,000 milímetros. 📖 pág. 158-160"}},
+{type:'fillBlank', en:{q:"To convert a measurement from inches to centimeters, you multiply the number of inches by approximately ___.",opts:["2.54","1.61","0.39","12"],c:0,exp:"1 inch equals approximately 2.54 centimeters — this conversion factor is used whenever inch-pound and metric drawings need to be compared. 📖 p.160-162"},
+ es:{q:"Para convertir una medida de pulgadas a centímetros, multiplicas el número de pulgadas por aproximadamente ___.",opts:["2.54","1.61","0.39","12"],c:0,exp:"1 pulgada equivale aproximadamente a 2.54 centímetros. 📖 pág. 160-162"}},
+{en:{q:"A drawing calls for a beam 3.5 meters long. Approximately how many feet is that (1 meter ≈ 3.28 feet)?",opts:["About 11.5 feet","About 10 feet","About 7 feet","About 15 feet"],c:0,exp:"3.5 × 3.28 ≈ 11.5 feet — useful for a quick field check when a metric drawing needs to be roughed out with a standard tape measure. 📖 p.160-162"},
+ es:{q:"Un plano pide una viga de 3.5 metros de largo. ¿Aproximadamente cuántos pies es eso (1 metro ≈ 3.28 pies)?",opts:["Aproximadamente 11.5 pies","Aproximadamente 10 pies","Aproximadamente 7 pies","Aproximadamente 15 pies"],c:0,exp:"3.5 × 3.28 ≈ 11.5 pies. 📖 pág. 160-162"}},
+{en:{q:"How many pounds are in 1 ton?",opts:["2,000","1,000","2,200","500"],c:0,exp:"A standard (short) ton is 2,000 pounds — important when estimating loads of material like gravel or sand. 📖 p.163-165"},
+ es:{q:"¿Cuántas libras hay en 1 tonelada?",opts:["2,000","1,000","2,200","500"],c:0,exp:"Una tonelada estándar (corta) es 2,000 libras. 📖 pág. 163-165"}},
+{en:{q:"A 5-gallon bucket holds how many quarts?",opts:["20","16","10","40"],c:0,exp:"There are 4 quarts in a gallon, so 5 gallons × 4 quarts/gallon = 20 quarts. 📖 p.163-165"},
+ es:{q:"¿Cuántos cuartos de galón caben en un balde de 5 galones?",opts:["20","16","10","40"],c:0,exp:"Hay 4 cuartos en un galón, así que 5 galones × 4 cuartos/galón = 20 cuartos. 📖 pág. 163-165"}}
+];
+
+const M102_SECTION4 = [
+{en:{q:"How many degrees are in a right angle?",opts:["90","180","45","360"],c:0,exp:"A right angle measures exactly 90 degrees — the angle at every square corner of a framed wall. 📖 p.168-170"},
+ es:{q:"¿Cuántos grados tiene un ángulo recto?",opts:["90","180","45","360"],c:0,exp:"Un ángulo recto mide exactamente 90 grados. 📖 pág. 168-170"}},
+{type:'fillBlank', en:{q:"A ___ triangle has one 90-degree angle.",opts:["right","equilateral","obtuse","acute"],c:0,exp:"A right triangle always has one angle that measures exactly 90 degrees — it's the basis of the 3-4-5 method for squaring corners. 📖 p.168-170"},
+ es:{q:"Un triángulo ___ tiene un ángulo de 90 grados.",opts:["rectángulo","equilátero","obtuso","agudo"],c:0,exp:"Un triángulo rectángulo siempre tiene un ángulo de exactamente 90 grados. 📖 pág. 168-170"}},
+{en:{q:"Using the 3-4-5 method to square a corner, if one leg is 6 feet and the other is 8 feet, how long should the diagonal (hypotenuse) measure for a true right angle?",opts:["10 feet","12 feet","9 feet","14 feet"],c:0,exp:"The 3-4-5 rule scales up: doubling 3-4-5 gives 6-8-10, so a 6-foot and 8-foot leg need a 10-foot diagonal to confirm a true 90-degree corner. 📖 p.170-172"},
+ es:{q:"Usando el método 3-4-5 para escuadrar una esquina, si un lado es de 6 pies y el otro de 8 pies, ¿cuánto debe medir la diagonal (hipotenusa) para un ángulo recto verdadero?",opts:["10 pies","12 pies","9 pies","14 pies"],c:0,exp:"La regla 3-4-5 se escala: duplicar 3-4-5 da 6-8-10, así que un lado de 6 pies y otro de 8 pies necesitan una diagonal de 10 pies. 📖 pág. 170-172"}},
+{en:{q:"What is the area of a rectangular room that measures 12 feet by 10 feet?",opts:["120 square feet","22 square feet","44 square feet","100 square feet"],c:0,exp:"Area of a rectangle = length × width = 12 × 10 = 120 square feet. 📖 p.172-174"},
+ es:{q:"¿Cuál es el área de una habitación rectangular que mide 12 pies por 10 pies?",opts:["120 pies cuadrados","22 pies cuadrados","44 pies cuadrados","100 pies cuadrados"],c:0,exp:"Área de un rectángulo = largo × ancho = 12 × 10 = 120 pies cuadrados. 📖 pág. 172-174"}},
+{type:'fillBlank', en:{q:"The area of a triangle is found using the formula: 1/2 × base × ___.",opts:["height","perimeter","hypotenuse","circumference"],c:0,exp:"Area of a triangle = 1/2 × base × height — half of what a rectangle with the same base and height would cover. 📖 p.173-175"},
+ es:{q:"El área de un triángulo se encuentra con la fórmula: 1/2 × base × ___.",opts:["altura","perímetro","hipotenusa","circunferencia"],c:0,exp:"Área de un triángulo = 1/2 × base × altura. 📖 pág. 173-175"}},
+{en:{q:"What is the area of a triangle with a base of 10 feet and a height of 6 feet?",opts:["30 square feet","60 square feet","16 square feet","36 square feet"],c:0,exp:"Area = 1/2 × 10 × 6 = 1/2 × 60 = 30 square feet. 📖 p.173-175"},
+ es:{q:"¿Cuál es el área de un triángulo con una base de 10 pies y una altura de 6 pies?",opts:["30 pies cuadrados","60 pies cuadrados","16 pies cuadrados","36 pies cuadrados"],c:0,exp:"Área = 1/2 × 10 × 6 = 1/2 × 60 = 30 pies cuadrados. 📖 pág. 173-175"}},
+{en:{q:"What is the volume of a concrete footing that is 10 feet long, 2 feet wide, and 1 foot deep?",opts:["20 cubic feet","13 cubic feet","22 cubic feet","10 cubic feet"],c:0,exp:"Volume of a rectangular solid = length × width × height = 10 × 2 × 1 = 20 cubic feet. 📖 p.176-178"},
+ es:{q:"¿Cuál es el volumen de una zapata de concreto que mide 10 pies de largo, 2 pies de ancho y 1 pie de profundidad?",opts:["20 pies cúbicos","13 pies cúbicos","22 pies cúbicos","10 pies cúbicos"],c:0,exp:"Volumen de un sólido rectangular = largo × ancho × alto = 10 × 2 × 1 = 20 pies cúbicos. 📖 pág. 176-178"}},
+{en:{q:"A concrete order is measured in cubic yards. If a footing requires 54 cubic feet of concrete, how many cubic yards is that (1 cubic yard = 27 cubic feet)?",opts:["2 cubic yards","3 cubic yards","1.5 cubic yards","4 cubic yards"],c:0,exp:"54 ÷ 27 = 2 cubic yards — concrete is typically ordered by the cubic yard, so this conversion is used on nearly every concrete job. 📖 p.176-178"},
+ es:{q:"Un pedido de concreto se mide en yardas cúbicas. Si una zapata requiere 54 pies cúbicos de concreto, ¿cuántas yardas cúbicas es eso (1 yarda cúbica = 27 pies cúbicos)?",opts:["2 yardas cúbicas","3 yardas cúbicas","1.5 yardas cúbicas","4 yardas cúbicas"],c:0,exp:"54 ÷ 27 = 2 yardas cúbicas. 📖 pág. 176-178"}},
+{type:'match', en:{prompt:"Match each formula to what it calculates.", pairs:[
+    {term:"Length × Width", def:"Area of a rectangle"},
+    {term:"1/2 × Base × Height", def:"Area of a triangle"},
+    {term:"Length × Width × Height", def:"Volume of a rectangular solid"},
+    {term:"a² + b² = c²", def:"The Pythagorean theorem, used to check a right angle"}
+  ], exp:"These four formulas cover the core geometry every craft professional uses for layout, material takeoffs, and squaring corners. 📖 p.170-178"},
+ es:{prompt:"Relaciona cada fórmula con lo que calcula.", pairs:[
+    {term:"Largo × Ancho", def:"Área de un rectángulo"},
+    {term:"1/2 × Base × Altura", def:"Área de un triángulo"},
+    {term:"Largo × Ancho × Alto", def:"Volumen de un sólido rectangular"},
+    {term:"a² + b² = c²", def:"El teorema de Pitágoras, usado para verificar un ángulo recto"}
+  ], exp:"Estas cuatro fórmulas cubren la geometría básica que todo profesional del oficio usa. 📖 pág. 170-178"}}
+];
+
+const M102_TEST = [
+{en:{q:"What is 6 + 4 × 3?",opts:["18","30","13","24"],c:0,exp:"Multiply first: 4×3=12, then add: 6+12=18. 📖 p.123-124"},
+ es:{q:"¿Cuánto es 6 + 4 × 3?",opts:["18","30","13","24"],c:0,exp:"Multiplica primero: 4×3=12, luego suma: 6+12=18. 📖 pág. 123-124"}},
+{en:{q:"What is 1/2 + 1/4?",opts:["3/4","2/6","1/3","2/4"],c:0,exp:"1/2 = 2/4, so 2/4 + 1/4 = 3/4. 📖 p.135-138"},
+ es:{q:"¿Cuánto es 1/2 + 1/4?",opts:["3/4","2/6","1/3","2/4"],c:0,exp:"1/2 = 2/4, entonces 2/4 + 1/4 = 3/4. 📖 pág. 135-138"}},
+{en:{q:"What is the decimal equivalent of 1/4\"?",opts:["0.25","0.4","0.14","0.75"],c:0,exp:"1 divided by 4 is 0.25. 📖 p.143-145"},
+ es:{q:"¿Cuál es el equivalente decimal de 1/4\"?",opts:["0.25","0.4","0.14","0.75"],c:0,exp:"1 dividido entre 4 es 0.25. 📖 pág. 143-145"}},
+{en:{q:"How many inches are in 3 feet?",opts:["36","33","30","39"],c:0,exp:"3 feet × 12 inches/foot = 36 inches. 📖 p.155-157"},
+ es:{q:"¿Cuántas pulgadas hay en 3 pies?",opts:["36","33","30","39"],c:0,exp:"3 pies × 12 pulgadas/pie = 36 pulgadas. 📖 pág. 155-157"}},
+{en:{q:"1 meter is equal to how many centimeters?",opts:["100","10","1,000","50"],c:0,exp:"1 meter = 100 centimeters. 📖 p.158-160"},
+ es:{q:"1 metro es igual a cuántos centímetros?",opts:["100","10","1,000","50"],c:0,exp:"1 metro = 100 centímetros. 📖 pág. 158-160"}},
+{en:{q:"A right angle measures how many degrees?",opts:["90","180","45","360"],c:0,exp:"A right angle is exactly 90 degrees. 📖 p.168-170"},
+ es:{q:"¿Cuántos grados mide un ángulo recto?",opts:["90","180","45","360"],c:0,exp:"Un ángulo recto es exactamente 90 grados. 📖 pág. 168-170"}},
+{en:{q:"What is the area of a rectangle measuring 8 feet by 5 feet?",opts:["40 square feet","13 square feet","26 square feet","45 square feet"],c:0,exp:"Area = length × width = 8 × 5 = 40 square feet. 📖 p.172-174"},
+ es:{q:"¿Cuál es el área de un rectángulo que mide 8 pies por 5 pies?",opts:["40 pies cuadrados","13 pies cuadrados","26 pies cuadrados","45 pies cuadrados"],c:0,exp:"Área = largo × ancho = 8 × 5 = 40 pies cuadrados. 📖 pág. 172-174"}},
+{en:{q:"What is the volume of a box that is 4 feet long, 3 feet wide, and 2 feet tall?",opts:["24 cubic feet","9 cubic feet","14 cubic feet","20 cubic feet"],c:0,exp:"Volume = length × width × height = 4 × 3 × 2 = 24 cubic feet. 📖 p.176-178"},
+ es:{q:"¿Cuál es el volumen de una caja que mide 4 pies de largo, 3 pies de ancho y 2 pies de alto?",opts:["24 pies cúbicos","9 pies cúbicos","14 pies cúbicos","20 pies cúbicos"],c:0,exp:"Volumen = largo × ancho × alto = 4 × 3 × 2 = 24 pies cúbicos. 📖 pág. 176-178"}},
+{en:{q:"What is 3/8\" written as a decimal?",opts:["0.375","0.38","0.83","0.35"],c:0,exp:"3 divided by 8 equals 0.375. 📖 p.143-145"},
+ es:{q:"¿Qué es 3/8\" escrito como decimal?",opts:["0.375","0.38","0.83","0.35"],c:0,exp:"3 dividido entre 8 es igual a 0.375. 📖 pág. 143-145"}},
+{en:{q:"On a standard tape measure, which mark is exactly halfway between the 4\" and 5\" lines?",opts:["4 1/2\"","4 1/4\"","4 3/4\"","4 5/8\""],c:0,exp:"Halfway between any two whole-inch marks is always the half-inch mark: 4 1/2\". 📖 p.125-128"},
+ es:{q:"En una cinta métrica estándar, ¿qué marca está exactamente a la mitad entre las líneas de 4\" y 5\"?",opts:["4 1/2\"","4 1/4\"","4 3/4\"","4 5/8\""],c:0,exp:"A la mitad entre dos marcas de pulgada entera siempre está la marca de media pulgada: 4 1/2\". 📖 pág. 125-128"}},
+{en:{q:"What is 9 3/4\" minus 1/4\"?",opts:["9 1/2\"","9 3/8\"","9 5/8\"","10\""],c:0,exp:"9 3/4\" − 1/4\" = 9 2/4\", which simplifies to 9 1/2\". 📖 p.140-142"},
+ es:{q:"¿Cuánto es 9 3/4\" menos 1/4\"?",opts:["9 1/2\"","9 3/8\"","9 5/8\"","10\""],c:0,exp:"9 3/4\" − 1/4\" = 9 2/4\", que se simplifica a 9 1/2\". 📖 pág. 140-142"}},
+{en:{q:"A material markup of 20% is applied to a $250 cost. What is the new total?",opts:["$300","$270","$275","$320"],c:0,exp:"20% of $250 is $50. $250 + $50 = $300. 📖 p.146-147"},
+ es:{q:"Se aplica un margen del 20% a un costo de $250. ¿Cuál es el nuevo total?",opts:["$300","$270","$275","$320"],c:0,exp:"20% de $250 es $50. $250 + $50 = $300. 📖 pág. 146-147"}},
+{en:{q:"How many pounds are in 1 ton?",opts:["2,000","1,000","2,200","500"],c:0,exp:"A standard ton is 2,000 pounds. 📖 p.163-165"},
+ es:{q:"¿Cuántas libras hay en 1 tonelada?",opts:["2,000","1,000","2,200","500"],c:0,exp:"Una tonelada estándar es 2,000 libras. 📖 pág. 163-165"}},
+{en:{q:"Using the 3-4-5 method, a 9-foot and 12-foot leg require what diagonal measurement to confirm a square corner?",opts:["15 feet","14 feet","16 feet","18 feet"],c:0,exp:"9-12-15 is a scaled-up version of 3-4-5 (multiplied by 3), so the diagonal must be 15 feet. 📖 p.170-172"},
+ es:{q:"Usando el método 3-4-5, un lado de 9 pies y otro de 12 pies requieren qué medida diagonal para confirmar una esquina cuadrada?",opts:["15 pies","14 pies","16 pies","18 pies"],c:0,exp:"9-12-15 es una versión escalada de 3-4-5 (multiplicada por 3), así que la diagonal debe ser 15 pies. 📖 pág. 170-172"}},
+{en:{q:"A footing requires 81 cubic feet of concrete. How many cubic yards should be ordered (1 cubic yard = 27 cubic feet)?",opts:["3 cubic yards","2 cubic yards","4 cubic yards","2.5 cubic yards"],c:0,exp:"81 ÷ 27 = 3 cubic yards. 📖 p.176-178"},
+ es:{q:"Una zapata requiere 81 pies cúbicos de concreto. ¿Cuántas yardas cúbicas se deben pedir (1 yarda cúbica = 27 pies cúbicos)?",opts:["3 yardas cúbicas","2 yardas cúbicas","4 yardas cúbicas","2.5 yardas cúbicas"],c:0,exp:"81 ÷ 27 = 3 yardas cúbicas. 📖 pág. 176-178"}},
+{en:{q:"What is the area of a triangular gable end with a base of 20 feet and a height of 8 feet?",opts:["80 square feet","160 square feet","28 square feet","56 square feet"],c:0,exp:"Area = 1/2 × base × height = 1/2 × 20 × 8 = 80 square feet. 📖 p.173-175"},
+ es:{q:"¿Cuál es el área de un frontón triangular con una base de 20 pies y una altura de 8 pies?",opts:["80 pies cuadrados","160 pies cuadrados","28 pies cuadrados","56 pies cuadrados"],c:0,exp:"Área = 1/2 × base × altura = 1/2 × 20 × 8 = 80 pies cuadrados. 📖 pág. 173-175"}},
+{en:{q:"What is 62.5% expressed as a fraction in its simplest form?",opts:["5/8","6/25","5/6","2/5"],c:0,exp:"62.5% = 0.625 = 5/8. 📖 p.143-147"},
+ es:{q:"¿Qué es 62.5% expresado como fracción en su forma más simple?",opts:["5/8","6/25","5/6","2/5"],c:0,exp:"62.5% = 0.625 = 5/8. 📖 pág. 143-147"}},
+{en:{q:"A board measures 46 5/8\" and needs a 1 1/8\" piece trimmed off. What is the resulting length?",opts:["45 1/2\"","45 3/4\"","45 1/4\"","46\""],c:0,exp:"46 5/8\" − 1 1/8\" = 45 4/8\", which simplifies to 45 1/2\". 📖 p.140-142"},
+ es:{q:"Una tabla mide 46 5/8\" y necesita que se recorte una pieza de 1 1/8\". ¿Cuál es la longitud resultante?",opts:["45 1/2\"","45 3/4\"","45 1/4\"","46\""],c:0,exp:"46 5/8\" − 1 1/8\" = 45 4/8\", que se simplifica a 45 1/2\". 📖 pág. 140-142"}},
+{en:{q:"Rounding 2,463 to the nearest hundred gives which value?",opts:["2,500","2,400","2,460","2,000"],c:0,exp:"The tens digit is 6, which is 5 or more, so round up: 2,500. 📖 p.126"},
+ es:{q:"Redondear 2,463 a la centena más cercana da qué valor?",opts:["2,500","2,400","2,460","2,000"],c:0,exp:"El dígito de las decenas es 6, que es 5 o más, así que se redondea hacia arriba: 2,500. 📖 pág. 126"}}
+];
+
+const M102_CARDS = [
+{en:{q:"What is the order of operations (PEMDAS)?",a:"Parentheses, Exponents, Multiplication/Division (left to right), Addition/Subtraction (left to right)."}, es:{q:"¿Cuál es el orden de operaciones (PEMDAS)?",a:"Paréntesis, Exponentes, Multiplicación/División (izquierda a derecha), Suma/Resta (izquierda a derecha)."}},
+{en:{q:"How do you add fractions with different denominators?",a:"Convert them to a common denominator first, then add the numerators."}, es:{q:"¿Cómo sumas fracciones con diferentes denominadores?",a:"Conviértelas primero a un denominador común, luego suma los numeradores."}},
+{en:{q:"How do you divide by a fraction?",a:"Multiply by its reciprocal (flip the fraction upside down)."}, es:{q:"¿Cómo divides entre una fracción?",a:"Multiplica por su recíproco (invierte la fracción)."}},
+{en:{q:"What is 1/2 as a decimal?",a:"0.5"}, es:{q:"¿Qué es 1/2 como decimal?",a:"0.5"}},
+{en:{q:"What is 1/4 as a decimal?",a:"0.25"}, es:{q:"¿Qué es 1/4 como decimal?",a:"0.25"}},
+{en:{q:"What is 3/4 as a decimal?",a:"0.75"}, es:{q:"¿Qué es 3/4 como decimal?",a:"0.75"}},
+{en:{q:"What is 1/8 as a decimal?",a:"0.125"}, es:{q:"¿Qué es 1/8 como decimal?",a:"0.125"}},
+{en:{q:"What is 3/8 as a decimal?",a:"0.375"}, es:{q:"¿Qué es 3/8 como decimal?",a:"0.375"}},
+{en:{q:"What is 5/8 as a decimal?",a:"0.625"}, es:{q:"¿Qué es 5/8 como decimal?",a:"0.625"}},
+{en:{q:"What is 7/8 as a decimal?",a:"0.875"}, es:{q:"¿Qué es 7/8 como decimal?",a:"0.875"}},
+{en:{q:"How many inches are in a foot?",a:"12 inches."}, es:{q:"¿Cuántas pulgadas hay en un pie?",a:"12 pulgadas."}},
+{en:{q:"How many feet are in a yard?",a:"3 feet."}, es:{q:"¿Cuántos pies hay en una yarda?",a:"3 pies."}},
+{en:{q:"1 inch is approximately how many centimeters?",a:"2.54 centimeters."}, es:{q:"1 pulgada es aproximadamente cuántos centímetros?",a:"2.54 centímetros."}},
+{en:{q:"How many pounds are in a ton?",a:"2,000 pounds."}, es:{q:"¿Cuántas libras hay en una tonelada?",a:"2,000 libras."}},
+{en:{q:"What is the area formula for a rectangle?",a:"Length × Width."}, es:{q:"¿Cuál es la fórmula del área de un rectángulo?",a:"Largo × Ancho."}},
+{en:{q:"What is the area formula for a triangle?",a:"1/2 × Base × Height."}, es:{q:"¿Cuál es la fórmula del área de un triángulo?",a:"1/2 × Base × Altura."}},
+{en:{q:"What is the volume formula for a rectangular solid?",a:"Length × Width × Height."}, es:{q:"¿Cuál es la fórmula del volumen de un sólido rectangular?",a:"Largo × Ancho × Alto."}},
+{en:{q:"How many cubic feet are in a cubic yard?",a:"27 cubic feet."}, es:{q:"¿Cuántos pies cúbicos hay en una yarda cúbica?",a:"27 pies cúbicos."}},
+{en:{q:"What does a right angle measure?",a:"90 degrees."}, es:{q:"¿Qué mide un ángulo recto?",a:"90 grados."}},
+{en:{q:"What is the 3-4-5 method used for?",a:"Squaring a corner — if the sides are 3 and 4 units, the diagonal must be 5 units for a true 90-degree angle."}, es:{q:"¿Para qué se usa el método 3-4-5?",a:"Para escuadrar una esquina — si los lados son de 3 y 4 unidades, la diagonal debe ser de 5 unidades para un ángulo recto verdadero."}}
+];
+
+/* ============ MODULE 00102 MATH WALKTHROUGH CONTENT ============
+   Step-by-step "I do / we do / you do" units for the hardest skill in
+   Module 00102: reading a tape measure in fractions of an inch, then using
+   those fractions in real trade math. Each unit has three steps:
+     worked   ("I do")  — Lawrence/the instructor walks through one example,
+                          no interaction, just a Next button.
+     guided   ("we do") — a multiple-choice check with the explanation shown
+                          immediately either way, and a Try Again option.
+     practice ("you do")— a scored multiple-choice check. Getting it right on
+                          the first try is what counts toward the unit passing.
+   `mark16` (present on worked/guided/practice items that reference a ruler)
+   is the position of the diagram's pointer in sixteenths of an inch from 0,
+   drawn by the rulerSVG() engine function against that unit's maxInch span.
+*/
+const M102_WALKTHROUGH = [
+  {
+    key:'w1',
+    maxInch:4,
+    title:{en:"Unit 1: Whole, Half & Quarter Inches", es:"Unidad 1: Pulgadas Enteras, Mitades y Cuartos"},
+    steps:[
+      {role:'worked', mark16:32,
+        en:{text:"Every tape measure is built the same way once you know what to look for. The longest lines, with a number under them, mark whole inches. Find the line at the big number 2 below — that's simply 2 inches. Nothing tricky yet. Before we go further, get comfortable finding any whole-inch line and saying its number out loud. That's the skeleton everything else hangs on."},
+        es:{text:"Toda cinta métrica funciona igual una vez que sabes qué buscar. Las líneas más largas, con un número debajo, marcan las pulgadas enteras. Busca la línea en el número grande 2 abajo — eso es simplemente 2 pulgadas. Nada complicado todavía. Antes de seguir, practica encontrar cualquier línea de pulgada entera y decir su número en voz alta. Eso es el esqueleto del que cuelga todo lo demás."}},
+      {role:'worked', mark16:40,
+        en:{text:"Now look between two whole-inch lines. There's one line right in the middle — a little shorter than the inch lines. That's the half-inch mark. Between 2\" and 3\", the halfway line is 2 1/2\". Halfway between any two whole inches is always that same pattern: whole number, then \"and a half.\""},
+        es:{text:"Ahora mira entre dos líneas de pulgada entera. Hay una línea justo en el medio — un poco más corta que las líneas de pulgada. Esa es la marca de media pulgada. Entre 2\" y 3\", la línea de la mitad es 2 1/2\". A la mitad entre dos pulgadas enteras siempre es ese mismo patrón: número entero, más \"y media\"."}},
+      {role:'worked', mark16:36,
+        en:{text:"Cut that half in half again and you get quarters. Two shorter lines appear between the whole inch and the half-inch line — those are the quarter marks: 1/4\" and 3/4\". So going from 2\" to 3\", in order, you pass: 2\", 2 1/4\", 2 1/2\", 2 3/4\", 3\". Four even steps. The arrow below is sitting on one of those quarter lines — 2 1/4\"."},
+        es:{text:"Corta esa mitad a la mitad otra vez y obtienes los cuartos. Aparecen dos líneas más cortas entre la pulgada entera y la línea de media pulgada — esas son las marcas de cuarto: 1/4\" y 3/4\". Entonces yendo de 2\" a 3\", en orden, pasas por: 2\", 2 1/4\", 2 1/2\", 2 3/4\", 3\". Cuatro pasos parejos. La flecha de abajo está sobre una de esas líneas de cuarto — 2 1/4\"."}},
+      {role:'guided', mark16:28,
+        en:{q:"The arrow is on a line that's a little shorter than the whole-inch line but longer than a quarter line. What is it pointing to?",opts:["1 1/2\"","1 1/4\"","2\"","1 3/4\""],c:0,exp:"That medium-length line, exactly halfway between two whole inches, is always the half-inch mark. Here it sits between 1\" and 2\", so it reads 1 1/2\". 📖 p.125-128"},
+        es:{q:"La flecha está sobre una línea un poco más corta que la línea de pulgada entera pero más larga que una línea de cuarto. ¿Qué marca?",opts:["1 1/2\"","1 1/4\"","2\"","1 3/4\""],c:0,exp:"Esa línea de largo medio, justo a la mitad entre dos pulgadas enteras, siempre es la marca de media pulgada. Aquí está entre 1\" y 2\", así que se lee 1 1/2\". 📖 pág. 125-128"}},
+      {role:'practice', mark16:11,
+        en:{q:"The arrow is three short lines past the 0\" mark, before the halfway point to 1\". What measurement is it?",opts:["3/4\"","1/4\"","1/2\"","1 1/4\""],c:1,exp:"Going 0\", then the quarter line, then the half line, then the next quarter line, then 1\" — the first quarter line past 0\" is 1/4\". 📖 p.125-128"},
+        es:{q:"La flecha está tres líneas cortas después de la marca de 0\", antes del punto medio hacia 1\". ¿Qué medida es?",opts:["3/4\"","1/4\"","1/2\"","1 1/4\""],c:1,exp:"Yendo 0\", luego la línea de cuarto, luego la línea de mitad, luego la siguiente línea de cuarto, luego 1\" — la primera línea de cuarto después de 0\" es 1/4\". 📖 pág. 125-128"}}
+    ]
+  },
+  {
+    key:'w2',
+    maxInch:3,
+    title:{en:"Unit 2: Eighths & Sixteenths", es:"Unidad 2: Octavos y Dieciseisavos"},
+    steps:[
+      {role:'worked', mark16:12,
+        en:{text:"Keep cutting in half. Between each quarter mark, one more short line splits it into eighths: 1/8\", 3/8\", 5/8\", 7/8\". Eighths are shorter than quarter lines but still taller than the tiniest lines on the tape. If you can count by quarters, you can count by eighths — you're just adding one more small step between each one."},
+        es:{text:"Sigue cortando a la mitad. Entre cada marca de cuarto, una línea más corta la divide en octavos: 1/8\", 3/8\", 5/8\", 7/8\". Los octavos son más cortos que las líneas de cuarto pero aún más altos que las líneas más pequeñas de la cinta. Si puedes contar por cuartos, puedes contar por octavos — solo agregas un paso pequeño más entre cada uno."}},
+        // note: mark16 here is stored in sixteenths across full ruler; 12/16=3/4 — worked example at 3/4"
+      {role:'worked', mark16:5,
+        en:{text:"One more cut and you're at sixteenths — the smallest lines on a standard tape, one between every eighth mark. They're easy to lose track of, so the trick is: don't count from zero every time. Find the nearest easy landmark (a whole inch, a half, or a quarter) and count a couple of small lines from there instead. The arrow below sits 1 small line past the 1/4\" mark — that's 5/16\"."},
+        es:{text:"Un corte más y llegas a los dieciseisavos — las líneas más pequeñas de una cinta estándar, una entre cada marca de octavo. Es fácil perder la cuenta, así que el truco es: no cuentes desde cero cada vez. Encuentra el punto de referencia más cercano (una pulgada entera, una mitad o un cuarto) y cuenta un par de líneas pequeñas desde ahí. La flecha de abajo está 1 línea pequeña después de la marca de 1/4\" — eso es 5/16\"."}},
+      {role:'guided', mark16:14,
+        en:{q:"The arrow sits one small line before the 1\" mark. What does it read?",opts:["15/16\"","7/8\"","13/16\"","1 1/16\""],c:0,exp:"One sixteenth-line short of a full inch is 16/16 minus 1/16, which is 15/16\". 📖 p.125-128"},
+        es:{q:"La flecha está una línea pequeña antes de la marca de 1\". ¿Qué lee?",opts:["15/16\"","7/8\"","13/16\"","1 1/16\""],c:0,exp:"Una línea de dieciseisavo antes de una pulgada completa es 16/16 menos 1/16, que es 15/16\". 📖 pág. 125-128"}},
+      {role:'practice', mark16:19,
+        en:{q:"The arrow sits three small lines past the 1\" mark. What does it read?",opts:["1 3/16\"","1 1/8\"","1 1/4\"","1 5/16\""],c:0,exp:"Three sixteenth-lines past a whole inch is 1 and 3/16\". 📖 p.125-128"},
+        es:{q:"La flecha está tres líneas pequeñas después de la marca de 1\". ¿Qué lee?",opts:["1 3/16\"","1 1/8\"","1 1/4\"","1 5/16\""],c:0,exp:"Tres líneas de dieciseisavo después de una pulgada entera es 1 y 3/16\". 📖 pág. 125-128"}}
+    ]
+  },
+  {
+    key:'w3',
+    maxInch:0,
+    title:{en:"Unit 3: Adding & Subtracting Measurements", es:"Unidad 3: Sumar y Restar Medidas"},
+    steps:[
+      {role:'worked',
+        en:{text:"Say you need two pieces of trim, 3/8\" and 1/4\", laid end to end. Before you can add them, the bottom numbers (denominators) have to match — you can't add eighths and quarters directly, same as you can't add apples and oranges without calling them both \"fruit\" first. 1/4\" is the same amount as 2/8\". So the problem becomes 3/8\" + 2/8\" = 5/8\". Same top-number math you already know, once the bottoms match."},
+        es:{text:"Digamos que necesitas dos piezas de moldura, 3/8\" y 1/4\", puestas una tras otra. Antes de poder sumarlas, los números de abajo (denominadores) tienen que coincidir — no puedes sumar octavos y cuartos directamente, igual que no puedes sumar manzanas y naranjas sin llamarlas primero \"frutas\". 1/4\" es la misma cantidad que 2/8\". Entonces el problema se convierte en 3/8\" + 2/8\" = 5/8\". La misma matemática del número de arriba que ya conoces, una vez que los de abajo coinciden."}},
+      {role:'worked',
+        en:{text:"Subtracting works the same way. A board measures 6 3/4\", and you need to cut off 1/2\" for a clean edge. Convert 1/2\" to quarters first: 1/2\" = 2/4\". Now subtract: 6 3/4\" minus 2/4\" is 6 1/4\". The leftover board is 6 1/4\" long. The habit to build is always the same: match the bottoms first, then add or subtract the tops."},
+        es:{text:"Restar funciona igual. Una tabla mide 6 3/4\", y necesitas cortar 1/2\" para un borde limpio. Convierte 1/2\" a cuartos primero: 1/2\" = 2/4\". Ahora resta: 6 3/4\" menos 2/4\" es 6 1/4\". La tabla sobrante mide 6 1/4\" de largo. El hábito a construir es siempre el mismo: iguala los denominadores primero, luego suma o resta los numeradores."}},
+      {role:'guided',
+        en:{q:"A pipe fitting needs 1/4\" plus 1/4\" of thread engagement. What's the total?",opts:["1/2\"","2/4\"","1/8\"","1\""],c:0,exp:"1/4\" + 1/4\" = 2/4\", and 2/4\" reduces to 1/2\" — always simplify your final answer to the smallest matching fraction. 📖 p.140-142"},
+        es:{q:"Un accesorio de tubería necesita 1/4\" más 1/4\" de rosca. ¿Cuál es el total?",opts:["1/2\"","2/4\"","1/8\"","1\""],c:0,exp:"1/4\" + 1/4\" = 2/4\", y 2/4\" se simplifica a 1/2\" — siempre simplifica tu respuesta final a la fracción más pequeña equivalente. 📖 pág. 140-142"}},
+      {role:'practice',
+        en:{q:"A stud is 92 5/8\" tall. You need to trim 3/8\" off the top to fit under a header. How tall will it be after the cut?",opts:["92 1/4\"","92 1/2\"","92 2/8\"","93\""],c:0,exp:"92 5/8\" minus 3/8\" = 92 2/8\", which simplifies to 92 1/4\". The denominators already matched, so this was a straight subtraction with a simplify step at the end. 📖 p.140-142"},
+        es:{q:"Un montante mide 92 5/8\" de alto. Necesitas recortar 3/8\" de la parte superior para que quepa bajo un cabezal. ¿Qué altura tendrá después del corte?",opts:["92 1/4\"","92 1/2\"","92 2/8\"","93\""],c:0,exp:"92 5/8\" menos 3/8\" = 92 2/8\", que se simplifica a 92 1/4\". Los denominadores ya coincidían, así que fue una resta directa con un paso de simplificación al final. 📖 pág. 140-142"}}
+    ]
+  },
+  {
+    key:'w4',
+    maxInch:0,
+    title:{en:"Unit 4: Fractions to Decimals", es:"Unidad 4: De Fracciones a Decimales"},
+    steps:[
+      {role:'worked',
+        en:{text:"Some tools and drawings use decimal inches instead of fractions. Converting is just division: top number divided by bottom number. 1/2\" means 1 divided by 2, which is 0.5\". 1/4\" means 1 divided by 4, which is 0.25\". That's really it — a fraction is a division problem wearing a different outfit."},
+        es:{text:"Algunas herramientas y planos usan pulgadas decimales en lugar de fracciones. Convertir es solo división: número de arriba dividido entre número de abajo. 1/2\" significa 1 dividido entre 2, que es 0.5\". 1/4\" significa 1 dividido entre 4, que es 0.25\". Eso es todo — una fracción es un problema de división disfrazado."}},
+      {role:'worked',
+        en:{text:"The trade fractions you'll see over and over are worth memorizing so you're not dividing every time: 1/2\"=.5, 1/4\"=.25, 3/4\"=.75, 1/8\"=.125, 3/8\"=.375, 5/8\"=.625, 7/8\"=.875, 1/16\"=.0625. Notice eighths always end in either .125, .375, .625, or .875 — once that pattern clicks, decimal conversion stops being math and starts being recognition."},
+        es:{text:"Las fracciones de oficio que verás una y otra vez vale la pena memorizarlas para no estar dividiendo cada vez: 1/2\"=.5, 1/4\"=.25, 3/4\"=.75, 1/8\"=.125, 3/8\"=.375, 5/8\"=.625, 7/8\"=.875, 1/16\"=.0625. Nota que los octavos siempre terminan en .125, .375, .625 o .875 — una vez que ese patrón se te queda, convertir a decimal deja de ser matemática y se vuelve reconocimiento."}},
+      {role:'guided',
+        en:{q:"What is 3/4\" written as a decimal?",opts:["0.75\"","0.34\"","0.25\"","0.43\""],c:0,exp:"3 divided by 4 is 0.75 — and it matches the memorized list: 3/4\" = .75. 📖 p.143-145"},
+        es:{q:"¿Qué es 3/4\" escrito como decimal?",opts:["0.75\"","0.34\"","0.25\"","0.43\""],c:0,exp:"3 dividido entre 4 es 0.75 — y coincide con la lista memorizada: 3/4\" = .75. 📖 pág. 143-145"}},
+      {role:'practice',
+        en:{q:"A digital caliper reads 0.625\". Which fraction on your tape measure does that match?",opts:["5/8\"","3/8\"","6/10\"","5/16\""],c:0,exp:"0.625\" matches 5/8\" on the memorized eighths list — that's the exact decimal value of 5 divided by 8. 📖 p.143-145"},
+        es:{q:"Un calibrador digital muestra 0.625\". ¿Qué fracción en tu cinta métrica coincide con eso?",opts:["5/8\"","3/8\"","6/10\"","5/16\""],c:0,exp:"0.625\" coincide con 5/8\" en la lista memorizada de octavos — ese es el valor decimal exacto de 5 dividido entre 8. 📖 pág. 143-145"}}
+    ]
+  }
+];
+
 /* ============ MODULES REGISTRY ============ */
 // Listed in the order this CLASS actually teaches them (per the confirmed
 // BLD-1010/Satterwhite syllabus schedule) — NOT the textbook's numeric module
@@ -1342,8 +1782,29 @@ const MODULES = [
     moduleTest: M5_TEST, cards: M5_CARDS
   },
   { id:'m6', comingSoon:true, num:'00104', startDate:'2026-10-07', examDate:'2026-10-14', title:{en:"Module 00104: Introduction to Power Tools", es:"Módulo 00104: Introducción a las Herramientas Eléctricas"} },
-  { id:'m7', comingSoon:true, num:'00102', startDate:'2026-10-16', examDate:'2026-10-23', title:{en:"Module 00102: Introduction to Construction Math", es:"Módulo 00102: Introducción a las Matemáticas de Construcción"} },
-  { id:'m8', comingSoon:true, num:'00105', startDate:'2026-10-28', examDate:'2026-11-04', title:{en:"Module 00105: Introduction to Construction Drawings", es:"Módulo 00105: Introducción a los Planos de Construcción"} },
+  { id:'m7', comingSoon:false, openTest:true, num:'00102',
+    startDate:'2026-10-16', examDate:'2026-10-23',
+    title:{en:"Module 00102: Introduction to Construction Math", es:"Módulo 00102: Introducción a las Matemáticas de Construcción"},
+    sections:[
+      {key:'s0', type:'walkthrough', label:{en:"0. Math Walkthrough: Reading a Tape Measure", es:"0. Guía Paso a Paso: Leer una Cinta Métrica"}, units:M102_WALKTHROUGH},
+      {key:'s1', label:{en:"1. Whole Numbers & Order of Operations", es:"1. Números Enteros y Orden de Operaciones"}, bank:M102_SECTION1},
+      {key:'s2', label:{en:"2. Fractions, Decimals & Percentages", es:"2. Fracciones, Decimales y Porcentajes"}, bank:M102_SECTION2},
+      {key:'s3', label:{en:"3. Unit Conversions", es:"3. Conversiones de Unidades"}, bank:M102_SECTION3},
+      {key:'s4', label:{en:"4. Geometry: Angles, Area & Volume", es:"4. Geometría: Ángulos, Área y Volumen"}, bank:M102_SECTION4}
+    ],
+    moduleTest: M102_TEST, cards: M102_CARDS
+  },
+  { id:'m8', comingSoon:false, openTest:true, num:'00105',
+    startDate:'2026-10-28', examDate:'2026-11-04',
+    title:{en:"Module 00105: Introduction to Construction Drawings", es:"Módulo 00105: Introducción a los Planos de Construcción"},
+    sections:[
+      {key:'s1', label:{en:"1. Drawing Components", es:"1. Componentes del Plano"}, bank:M105_SECTION1},
+      {key:'s2', label:{en:"2. People, Process and Care", es:"2. Personas, Proceso y Cuidado"}, bank:M105_SECTION2},
+      {key:'s3', label:{en:"3. Dimensions and Scale", es:"3. Dimensiones y Escala"}, bank:M105_SECTION3},
+      {key:'s4', label:{en:"4. Types of Construction Drawings", es:"4. Tipos de Planos de Construcción"}, bank:M105_SECTION4}
+    ],
+    moduleTest: M105_TEST, cards: M105_CARDS
+  },
   { id:'m9', comingSoon:true, num:'00106', startDate:'2026-11-06', examDate:'2026-11-11', title:{en:"Module 00106: Introduction to Basic Rigging", es:"Módulo 00106: Introducción al Aparejamiento Básico"} },
   { id:'m10', comingSoon:true, num:'00109', startDate:'2026-11-13', examDate:'2026-11-13', title:{en:"Module 00109: Introduction to Material Handling", es:"Módulo 00109: Introducción al Manejo de Materiales"} }
 ];
@@ -1355,6 +1816,7 @@ let cumulative = JSON.parse(localStorage.getItem('nccer_cumulative') || '{}');
 let topTab = 'home';
 let homeView = null; // null = module map, {modIdx} = module detail
 let quizState = null;
+let walkState = null;
 let cardState = { modIdx:0, order:[], idx:0 };
 let missed = JSON.parse(localStorage.getItem('nccer_missed') || '[]'); // [{key, item}]
 let lastModIdx = localStorage.getItem('nccer_last_mod');
@@ -1709,7 +2171,7 @@ function renderTopTabs(){
     const b = document.createElement('button');
     b.className = 'tab-btn' + (topTab===it.key?' active':'');
     b.textContent = it.label;
-    b.onclick = ()=>{ topTab = it.key; homeView=null; quizState=null; renderTopTabs(); renderPanel(); };
+    b.onclick = ()=>{ topTab = it.key; homeView=null; quizState=null; walkState=null; renderTopTabs(); renderPanel(); };
     wrap.appendChild(b);
   });
 }
@@ -1863,10 +2325,11 @@ function renderModuleDetail(panel, i){
     <div class="score-grid">`;
   m.sections.forEach(s=>{
     const sc = p.sec[s.key]||0;
-    const cls = sc===0?'pending':(sc>=85?'pass':'fail');
-    const label = sc===0? t('notStarted') : (sc>=85? t('passed') : t('tryAgainSection'));
+    const cls = sc===0?'pending':(sc>=80?'pass':'fail');
+    const label = sc===0? (s.type==='walkthrough' ? t('walkthroughNotStarted') : t('notStarted')) : (sc>=80? t('passed') : t('tryAgainSection'));
+    const badge = s.type==='walkthrough' ? `<div class="lbl" style="opacity:0.75;">🧭 ${t('walkthroughTag')}</div>` : '';
     html += `<div class="score-card" data-sec="${s.key}" style="cursor:pointer;">
-      <div class="pct ${cls}">${sc}%</div><div class="lbl">${s.label[lang]}</div><div class="lbl">${label}</div>
+      <div class="pct ${cls}">${sc}%</div><div class="lbl">${s.label[lang]}</div>${badge}<div class="lbl">${label}</div>
     </div>`;
   });
   html += `</div>`;
@@ -1893,6 +2356,7 @@ function renderModuleDetail(panel, i){
     el.onclick = ()=>{
       const key = el.dataset.sec;
       const section = m.sections.find(s=>s.key===key);
+      if(section.type==='walkthrough'){ startWalkthrough(i, section); return; }
       startQuiz({kind:'section', modIdx:i, sectionKey:key, bank:section.bank, threshold:85});
     };
   });
@@ -1910,6 +2374,179 @@ function startQuiz(cfg){
 function startCumulativeTest(i){
   quizState = { kind:'cumulative', modIdx:i, bank: shuffleArray(combinedTestBank(i)), threshold:70, idx:0, correctCount:0, answered:false, selected:null, records:[] };
   renderQuizQuestion();
+}
+
+/* ===== Math Walkthrough engine (Module 00102, section type:'walkthrough') =====
+   A slower, scaffolded track built for a first-time construction math learner:
+   each unit steps through worked ("I do"), guided ("we do"), then a scored
+   practice ("you do") question, in that order, reusing the same tape-measure
+   ruler diagram throughout so the visual stays consistent while the reading
+   gets harder. This intentionally does NOT reuse renderQuizQuestion/quizState
+   — it's a different pedagogical mode (teach-then-check, not pure recall), so
+   it gets its own small state machine that still saves into the same
+   progress.sec[] bucket the rest of the app reads, so it shows up in the
+   module's score grid and counts toward "fully done" exactly like any
+   other section. */
+function rulerSVG(maxInch, mark16){
+  if(mark16===undefined || mark16===null || !maxInch) return '';
+  const width=640, height=90, padding=20;
+  const usable = width - 2*padding;
+  const total = maxInch*16;
+  const stepPx = usable/total;
+  let ticks='';
+  for(let s=0; s<=total; s++){
+    const x = padding + s*stepPx;
+    let h;
+    if(s%16===0) h=36; else if(s%8===0) h=28; else if(s%4===0) h=22; else if(s%2===0) h=16; else h=10;
+    ticks += `<line x1="${x.toFixed(2)}" y1="10" x2="${x.toFixed(2)}" y2="${10+h}" stroke="currentColor" stroke-width="${s%16===0?2:1}"/>`;
+    if(s%16===0) ticks += `<text x="${x.toFixed(2)}" y="62" font-size="13" text-anchor="middle" fill="currentColor">${s/16}"</text>`;
+  }
+  const markX = padding + mark16*stepPx;
+  const arrow = `<polygon points="${(markX-7).toFixed(2)},80 ${(markX+7).toFixed(2)},80 ${markX.toFixed(2)},68" fill="#e0524d"/><line x1="${markX.toFixed(2)}" y1="10" x2="${markX.toFixed(2)}" y2="68" stroke="#e0524d" stroke-width="2" stroke-dasharray="3,2"/>`;
+  return `<div class="ruler-wrap"><svg viewBox="0 0 ${width} ${height}" class="ruler-svg" role="img" aria-label="Tape measure diagram with a pointer marking a measurement"><line x1="${padding}" y1="10" x2="${width-padding}" y2="10" stroke="currentColor" stroke-width="2"/>${ticks}${arrow}</svg></div>`;
+}
+function startWalkthrough(modIdx, section){
+  walkState = { modIdx, section, unitIdx:0, stepIdx:0, selected:null, answered:false, firstTryCorrect:true, unitResults:[] };
+  renderWalkthroughStep();
+}
+function renderWalkthroughStep(){
+  stopSpeaking();
+  const panel = document.getElementById('panel');
+  const units = walkState.section.units;
+  const unit = units[walkState.unitIdx];
+  const step = unit.steps[walkState.stepIdx];
+  const it = step[lang];
+  const isFirstStepOfWalkthrough = (walkState.unitIdx===0 && walkState.stepIdx===0);
+  let dotsHtml = units.map((u,ui)=>{
+    let cls = 'walk-dot';
+    if(ui < walkState.unitIdx) cls += ' done';
+    else if(ui === walkState.unitIdx) cls += ' active';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+  let body = '';
+  if(isFirstStepOfWalkthrough){
+    body += `<div class="walk-sub">${t('walkthroughIntro')}</div>`;
+  }
+  body += `<div class="walk-unit-title">${unit.title[lang]}</div>
+    <div class="walk-progress">${t('walkthroughUnitOf')(walkState.unitIdx+1, units.length)}</div>
+    <div class="walk-dots">${dotsHtml}</div>`;
+  const roleTag = step.role==='worked' ? `<span class="walk-role-tag worked">🧑‍🏫 ${t('walkthroughRoleWorked')}</span>`
+    : step.role==='guided' ? `<span class="walk-role-tag guided">🤝 ${t('walkthroughRoleGuided')}</span><div class="walk-sub">${t('walkthroughRoleGuidedSub')}</div>`
+    : `<span class="walk-role-tag practice">✍️ ${t('walkthroughRolePractice')}</span><div class="walk-sub">${t('walkthroughRolePracticeSub')}</div>`;
+  body += roleTag;
+
+  if(step.role==='worked'){
+    body += rulerSVG(unit.maxInch, step.mark16);
+    body += `<div class="walk-text">${annotate(it.text)}</div>`;
+    body += `<button class="primary" id="walkNextBtn">${t('walkthroughNextBtn')}</button>`;
+    panel.innerHTML = `<div class="breadcrumb" id="walkBack">${t('backToModules')}</div>` + body;
+    attachGlossaryHandlers(panel);
+    document.getElementById('walkBack').onclick = ()=>{
+      walkState=null; homeView=null; renderPanel();
+    };
+    document.getElementById('walkNextBtn').onclick = ()=> advanceWalkthroughStep();
+    return;
+  }
+
+  // guided or practice: multiple choice
+  if(!walkState.optPerm || walkState.optPerm.forUnit!==walkState.unitIdx || walkState.optPerm.forStep!==walkState.stepIdx){
+    walkState.optPerm = { forUnit:walkState.unitIdx, forStep:walkState.stepIdx, order: shuffleArray(it.opts.map((_,i)=>i)) };
+  }
+  const order = walkState.optPerm.order;
+  const dOpts = order.map(i=>it.opts[i]);
+  const dCorrect = order.indexOf(it.c);
+  body += rulerSVG(unit.maxInch, step.mark16);
+  body += `<div class="walk-text" style="font-weight:600;">${annotate(it.q)}</div>`;
+  let optsHtml = '';
+  dOpts.forEach((opt,idx)=>{
+    let cls = 'option';
+    if(walkState.answered){
+      if(idx===dCorrect) cls += ' correct';
+      else if(idx===walkState.selected) cls += ' incorrect';
+    }
+    optsHtml += `<button class="${cls}" data-i="${idx}">${idx===dCorrect && walkState.answered ? '✓ ' : (idx===walkState.selected && walkState.answered ? '✗ ' : '')}${annotate(opt)}</button>`;
+  });
+  body += `<div id="walkOptsWrap">${optsHtml}</div>`;
+  if(walkState.answered){
+    const correctPick = walkState.selected === dCorrect;
+    body += `<div class="walk-feedback ${correctPick?'correct':'incorrect'}">${correctPick ? '✅ '+t('walkthroughCorrect') : '❌ '+t('walkthroughIncorrect')}<br>${annotate(it.exp)}</div>`;
+    if(correctPick){
+      body += `<br><button class="primary" id="walkNextBtn">${t('walkthroughNextBtn')}</button>`;
+    } else {
+      body += `<br><button class="primary" id="walkRetryBtn">${t('walkthroughTryAgainStep')}</button>`;
+    }
+  }
+  panel.innerHTML = `<div class="breadcrumb" id="walkBack">${t('backToModules')}</div>` + body;
+  attachGlossaryHandlers(panel);
+  document.getElementById('walkBack').onclick = ()=>{
+    walkState=null; homeView=null; renderPanel();
+  };
+  if(!walkState.answered){
+    panel.querySelectorAll('#walkOptsWrap .option').forEach(btn=>{
+      btn.onclick = ()=>{
+        walkState.selected = parseInt(btn.dataset.i);
+        walkState.answered = true;
+        if(step.role==='practice' && walkState.selected!==dCorrect) walkState.firstTryCorrect = false;
+        renderWalkthroughStep();
+      };
+    });
+  } else {
+    const nextBtn = document.getElementById('walkNextBtn');
+    if(nextBtn) nextBtn.onclick = ()=> advanceWalkthroughStep();
+    const retryBtn = document.getElementById('walkRetryBtn');
+    if(retryBtn) retryBtn.onclick = ()=>{
+      walkState.answered = false; walkState.selected = null;
+      walkState.optPerm = { forUnit:walkState.unitIdx, forStep:walkState.stepIdx, order: shuffleArray(it.opts.map((_,i)=>i)) };
+      renderWalkthroughStep();
+    };
+  }
+}
+function advanceWalkthroughStep(){
+  const units = walkState.section.units;
+  const unit = units[walkState.unitIdx];
+  if(walkState.stepIdx < unit.steps.length - 1){
+    walkState.stepIdx++;
+    walkState.answered = false; walkState.selected = null; walkState.optPerm = null;
+    renderWalkthroughStep();
+    return;
+  }
+  // unit finished — record whether practice was correct on the first try
+  walkState.unitResults.push(walkState.firstTryCorrect);
+  if(walkState.unitIdx < units.length - 1){
+    walkState.unitIdx++; walkState.stepIdx = 0;
+    walkState.answered = false; walkState.selected = null; walkState.optPerm = null; walkState.firstTryCorrect = true;
+    renderWalkthroughStep();
+  } else {
+    finishWalkthrough();
+  }
+}
+function finishWalkthrough(){
+  const panel = document.getElementById('panel');
+  const units = walkState.section.units;
+  const passedCount = walkState.unitResults.filter(Boolean).length;
+  const pct = Math.round((passedCount / units.length) * 100);
+  const passed = pct >= 85;
+  const p = ensureProgress(MODULES[walkState.modIdx].id);
+  p.sec[walkState.section.key] = pct; saveProgress();
+  const modIdx = walkState.modIdx;
+  const qsForNext = { kind:'walkthrough', modIdx, section: walkState.section };
+  const nextStep = getNextStep(qsForNext);
+  panel.innerHTML = `
+    <div class="result-big">
+      <div class="result-pct ${passed?'pass':'fail'}">${pct}%</div>
+      <div class="result-msg">${t('walkthroughUnitResult')(passedCount, units.length)}</div>
+      <div class="result-msg" style="margin-top:8px; font-weight:600;">${passed ? t('walkthroughFinishPass') : t('walkthroughFinishRetry')}</div>
+    </div>
+    <button class="primary" id="walkRetakeBtn">${t('retakeBtn')}</button><br><br>
+    ${nextStep ? `<button class="primary" id="walkNextPartBtn" style="background:#16a34a;">${nextStep.label}</button><br><br>` : ''}
+    <button class="primary" id="walkBackHomeBtn" style="background:#475569;">${t('backHome')}</button>
+  `;
+  document.getElementById('walkRetakeBtn').onclick = ()=> startWalkthrough(modIdx, walkState.section);
+  const nextPartBtn = document.getElementById('walkNextPartBtn');
+  if(nextPartBtn) nextPartBtn.onclick = ()=>{ walkState=null; nextStep.run(); };
+  document.getElementById('walkBackHomeBtn').onclick = ()=>{
+    homeView = null; topTab = 'home'; walkState = null; renderTopTabs(); renderPanel();
+  };
 }
 
 function showOptionDefinition(text){
@@ -2175,7 +2812,22 @@ function getNextStep(qs){
       const ns = m.sections[idx+1];
       return {
         label: `${t('continueToLabel')} ${ns.label[lang]} →`,
-        run: ()=> startQuiz({kind:'section', modIdx:qs.modIdx, sectionKey:ns.key, bank:ns.bank, threshold:85})
+        run: ()=> ns.type==='walkthrough' ? startWalkthrough(qs.modIdx, ns) : startQuiz({kind:'section', modIdx:qs.modIdx, sectionKey:ns.key, bank:ns.bank, threshold:85})
+      };
+    }
+    return {
+      label: `${t('continueToLabel')} ${t('moduleTestLabel')} →`,
+      run: ()=> startQuiz({kind:'moduleTest', modIdx:qs.modIdx, bank:m.moduleTest, threshold:70})
+    };
+  }
+  if(qs.kind==='walkthrough'){
+    const m = MODULES[qs.modIdx];
+    const idx = m.sections.findIndex(s=>s.key===qs.section.key);
+    if(idx>=0 && idx < m.sections.length-1){
+      const ns = m.sections[idx+1];
+      return {
+        label: `${t('continueToLabel')} ${ns.label[lang]} →`,
+        run: ()=> ns.type==='walkthrough' ? startWalkthrough(qs.modIdx, ns) : startQuiz({kind:'section', modIdx:qs.modIdx, sectionKey:ns.key, bank:ns.bank, threshold:85})
       };
     }
     return {
@@ -2190,7 +2842,7 @@ function getNextStep(qs){
       const fs = nm.sections[0];
       return {
         label: `${t('continueToLabel')} ${nm.title[lang]} →`,
-        run: ()=> startQuiz({kind:'section', modIdx:nextIdx, sectionKey:fs.key, bank:fs.bank, threshold:85})
+        run: ()=> fs.type==='walkthrough' ? startWalkthrough(nextIdx, fs) : startQuiz({kind:'section', modIdx:nextIdx, sectionKey:fs.key, bank:fs.bank, threshold:85})
       };
     }
     return null;
