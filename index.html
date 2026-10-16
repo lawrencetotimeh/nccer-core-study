@@ -2372,6 +2372,7 @@ function renderModuleMap(panel){
       }
     }
   }
+  html += `<a href="crash/" style="display:block;margin-top:18px;padding:14px 16px;border-radius:12px;background:#c8541c;color:#fff;text-decoration:none;font-weight:800;font-size:1rem;text-align:center;">🎧 ${lang==='es'?'Curso Rápido con Audio: Herramientas Eléctricas + Matemáticas':'Audio Crash Course: Power Tools + Math'}<div style="font-weight:500;font-size:0.85rem;opacity:.9;margin-top:4px;">${lang==='es'?'Lecciones leídas en voz alta, con imágenes y preguntas rápidas':'Lessons read aloud to you, with pictures and quick checks'}</div></a>`;
   html += `<div class="donate-nudge" id="donateNudge" style="margin-top:18px; padding:12px 14px; border-radius:10px; background:var(--card-alt, rgba(250,204,21,0.1)); cursor:pointer; font-size:0.92rem;">${t('donateNudge')}</div>`;
   panel.innerHTML = html;
   const donateNudge = document.getElementById('donateNudge');
