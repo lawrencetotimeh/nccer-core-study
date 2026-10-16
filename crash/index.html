@@ -1,0 +1,487 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>NCCER Crash Course</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#f6f3ec;--ink:#1d1a14;--mute:#6b645a;--card:#ffffff;--line:#e2dcd0;--acc:#c8541c;--acc2:#1f6f8b;--good:#2e7d4f;--bad:#b3261e;--chip:#efe9dd}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#15130f;--ink:#f1ece2;--mute:#a79e90;--card:#1f1c17;--line:#332e26;--acc:#f0814a;--acc2:#5fb3cf;--chip:#2a2620}}
+:root[data-theme=dark]{--bg:#15130f;--ink:#f1ece2;--mute:#a79e90;--card:#1f1c17;--line:#332e26;--acc:#f0814a;--acc2:#5fb3cf;--chip:#2a2620}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 16px;z-index:5}
+h1{font-size:20px;margin:0 0 6px}
+.tabs{display:flex;gap:8px}.tabs button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;font-weight:700;font-size:15px}
+.tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+.bar{display:flex;gap:8px;margin-top:8px;align-items:center;font-size:14px;color:var(--mute)}
+.bar label{display:flex;gap:4px;align-items:center}.bar select{max-width:170px;font-size:13px}.bar button{padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:700}
+main{padding:12px 16px 80px;max-width:720px;margin:0 auto}
+.ch{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 14px}
+.ch h2{font-size:19px;margin:0 0 4px}.ch .n{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc2);font-weight:700}
+.play{display:inline-flex;align-items:center;gap:8px;margin:8px 0 10px;padding:10px 16px;border-radius:999px;border:0;background:var(--acc);color:#fff;font-weight:800;font-size:15px}
+.play.on{background:var(--acc2)}
+.script{color:var(--ink);white-space:pre-line;margin:8px 0}
+.script.hide{display:none}
+.vis{margin:12px 0;background:var(--chip);border-radius:10px;padding:10px;overflow-x:auto}
+svg{max-width:100%;height:auto;display:block;margin:auto}
+.bd{margin:10px 0;padding:10px 12px;border-left:4px solid var(--acc2);background:var(--chip);border-radius:0 10px 10px 0}.bdh{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--acc2);font-weight:800;margin-bottom:6px}.bdi{margin:6px 0;line-height:1.45}.bdi b{color:var(--ink)}
+.q{border-top:1px dashed var(--line);padding-top:10px;margin-top:10px}
+.q p{margin:0 0 6px;font-weight:700}
+.opt{display:block;width:100%;text-align:left;padding:9px 12px;margin:5px 0;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:15px}
+.opt.good{background:var(--good);color:#fff;border-color:var(--good)}.opt.bad{background:var(--bad);color:#fff;border-color:var(--bad)}
+.why{font-size:14px;color:var(--mute);margin:4px 0 0;display:none}
+.big{font-size:34px;font-weight:900;text-align:center;letter-spacing:.02em;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;background:var(--chip);border-radius:6px;padding:2px 8px;font-size:13px;margin:2px}
+.toggle{font-size:13px;color:var(--mute);background:none;border:0;text-decoration:underline;padding:0}
+table{border-collapse:collapse;width:100%;font-size:15px}td,th{border:1px solid var(--line);padding:6px 8px;text-align:left}
+.foot{color:var(--mute);font-size:13px;text-align:center;margin-top:20px}
+</style>
+<header>
+<h1>NCCER Crash Course: Power Tools + Math</h1>
+<div class="tabs"><button id="tTools" class="on" onclick="show('tools')">🔧 Power Tools</button><button id="tMath" onclick="show('math')">🔢 Math</button></div>
+<div class="bar"><button onclick="playAll()">▶ Play whole track</button><button onclick="stopAll()">■ Stop</button><button onclick="resetAll()">↺ Reset answers</button><span id="status">Tap Play on any chapter to hear it read aloud.</span></div>
+<div class="bar"><label>Voice <select id="voiceSel" onchange="pickVoice()"></select></label><label>Speed <input id="rate" type="range" min="0.7" max="1.2" step="0.05" value="0.92" style="width:90px"></label></div>
+</header>
+<main>
+<div id="tools"></div>
+<div id="math" style="display:none"></div>
+<p class="foot">Built from NCCER Core 6th Ed., Modules 00104 and 00102. Page numbers point to the book. Tap any answer to check it.</p>
+</main>
+<script>
+// ---------- visuals ----------
+function ruler(markSixteenths,label){ // 0..32 sixteenths over 2 inches
+ let s='<svg viewBox="0 0 660 120" role="img" aria-label="tape measure"><rect x="10" y="20" width="640" height="70" fill="#f5d35c" stroke="#8a7a2a"/>';
+ for(let i=0;i<=32;i++){const x=20+i*19.375;let h=i%16==0?60:i%8==0?44:i%4==0?32:i%2==0?22:14;s+=`<line x1="${x}" y1="20" x2="${x}" y2="${20+h}" stroke="#222" stroke-width="${i%16==0?3:1.5}"/>`;if(i%16==0)s+=`<text x="${x+6}" y="84" font-size="22" font-weight="700" fill="#222">${i/16+3}</text>`;}
+ const mx=20+markSixteenths*19.375;s+=`<line x1="${mx}" y1="8" x2="${mx}" y2="100" stroke="#c8541c" stroke-width="4" stroke-dasharray="6 4"/><text x="${mx}" y="116" font-size="16" text-anchor="middle" fill="#c8541c" font-weight="800">${label}</text></svg>`;return s;}
+function bars(a,b,n){ // fraction bar a/n and b/n stacked
+ const w=600;let s=`<svg viewBox="0 0 ${w+20} 130" role="img" aria-label="fraction bars">`;
+ [[a,20,'#c8541c'],[b,75,'#1f6f8b']].forEach(([k,y,c])=>{for(let i=0;i<n;i++){s+=`<rect x="${10+i*w/n}" y="${y}" width="${w/n-2}" height="40" fill="${i<k?c:'none'}" stroke="#666"/>`}});
+ return s+'</svg>';}
+function pv(num){ // place value boxes for a decimal
+ const [L,R]=num.split('.');const names=['ones','tens','hundreds','thousands'];const rn=['tenths','hundredths','thousandths'];
+ let s='<svg viewBox="0 0 680 110">';let x=10;const L2=L.split('').reverse();
+ const cellsL=L2.map((d,i)=>[d,names[i]||'']).reverse();
+ cellsL.forEach(([d,n])=>{s+=`<rect x="${x}" y="10" width="70" height="60" fill="#fff" stroke="#333"/><text x="${x+35}" y="52" font-size="34" text-anchor="middle" font-weight="800" fill="#1d1a14">${d}</text><text x="${x+35}" y="95" font-size="12" text-anchor="middle" fill="#1f6f8b">${n}</text>`;x+=76;});
+ s+=`<circle cx="${x+10}" cy="66" r="6" fill="#c8541c"/>`;x+=26;
+ R.split('').forEach((d,i)=>{s+=`<rect x="${x}" y="10" width="70" height="60" fill="#fff" stroke="#333"/><text x="${x+35}" y="52" font-size="34" text-anchor="middle" font-weight="800" fill="#1d1a14">${d}</text><text x="${x+35}" y="95" font-size="12" text-anchor="middle" fill="#c8541c">${rn[i]||''}</text>`;x+=76;});
+ return s+'</svg>';}
+function angle(deg,label){const r=90,cx=120,cy=110;const a=deg*Math.PI/180;const x=cx+r*Math.cos(a),y=cy-r*Math.sin(a);return `<svg viewBox="0 0 260 130"><line x1="${cx}" y1="${cy}" x2="${cx+110}" y2="${cy}" stroke="#333" stroke-width="3"/><line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#333" stroke-width="3"/><path d="M${cx+40},${cy} A40,40 0 ${deg>180?1:0},0 ${cx+40*Math.cos(a)},${cy-40*Math.sin(a)}" fill="rgba(200,84,28,.35)" stroke="#c8541c"/><text x="${cx+120}" y="${cy-20}" font-size="18" font-weight="800" fill="#c8541c">${label}</text></svg>`;}
+const big=t=>`<div class="big">${t}</div>`;
+const tags=a=>a.map(t=>`<span class="tag">${t}</span>`).join('');
+
+// ---------- content ----------
+const TOOLS=[
+{t:"The 5 safety rules you'll be tested on",s:`Here's the deal. Almost every safety question on the power tools test comes down to five rules. Say them with me.
+One. Before you plug anything in, make sure the switch is OFF. You don't want a saw jumping to life in your hands.
+Two. Before you change a bit, a blade, or a disc, disconnect the power. Unplug it or pull the battery. No exceptions.
+Three. Never, ever use the trigger lock. The trigger lock keeps the tool running without your finger on it. If something goes wrong, you can't let go fast enough.
+Four. Ground fault protection, the GFCI, prevents electric shock. That's its whole job.
+Five. A circular saw with no upper blade guard? Never use it. The exposed blade is a danger.
+That's it. Switch off, power off, no trigger lock, GFCI stops shock, guard or no go.`,
+v:tags(["Switch OFF before plugging in","Disconnect power before changing bits","NEVER use trigger lock","GFCI = prevents electric shock","No blade guard = never use"]),
+q:[["What is NEVER to be engaged when using power tools?",["trigger lock","bit shank","booster"],0,"Trigger lock keeps it running with no finger on it."],["What is prevented by proper ground fault protection?",["electric shock","drill bit slipping","drilling into wiring"],0,"GFCI = Ground Fault Circuit Interrupter."],["Before replacing a blade or bit, you must",["disconnect the power source","check the oil","recharge the battery"],0,""]]},
+{t:"Drills: chuck, hammer drill, silica",s:`A drill holds the bit in a chuck. Chuck. That's the part you tighten around the bit. The shank is the part of the bit that goes into the chuck, so don't mix those up.
+A hammer drill pounds while it spins, so it drills concrete. Concrete, not wood, not steel. Concrete.
+And here's the one people miss. Before you drill into concrete with a hammer drill or rotary hammer, review the silica exposure standards. Concrete dust has silica in it and it wrecks your lungs. OSHA has a rule for it.
+Cordless tools: the battery's available power is measured in amp hours. Amp hours. More amp hours, more run time.`,
+v:tags(["Chuck holds the bit","Shank = part of bit in the chuck","Hammer drill → concrete","Concrete dust → silica standards","Cordless power = amp hours"]),
+q:[["Which part of a drill holds the bit?",["chuck","shank","ram"],0,""],["What material is drilled with a hammer drill?",["concrete","hardwood","stainless steel"],0,""],["A cordless tool's available power is measured in",["amp hours","voltage rating","charge cycles"],0,""],["Before drilling into concrete, you should",["review silica exposure standards","spray the concrete with water","install a debris guard on the chuck"],0,"Silica dust is the hazard."]]},
+{t:"Drivers, pneumatics, and powder tools",s:`Three tools that drive things.
+Impact driver. It drives or loosens a LOT of fasteners fast. Think decking screws all day. Impact driver equals lots of fasteners.
+Pneumatic tools run on compressed air. Pneumatic means air. Pneumatic nailers run between 70 and 120 psi. Seventy to one twenty.
+Powder-actuated tool. This one uses a little gunpowder cartridge to fire steel pins or threaded studs into masonry and steel. If the question says pins into concrete or steel, the answer is powder-actuated. Not a hammer drill. A hammer drill makes holes, it doesn't drive pins.`,
+v:tags(["Impact driver → many fasteners","Pneumatic = compressed air","Nailers 70 to 120 psi","Powder-actuated → pins into masonry & steel"]),
+q:[["Which tool works well for driving a large number of fasteners?",["impact driver","hammer drill","oscillating multi-tool"],0,""],["What do pneumatic tools run on?",["compressed air","fluid pressure","vaporized gas"],0,""],["Which system drives steel pins or threaded studs into masonry and steel?",["powder-actuated tool","mini hammer drill","air impact wrench"],0,""],["Pneumatic nailers should be operated in what range?",["70 to 120 psi","30 to 80 psi","90 to 140 psi"],0,""]]},
+{t:"Saws: one line each",s:`Saws are a third of the test. One line each.
+Circular saw. The blade eats a little wood when it cuts. That width is the kerf. Kerf. You have to allow for it.
+Jigsaw. Fine blade, delicate and intricate cuts. Curves.
+Reciprocating saw. The blade goes back and forth. The brand name Sawzall is a reciprocating saw.
+Band saw. One long, thin, one-piece blade that runs around guides. Its coarseness is rated in teeth per inch, TPI. When you use a portable band saw, press the stop firmly against the object being cut.
+Power miter saw. A miter box plus a circular saw.
+Table saw. Crosscutting cuts across the grain to a specific length. Ripping cuts with the grain to a specific width. Cross equals length, rip equals width.`,
+v:`<table><tr><th>Saw</th><th>Remember</th></tr><tr><td>Circular</td><td>kerf, upper guard required</td></tr><tr><td>Jigsaw</td><td>fine blade, intricate cuts</td></tr><tr><td>Reciprocating (Sawzall)</td><td>back and forth</td></tr><tr><td>Band saw</td><td>one-piece blade on guides, TPI, stop against the work</td></tr><tr><td>Miter saw</td><td>miter box + circular saw</td></tr><tr><td>Table saw</td><td>crosscut = length, rip = width</td></tr></table>`,
+q:[["What allowance must you account for with a circular saw?",["kerf","stroke","angle"],0,""],["Sawzall is what type of saw?",["reciprocating","jigsaw","table saw"],0,""],["What rates the coarseness of a band saw blade?",["teeth per inch","revolutions per minute","hardness of teeth"],0,""],["How is wood cut when crosscutting on a table saw?",["to a specific length","to a specific width","with the grain"],0,"Cross = length. Rip = width."],["A power miter saw combines a miter box with a",["circular saw","band saw","reciprocating saw"],0,""]]},
+{t:"Grinders and the multi-tool (where you lost points)",s:`This is the section that got you on Wednesday, so lock it in.
+Angle grinder. Grinds and cuts hard, heavy materials. Metal, masonry.
+Bench grinder. Sits on a bench with a tool rest. It's the one for sharpening worn edges on cutting tools. Chisels, bits. Sharpen equals bench.
+Die grinder. Small, handheld, uses rotary bits. Burr bits can catch on rough edges and shift around on you. Burr equals catches.
+Oscillating multi-tool. Compact. Its attachments move back and forth at very high speed. If the question says back and forth at high speed with attachments, it's the oscillating multi-tool, not a miter saw. A miter saw spins.`,
+v:tags(["Angle grinder → hard, heavy materials","Bench grinder → SHARPEN edges","Burr bits → catch on rough edges","Oscillating multi-tool → attachments back & forth, high speed"]),
+q:[["Which grinder is best suited to sharpen worn edges on cutting tools?",["bench","angle","detail"],0,"Bench grinder has the tool rest."],["What is an angle grinder used to grind?",["hard, heavy materials","soft, porous materials","imperfections in wood"],0,""],["What type of rotary bit can cause a grinder to catch on rough edges?",["burr","abrasive","backing"],0,""],["Which compact tool moves attachments back and forth at very high speeds?",["oscillating multi-tool","compound miter","impact driver"],0,"Miter saws spin. Multi-tools oscillate."]]},
+];
+
+const MATH=[
+{t:"Start here: how to use this track",s:`Welcome to the math track. Here's how this works.
+Every chapter teaches one small thing. I'll explain it in plain words, then I'll walk through one example very slowly, one step at a time. Then you'll answer two or three questions. The first question is easy. The last one looks like the real test.
+If you get one wrong, that's fine. Tap the right answer, read the little note under it, and play the chapter again.
+You don't need to be good at math. You need to follow steps. Every single problem on this test is just steps. Let's go.`,
+b:[["What this is", "A short lesson, a slow example, then questions."], ["How to win", "Follow the steps. Don't try to be fast."]],
+v:tags(["1 idea per chapter","Slow worked example","Easy question, then test-level","Wrong? Replay the chapter"]),
+q:[["What should you do if you miss a question?",["Read the note and replay the chapter","Skip the rest of the track","Guess faster next time"],0,"No pressure. Replay and try again."]]},
+
+{t:"Place value: every digit has a house",s:`Think of a number as a row of houses. Each house has a name, and the name tells you how much that digit is worth.
+Start at the decimal point and go LEFT. The first house is ones. Then tens. Then hundreds. Then thousands. Then ten-thousands.
+Now start at the decimal point and go RIGHT. The first house is tenths. Then hundredths. Then thousandths.
+Notice the pattern: on the right side, the names end in T-H-S. Tenths, hundredths, thousandths. That little "ths" means it's a piece of one.
+Let's do 135.792 together. Look at the picture.
+The 5 is in the ones house. The 3 is tens. The 1 is hundreds.
+Now right of the point. 7 is tenths. 9 is hundredths. 2 is thousandths.
+So the 9 means nine hundredths. That's a real test question.
+One more. 92,475. Go left from the end. 5 ones, 7 tens, 4 hundreds, 2 thousands, 9 ten-thousands. The 9 is in the ten-thousands house.`,
+b:[["The rule", "Each digit's position (its house) tells you its value."], ["Left of the point", "ones, tens, hundreds, thousands, ten-thousands."], ["Right of the point", "tenths, hundredths, thousandths (they end in -ths)."], ["Example", "In 135.792 the 9 sits in the hundredths house, so it is 9 hundredths."]],
+v:pv("135.792"),
+q:[["In 135.792, which house is the 7 in?",["tenths","tens","hundredths"],0,"First house to the RIGHT of the point is tenths."],["In 135.792, the 9 represents",["nine one-hundredths","nine tenths","ninety"],0,"Second house right of the point is hundredths."],["In 92,475, which digit is in the ten-thousands place?",["9","2","4"],0,"Go left: ones, tens, hundreds, thousands, ten-thousands."]]},
+
+{t:"Words to numbers",s:`The test gives you a number in words and asks you to write it with digits.
+The trick: break the words at the commas, turn each piece into a number, then add them up.
+Example: two thousand, six hundred eighty-nine.
+Piece one: two thousand. That's 2,000.
+Piece two: six hundred. That's 600.
+Piece three: eighty-nine. That's 89.
+Now stack them. 2,000 plus 600 is 2,600. Plus 89 is 2,689.
+Watch the trap. 20,689 is twenty thousand, not two thousand. And 6,289 would be six thousand two hundred. Read the first word carefully. It tells you the biggest house.`,
+b:[["The method", "Split the words at the commas, turn each piece into digits, then add."], ["The pieces", "two thousand = 2,000 · six hundred = 600 · eighty-nine = 89"], ["Add them", "2,000 + 600 + 89 = 2,689"], ["The trap", "20,689 is twenty thousand. The first word tells you the biggest house."]],
+v:big("two thousand → 2,000<br>six hundred → 600<br>eighty-nine → 89<br>= 2,689"),
+q:[["Three hundred forty-two is",["342","3,042","324"],0,""],["\"Two thousand, six hundred eighty-nine\" is",["2,689","20,689","6,289"],0,"2,000 + 600 + 89."],["\"Sixteen thousand, five hundred\" is",["16,500","1,650","160,500"],0,""]]},
+
+{t:"Adding and subtracting big numbers: line them up",s:`Adding. Write the numbers on top of each other so the ones line up with the ones and the tens line up with the tens. Start from the RIGHT. Add one column at a time. If a column adds to 10 or more, write the last digit and carry the 1 to the next column.
+Example: 649 plus 632 plus 478. The bricklayer problem.
+Ones column: 9 plus 2 plus 8 is 19. Write 9, carry 1.
+Tens column: 4 plus 3 plus 7 is 14, plus the carried 1 is 15. Write 5, carry 1.
+Hundreds column: 6 plus 6 plus 4 is 16, plus the carried 1 is 17. Write 17.
+Answer: 1,759.
+Subtracting. Same lineup, bigger number on top. Start from the right. If the top digit is smaller, borrow 1 from the next column to the left.
+Example: 1,478 minus 489.
+Ones: 8 minus 9. Can't. Borrow from the 7. Now it's 18 minus 9 is 9, and the 7 becomes 6.
+Tens: 6 minus 8. Can't. Borrow from the 4. Now 16 minus 8 is 8, and the 4 becomes 3.
+Hundreds: 3 minus 4. Can't. Borrow from the 1. Now 13 minus 4 is 9.
+Answer: 989.`,
+b:[["Addition rule", "Stack the numbers, ones under ones. Add right to left. Carry when a column is 10 or more."], ["Example", "649 + 632 + 478: ones 9+2+8=19 (write 9, carry 1) · tens 4+3+7+1=15 (write 5, carry 1) · hundreds 6+6+4+1=17 → 1,759"], ["Subtraction rule", "Big number on top. If the top digit is smaller, borrow 1 from the column to the left (it becomes 10 more)."], ["Example", "1,478 − 489 = 989"]],
+v:big("649<br>632<br>+478<br>———<br>1,759"),
+q:[["25 + 37 =",["62","52","512"],0,"5 + 7 = 12, write 2 carry 1. 2 + 3 + 1 = 6."],["649 + 632 + 478 =",["1,759","1,769","1,760"],0,""],["1,478 − 489 =",["989","1,099","978"],0,"Borrow three times."]]},
+
+{t:"Multiplying and dividing: the two shortcuts",s:`Multiplying bigger numbers. Break the second number into easy pieces.
+15 times 26. Think of 26 as 20 plus 6.
+15 times 20 is 300.
+15 times 6 is 90.
+300 plus 90 is 390.
+That's the scaffold problem: 15 scaffolds to 26 sites is 390.
+Dividing. Ask: how many times does the small number fit into the big number?
+400 divided by 5. Think: 5 times what is 400? 5 times 80 is 400. So the answer is 80.
+If you're stuck, chop a zero off both numbers when you can. 400 divided by 5 is the same as 40 divided by 5 times 10. 40 divided by 5 is 8, times 10 is 80.`,
+b:[["Multiplying", "Break the second number into tens and ones: 15 × 26 = (15 × 20) + (15 × 6) = 300 + 90 = 390"], ["Dividing", "Ask 'how many times does it fit?' 400 ÷ 5: 5 × 80 = 400, so the answer is 80."], ["Shortcut", "If both numbers end in 0, you can drop a zero from each: 400 ÷ 50 → 40 ÷ 5 = 8."]],
+v:big("15 × 26<br>15 × 20 = 300<br>15 × 6 = 90<br>= 390"),
+q:[["12 × 11 =",["132","121","122"],0,"12 × 10 = 120, plus 12 × 1 = 12."],["15 × 26 =",["390","375","240"],0,""],["400 ÷ 5 =",["80","8","20"],0,"5 × 80 = 400."]]},
+
+{t:"What a fraction is (the pizza and the tape)",s:`A fraction is a piece of one whole thing.
+The bottom number tells you how many equal pieces the whole was cut into. The top number tells you how many of those pieces you have.
+Three eighths: the whole was cut into 8 pieces, you have 3 of them.
+Now look at the tape measure in the picture. One inch is the whole. The marks cut it into pieces. The big mark in the middle is one half. The next size marks are quarters. Then eighths. The tiniest marks are sixteenths.
+Here's the secret that makes the whole test easier: every mark on the tape is some number of sixteenths. One half is 8 sixteenths. One quarter is 4 sixteenths. One eighth is 2 sixteenths. Three quarters is 12 sixteenths.
+So when fractions have different bottoms, I just turn everything into sixteenths and count marks.`,
+b:[["Numerator (top)", "How many pieces you have."], ["Denominator (bottom)", "How many equal pieces the whole was cut into."], ["On the tape", "The whole is 1 inch. The marks cut it into halves, quarters, eighths, sixteenths."], ["Key fact", "½ = 8⁄16 · ¼ = 4⁄16 · ⅛ = 2⁄16 · ¾ = 12⁄16"]],
+v:ruler(8,"1/2 = 8/16")+ruler(12,"3/4 = 12/16"),
+q:[["In 3/8, the 8 tells you",["how many pieces the whole was cut into","how many pieces you have","the answer"],0,""],["One half is how many sixteenths?",["8/16","4/16","2/16"],0,"8 small marks."],["Three quarters is how many sixteenths?",["12/16","6/16","3/16"],0,"Each quarter is 4 sixteenths. 3 × 4 = 12."]]},
+
+{t:"Equivalent fractions: same size, different name",s:`Equivalent fractions are the same amount wearing a different name. One half, two quarters, four eighths, eight sixteenths. Same spot on the tape.
+The rule: whatever you multiply the bottom by, multiply the top by the same number. Same for dividing.
+Example: write 3 eighths as sixty-fourths.
+Step one. Ask: 8 times what is 64? 8 times 8 is 64.
+Step two. Multiply the top by that same 8. 3 times 8 is 24.
+Answer: 24 sixty-fourths.
+Check: 24 over 64. Divide both by 8. 3 over 8. Yes.
+Another: is one half the same as 32 sixty-fourths? 2 times 32 is 64. 1 times 32 is 32. Yes, equivalent.`,
+b:[["Definition", "Equivalent fractions are the same amount with different numbers (½ = 2⁄4 = 4⁄8)."], ["The rule", "Multiply (or divide) the top AND the bottom by the same number."], ["Example", "3⁄8 as 64ths: 8 × 8 = 64, so 3 × 8 = 24 → 24⁄64"], ["Check", "24 ÷ 8 = 3 and 64 ÷ 8 = 8 → back to 3⁄8 ✔"]],
+v:bars(3,24,64),
+q:[["1/2 equals how many eighths?",["4/8","2/8","1/8"],0,"2 × 4 = 8, so 1 × 4 = 4."],["Which fraction equals 3/8?",["24/64","6/64","36/64"],0,"Multiply top and bottom by 8."],["Which pair is equivalent?",["1/2 and 32/64","1/2 and 17/32","1/2 and 3/4"],0,""]]},
+
+{t:"Reducing: make the fraction smaller",s:`Reducing means finding the simplest name for a fraction. 4 thirty-seconds and 1 eighth are the same amount, but 1 eighth is the reduced name. The test says "lowest terms." Same thing.
+How: find a number that divides evenly into BOTH the top and the bottom. Divide both by it. Keep going until nothing fits anymore.
+Example: reduce 4 over 32.
+What goes into 4 and 32? 4 does. 4 divided by 4 is 1. 32 divided by 4 is 8. Answer: 1 eighth.
+Example: reduce 6 over 16.
+2 goes into both. 6 divided by 2 is 3. 16 divided by 2 is 8. 3 eighths. Does anything go into 3 and 8? No. Done.
+If the top and bottom are both even, you can always divide by 2. Start there.`,
+b:[["Definition", "Reducing (lowest terms) means the smallest top and bottom that still equal the same amount."], ["The rule", "Find a number that divides evenly into both top and bottom. Divide both. Repeat until nothing fits."], ["Example", "4⁄32: both ÷ 4 → 1⁄8"], ["Example", "12⁄16: both ÷ 4 → 3⁄4"], ["Tip", "If both are even, start by dividing by 2."]],
+v:big("4/32 → ÷4 → 1/8<br>6/16 → ÷2 → 3/8"),
+q:[["Reduce 2/4.",["1/2","2/2","1/4"],0,"Divide both by 2."],["Reduce 4/32.",["1/8","2/16","1/4"],0,"Divide both by 4."],["Reduce 12/16.",["3/4","6/8","2/4"],0,"Divide both by 4. 6/8 is not finished."]]},
+
+{t:"Common denominator: get the bottoms to match",s:`You can only add or subtract fractions when the bottom numbers match. Same bottom, then you just add the tops.
+If the bottoms don't match, find the lowest common denominator, the LCD. That's the smallest number both bottoms fit into.
+Easy trick: usually the bigger bottom IS the answer. Check if the smaller bottom goes into it.
+Example: 9 sixteenths and 5 thirty-seconds. Does 16 go into 32? Yes, 16 times 2 is 32. So the LCD is 32.
+Example: 3 eighths and 9 sixteenths. Does 8 go into 16? Yes. LCD is 16.
+If the bigger one doesn't work, multiply the two bottoms together. For 3 fourths and 5 eighths, 4 goes into 8, so 8. For 1 third and 1 fourth, 3 doesn't go into 4, so 3 times 4 is 12.`,
+b:[["Definition", "The lowest common denominator (LCD) is the smallest number that both bottoms divide into."], ["Quick test", "Does the smaller bottom go into the bigger one? If yes, the bigger bottom is the LCD."], ["Example", "9⁄16 and 5⁄32: 16 goes into 32, so LCD = 32"], ["If not", "Multiply the bottoms: 1⁄3 and 1⁄4 → 3 × 4 = 12"]],
+v:tags(["Bigger bottom first","Does the small one go in?","Yes → that's the LCD","No → multiply the bottoms"]),
+q:[["The LCD for 1/2 and 3/4 is",["4","2","8"],0,"2 goes into 4."],["The LCD for 9/16 and 5/32 is",["32","16","48"],0,"16 goes into 32."],["The LCD for 1/3 and 1/4 is",["12","7","4"],0,"3 doesn't go into 4, so 3 × 4."]]},
+
+{t:"Adding fractions, step by step",s:`Four steps. Every time.
+Step one: get the same bottom. Find the LCD.
+Step two: change each fraction to that bottom. Multiply top and bottom by the same number.
+Step three: add the tops. Keep the bottom.
+Step four: reduce if you can.
+Let's do 3 eighths plus 9 sixteenths. The real test problem.
+Step one: LCD. 8 goes into 16. Use 16.
+Step two: 3 eighths becomes sixteenths. 8 times 2 is 16, so 3 times 2 is 6. Now I have 6 sixteenths. The 9 sixteenths is already fine.
+Step three: 6 plus 9 is 15. Keep the 16. 15 sixteenths.
+Step four: can I reduce 15 over 16? Nothing goes into both. Done. Answer: 15 sixteenths.
+Look at the tape. 6 marks plus 9 marks is 15 marks. That's all it is.`,
+b:[["Step 1", "Find the LCD. For 3⁄8 + 9⁄16 the LCD is 16."], ["Step 2", "Rewrite each fraction with that bottom: 3⁄8 = 6⁄16 (× 2 top and bottom)."], ["Step 3", "Add the tops, keep the bottom: 6 + 9 = 15 → 15⁄16"], ["Step 4", "Reduce if possible. 15 and 16 share nothing, so 15⁄16 is the answer."], ["Mixed result", "11⁄16 + 6⁄16 = 17⁄16. Top is bigger than bottom, so it is 1 whole and 1⁄16 → 1 1⁄16"]],
+v:ruler(15,"6/16 + 9/16 = 15/16")+bars(6,9,16),
+q:[["1/4 + 1/4 =",["2/4 = 1/2","2/8","1/8"],0,"Same bottom, add the tops."],["1/2 + 1/4 =",["3/4","2/6","2/4"],0,"1/2 = 2/4. 2 + 1 = 3."],["3/8 + 9/16 =",["15/16","12/16","12/24"],0,"3/8 = 6/16. 6 + 9 = 15."],["11/16 + 3/8 =",["1 1/16","14/24","14/16"],0,"3/8 = 6/16. 11 + 6 = 17/16 = 1 and 1/16."]]},
+
+{t:"Subtracting fractions, step by step",s:`Same four steps, just subtract in step three.
+11 thirty-seconds minus 7 thirty-seconds.
+Step one: same bottom already. Good.
+Step two: nothing to change.
+Step three: 11 minus 7 is 4. Keep the 32. 4 thirty-seconds.
+Step four: reduce. 4 goes into both. 1 eighth. Answer: 1 eighth.
+Now one with a whole number. 1 and 1 quarter minus 7 sixteenths.
+Step one: LCD of 4 and 16 is 16.
+Step two: turn 1 and 1 quarter into sixteenths. 1 whole is 16 sixteenths. 1 quarter is 4 sixteenths. Together, 20 sixteenths.
+Step three: 20 minus 7 is 13. 13 sixteenths.
+Step four: 13 and 16 share nothing. Done.`,
+b:[["Step 1", "Same bottom? 11⁄32 − 7⁄32 already match."], ["Step 2", "Subtract the tops: 11 − 7 = 4 → 4⁄32"], ["Step 3", "Reduce: 4⁄32 ÷ 4 → 1⁄8"], ["With a whole number", "1 ¼ − 7⁄16: change 1 ¼ to sixteenths (16⁄16 + 4⁄16 = 20⁄16). Then 20 − 7 = 13 → 13⁄16"]],
+v:bars(11,7,32),
+q:[["3/4 − 1/4 =",["2/4 = 1/2","2/8","4/4"],0,""],["11/32 − 7/32 in lowest terms is",["1/8","4/32","3/32"],0,"4/32, then divide by 4."],["1 1/4 − 7/16 =",["13/16","3/4","1 1/16"],0,"1 1/4 = 20/16. 20 − 7 = 13."]]},
+
+{t:"Improper fractions and mixed numbers",s:`An improper fraction has a top bigger than its bottom, like 73 over 64. That means more than one whole.
+A mixed number is a whole number plus a fraction, like 1 and 9 sixty-fourths. The test asks you to switch between them.
+Improper to mixed: divide the top by the bottom. The answer is the whole number. The leftover is the new top. Keep the same bottom.
+73 over 64. How many times does 64 go into 73? Once. 73 minus 64 leaves 9. So 1 and 9 sixty-fourths. Notice the bottom stays 64, it does not change to 32. That's the trap in the test question.
+Mixed to improper: multiply the whole number by the bottom, add the top, keep the bottom.
+2 and 1 third. 2 times 3 is 6. 6 plus 1 is 7. 7 over 3.`,
+b:[["Improper fraction", "The top is bigger than the bottom (73⁄64). It is worth more than one whole."], ["Mixed number", "A whole number plus a fraction (1 9⁄64)."], ["Improper → mixed", "Divide top by bottom. 73 ÷ 64 = 1 time."], ["The remainder", "73 − 64 = 9 is left over."], ["Write it", "Whole number first, then leftover over the ORIGINAL bottom: 1 9⁄64 (the bottom stays 64, not 32)."], ["Mixed → improper", "Whole × bottom + top, keep the bottom: 2 ⅓ → (2 × 3) + 1 = 7 → 7⁄3"]],
+v:big("73 ÷ 64 = 1, leftover 9<br>→ 1 9/64"),
+q:[["5/4 as a mixed number is",["1 1/4","1 1/5","4 1/5"],0,"4 goes into 5 once, 1 left over."],["73/64 as a mixed number is",["1 9/64","1 9/32","1 7/64"],0,"Keep the bottom at 64."],["2 1/3 as an improper fraction is",["7/3","5/3","6/3"],0,"2 × 3 + 1 = 7."]]},
+
+{t:"Multiplying and dividing fractions",s:`Multiplying fractions is the easy one. No common bottom needed. Multiply the tops. Multiply the bottoms. Reduce.
+1 eighth times 1 tenth. Tops: 1 times 1 is 1. Bottoms: 8 times 10 is 80. Answer: 1 eightieth.
+Dividing fractions: flip the second fraction upside down, then multiply. Flipping is called inverting.
+7 sixteenths divided by 7 eighths.
+Step one: flip the second one. 7 eighths becomes 8 sevenths.
+Step two: multiply. 7 times 8 is 56 on top. 16 times 7 is 112 on the bottom. 56 over 112.
+Step three: reduce. 56 goes into 112 twice. 1 half.
+Say it to yourself: divide means flip and multiply.`,
+b:[["Multiplying", "Top × top, bottom × bottom. No common bottom needed. 1⁄8 × 1⁄10 = 1⁄80"], ["Dividing", "Flip the SECOND fraction (invert), then multiply."], ["Example", "7⁄16 ÷ 7⁄8 → 7⁄16 × 8⁄7 = 56⁄112"], ["Reduce", "56⁄112 ÷ 56 → 1⁄2"]],
+v:big("7/16 ÷ 7/8<br>= 7/16 × 8/7<br>= 56/112 = 1/2"),
+q:[["1/2 × 1/2 =",["1/4","2/4","1/2"],0,"1 × 1 over 2 × 2."],["1/8 × 1/10 =",["1/80","2/18","1/18"],0,""],["7/16 ÷ 7/8 =",["1/2","49/128","1/4"],0,"Flip 7/8 to 8/7, multiply, reduce."]]},
+
+{t:"Decimals: add and subtract by lining up the dots",s:`A decimal is just a fraction written a different way. 0.5 is one half. 0.25 is one quarter.
+Adding or subtracting decimals has one rule: line up the decimal points. Put the dot under the dot. Then add like normal.
+51.5 plus 89.7. Dots under dots. 5 plus 7 is 12, write 2 carry 1. 1 plus 9 plus 1 is 11, write 1 carry 1. 5 plus 8 plus 1 is 14. Bring the dot straight down. 141.2.
+If one number has fewer digits after the dot, add zeros so they match. 3.625 plus 4.9. Write 4.9 as 4.900. Now add: 8.525.
+Subtracting: 42.58 minus 7.577. Write 42.580. Line up the dots. Subtract with borrowing. 35.003.`,
+b:[["The rule", "Line up the decimal points, then add or subtract normally."], ["Example", "51.5 + 89.7 = 141.2"], ["Missing digits", "Add zeros so the numbers are the same length: 4.9 → 4.900, then 3.625 + 4.900 = 8.525"], ["Subtraction", "42.580 − 7.577 = 35.003"]],
+v:big("51.5<br>+89.7<br>———<br>141.2"),
+q:[["1.5 + 2.5 =",["4.0","3.10","40"],0,""],["51.5 + 89.7 =",["141.2","142.12","1412"],0,"Dots under dots."],["42.58 − 7.577 =",["35.003","35.523","36.523"],0,"Write 42.580 first."]]},
+
+{t:"Comparing and ordering decimals",s:`Which is bigger, 0.960 or 0.0962? People get this wrong because 0.0962 has more digits. More digits does NOT mean bigger.
+Here's how to compare. Look at the first house after the dot, the tenths. 0.960 has a 9 there. 0.0962 has a 0. 9 beats 0. So 0.960 is bigger. Done. You don't even need to look further.
+If the tenths tie, move one house right to the hundredths and compare those. Keep going until one wins.
+Order these from smallest to largest: 0.402, 0.420, 0.042, 0.442.
+Tenths: 0.042 has 0 tenths. Smallest. The other three all have 4 tenths. Tie.
+Hundredths: 0.402 has 0. 0.420 has 2. 0.442 has 4.
+Order: 0.042, 0.402, 0.420, 0.442.`,
+b:[["The rule", "Compare the first digit after the point (tenths). The bigger digit wins. If they tie, move one place right."], ["Example", "0.960 vs 0.0962: tenths are 9 vs 0, so 0.960 is bigger. More digits does NOT mean bigger."], ["Ordering", "0.042 (0 tenths) < 0.402 (4 tenths, 0 hundredths) < 0.420 < 0.442"]],
+v:pv("0.960")+pv("0.0962"),
+q:[["Which is bigger?",["0.5","0.45","0.405"],0,"5 tenths beats 4 tenths."],["0.960 is larger than 0.0962.",["True","False"],0,"9 tenths beats 0 tenths."],["Smallest to largest:",["0.042, 0.402, 0.420, 0.442","0.402, 0.042, 0.420, 0.442","0.042, 0.420, 0.402, 0.442"],0,""]]},
+
+{t:"Multiplying decimals: count the places",s:`Three steps.
+Step one: pretend the dots aren't there. Multiply like whole numbers.
+Step two: count how many digits are to the RIGHT of the dot in both numbers you started with. Add those counts together.
+Step three: put the dot in your answer so it has that many digits after it.
+Example: 9.64 times 12.
+Step one: 964 times 12 is 11,568.
+Step two: 9.64 has two digits after the dot. 12 has zero. Total: two.
+Step three: 11,568 with two digits after the dot is 115.68.
+Harder one: 3.53 times 9.75.
+Step one: 353 times 975 is 344,175.
+Step two: two places plus two places is four.
+Step three: 34.4175. The test says round to the hundredth, so look at the third digit after the dot, it's a 7, round up. 34.42.`,
+b:[["Step 1", "Ignore the decimal points and multiply as whole numbers: 353 × 975 = 344,175"], ["Step 2", "Count digits after the point in both numbers: 3.53 has 2, 9.75 has 2 → 4 total."], ["Step 3", "Put the point so the answer has 4 digits after it: 34.4175"], ["Round", "To the hundredth: the next digit is 7, so round up → 34.42"]],
+v:big("3.53 × 9.75<br>353 × 975 = 344175<br>2 + 2 = 4 places<br>34.4175 → 34.42"),
+q:[["0.5 × 3 =",["1.5","15","0.15"],0,"5 × 3 = 15, one place → 1.5."],["9.64 × 12 =",["115.68","11.568","1156.8"],0,""],["3.53 × 9.75 to the hundredth is",["34.42","34.41","344.18"],0,""],["$2.37 per square foot × 864.5 square feet, to the cent, is",["$2,048.87","$204.88","$2,048.86"],0,"2,048.865 rounds up."]]},
+
+{t:"Dividing decimals: move the dot, then divide",s:`When you divide by a decimal, first make the divider a whole number.
+Step one: look at the number you're dividing BY. Move its dot all the way to the right until it's a whole number. Count how many places you moved.
+Step two: move the dot in the OTHER number the same number of places.
+Step three: divide like normal. The dot in the answer goes straight above the new dot.
+Example: 89.435 divided by 0.05.
+Step one: 0.05. Move the dot two places right. It becomes 5.
+Step two: 89.435, move two places right. 8943.5.
+Step three: 8943.5 divided by 5. 5 into 89 is 17, remainder 4. 5 into 44 is 8, remainder 4. 5 into 43 is 8, remainder 3. Dot. 5 into 35 is 7. Answer: 1,788.7.
+Another: 123.82 divided by 6.5. Move one place: 1238.2 divided by 65. That's about 19.05.`,
+b:[["Step 1", "Make the divisor a whole number: 0.05 → move the point 2 places → 5"], ["Step 2", "Move the point in the dividend the same 2 places: 89.435 → 8943.5"], ["Step 3", "Divide normally: 8943.5 ÷ 5 = 1,788.7"], ["Why it works", "Moving both points the same amount doesn't change the answer, it just removes the decimal from the divisor."]],
+v:big("89.435 ÷ 0.05<br>move 2 places →<br>8943.5 ÷ 5 = 1788.7"),
+q:[["6 ÷ 0.5 =",["12","3","1.2"],0,"Move one place: 60 ÷ 5."],["89.435 ÷ 0.05 =",["1788.7","17887","178.87"],0,"Move both dots two places."],["123.82 ÷ 6.5, to the hundredth, is",["19.05","18.76","1.905"],0,""]]},
+
+{t:"Rounding",s:`Rounding means cutting a number off at a certain house and deciding whether the last digit stays or goes up by one.
+Step one: find the house you're rounding to and underline that digit.
+Step two: look at the digit right after it. If it's 5 or more, the underlined digit goes up by one. If it's 4 or less, it stays.
+Step three: drop everything after the underlined digit.
+Round 34.4175 to the hundredth. The hundredths digit is the 1. The next digit is 7. 7 is 5 or more, so the 1 becomes 2. Drop the rest. 34.42.
+Round 2,048.865 to the cent, which is the hundredth. The hundredths digit is 6. Next digit is 5. 5 or more, go up. 2,048.87.
+Round 19.049 to the hundredth. Hundredths digit is 4. Next is 9. Go up. 19.05.`,
+b:[["Step 1", "Underline the digit in the place you're rounding to."], ["Step 2", "Look at the next digit to the right. 5 or more → round up. 4 or less → leave it."], ["Step 3", "Drop everything after the underlined digit."], ["Example", "34.41|75 → next digit 7 → 34.42"], ["Example", "12.84|3 → next digit 3 → 12.84"]],
+v:big("34.41|75 → 7 is 5+ → 34.42<br>19.04|9 → 9 is 5+ → 19.05"),
+q:[["Round 3.46 to the tenth.",["3.5","3.4","3.46"],0,"6 is 5 or more, so 4 goes to 5."],["Round 34.4175 to the hundredth.",["34.42","34.41","34.418"],0,""],["Round 12.843 to the hundredth.",["12.84","12.85","12.8"],0,"3 is less than 5, stays."]]},
+
+{t:"Percent, decimal, fraction: three costumes",s:`One amount can wear three costumes. 1 half, 0.5, 50 percent. All the same.
+Decimal to percent: move the dot two places to the RIGHT and add the percent sign. 0.479 becomes 47.9 percent.
+Percent to decimal: drop the sign and move the dot two places to the LEFT. 13.9 percent becomes 0.139. If there's no dot showing, it's at the end: 72 percent is 72 point zero, move two left, 0.72.
+Fraction to decimal: divide the top by the bottom. 7 over 8 means 7 divided by 8. 7 divided by 8 is 0.875.
+Decimal to fraction: read the last house. 14.75. The 75 ends in the hundredths house, so it's 75 over 100. Reduce: divide by 25. 3 over 4. So 14 and 3 quarters.
+Gas tank question: the tank is 2 thirds full. Is that more than 65 percent? 2 divided by 3 is 0.667, that's 66.7 percent. Yes, more than 65. True.`,
+b:[["Decimal → percent", "Move the point 2 places RIGHT, add %: 0.479 → 47.9%"], ["Percent → decimal", "Drop %, move the point 2 places LEFT: 13.9% → 0.139"], ["Fraction → decimal", "Divide top by bottom: 7⁄8 = 7 ÷ 8 = 0.875"], ["Decimal → fraction", "Read the last place: 0.75 = 75⁄100 = 3⁄4, so 14.75 = 14 ¾"], ["Is 2⁄3 more than 65%?", "2 ÷ 3 = 0.667 = 66.7% → yes"]],
+v:`<table><tr><th>Fraction</th><th>Decimal</th><th>Percent</th></tr><tr><td>1/4</td><td>0.25</td><td>25%</td></tr><tr><td>1/2</td><td>0.5</td><td>50%</td></tr><tr><td>3/4</td><td>0.75</td><td>75%</td></tr><tr><td>7/8</td><td>0.875</td><td>87.5%</td></tr><tr><td>2/3</td><td>0.667</td><td>66.7%</td></tr></table>`,
+q:[["0.5 as a percent is",["50%","5%","0.5%"],0,"Dot two places right."],["0.479 as a percent is",["47.9%","4.79%","479%"],0,""],["13.9% as a decimal is",["0.139","1.39","13.9"],0,"Dot two places left."],["14.75 as a fraction is",["14 3/4","14 75/10","29 5/20"],0,"75/100 = 3/4."],["7/8 as a decimal is",["0.875","0.78","0.75"],0,"7 ÷ 8."]]},
+
+{t:"Reading a tape measure (inches)",s:`Pull up the picture. Between any two numbers on the tape is one inch. The marks inside cut that inch into pieces.
+The tallest mark in the middle is the half.
+The next tallest marks are quarters. There are 3 of them: one quarter, two quarters which is the half, three quarters.
+Shorter marks are eighths.
+The tiniest marks are sixteenths.
+To read a measurement: find the last whole number you passed. Then count the tiny sixteenth marks after it. Then reduce.
+Say the arrow is 3 tiny marks past 4 on a ruler marked in eighths. On an eighths ruler, each small mark is one eighth. 3 marks is 3 eighths. Answer: 4 and 3 eighths.
+If the ruler is marked in sixteenths and you count 12 tiny marks, that's 12 sixteenths. Reduce it: 3 quarters.`,
+b:[["Tallest middle mark", "½ inch"], ["Next tallest", "¼ and ¾"], ["Shorter", "eighths"], ["Shortest", "sixteenths"], ["How to read", "Last whole number passed + count the small marks + reduce. On an eighths ruler, 3 marks past 4 = 4 ⅜"]],
+v:ruler(12,"12 marks = 12/16 = 3/4")+ruler(5,"5/16"),
+q:[["The tallest mark between two inch numbers is",["one half","one quarter","one eighth"],0,""],["On a 1/8ths ruler, 3 small marks past the 4 is",["4 3/8\"","4 1/4\"","4 3/16\""],0,""],["On a 1/16ths tape, 12 small marks past an inch is",["3/4\"","12/16\" (not reduced)","1/2\""],0,"12/16 reduces to 3/4."]]},
+
+{t:"Tape measure markings: red, black, diamond, loose hook",s:`Four facts about a tape measure. These show up as straight memory questions.
+One. Every 16 inches, the number has a red background: 16, 32, 48, 64. That's for wall studs placed on 16 inch centers. Most walls.
+Two. Every 24 inches has a black background. Studs on 24 inch centers.
+Three. Every 19.2 inches there's a small black diamond. A less common spacing.
+Four. The metal hook on the end is supposed to be a little loose. It slides by exactly its own thickness, so when you push it against something or hook it over something, both readings come out right. Don't tighten it. Don't return it. Leave it alone.
+Metric tape: every tiny mark is 1 millimeter. 10 millimeters make 1 centimeter. 3 tiny marks past the 5 is 5.3 centimeters.`,
+b:[["Red background", "Every 16 inches (16, 32, 48). Studs on 16-inch centers."], ["Black background", "Every 24 inches. Studs on 24-inch centers."], ["Black diamond", "Every 19.2 inches. Alternate spacing."], ["Loose hook", "Correct. It slides its own thickness so inside and outside readings are both true."], ["Metric tape", "Small mark = 1 mm. 10 mm = 1 cm. 3 marks past 5 = 5.3 cm."]],
+v:tags(["Red 16, 32, 48 → 16\" centers","Black → 24\" centers","Black diamond → 19.2\"","Loose hook is correct","1 metric mark = 1 mm = 0.1 cm"]),
+q:[["The red background around 32 on a tape means",["studs on 16-inch centers","studs on 24-inch centers","the tape is metric"],0,""],["A tape hook is slightly loose. You should",["do nothing, it should be slightly loose","tighten the rivets","return it to the manufacturer"],0,""],["On a metric tape, 3 small marks past 5 is",["5.3 cm","5.03 cm","8 cm"],0,""]]},
+
+{t:"The metric ladder",s:`Metric is easy because everything is tens.
+10 millimeters make 1 centimeter.
+100 centimeters make 1 meter.
+1,000 meters make 1 kilometer.
+The prefixes tell you: milli means one thousandth. Centi means one hundredth. Kilo means one thousand.
+Converting is just moving the dot.
+Going from a SMALL unit to a BIG unit, like centimeters to meters, the number gets smaller. Move the dot LEFT. 72 centimeters is 0.72 meters. Two places left because 100 centimeters in a meter.
+Going from a BIG unit to a SMALL unit, like meters to centimeters, the number gets bigger. Move the dot RIGHT. 0.45 meters is 45 centimeters.
+Memory trick: big to small, number gets tall. Dot goes right.`,
+b:[["Ladder", "10 mm = 1 cm · 100 cm = 1 m · 1,000 m = 1 km"], ["Prefixes", "milli = 1⁄1000 · centi = 1⁄100 · kilo = 1,000"], ["Small → big unit", "Number gets smaller, move the point LEFT: 72 cm = 0.72 m"], ["Big → small unit", "Number gets bigger, move the point RIGHT: 0.45 m = 45 cm"]],
+v:tags(["10 mm = 1 cm","100 cm = 1 m","1,000 m = 1 km","cm → m: dot 2 LEFT","m → cm: dot 2 RIGHT"]),
+q:[["How many centimeters in a meter?",["100","10","1,000"],0,""],["To convert centimeters to meters, move the decimal",["two places left","two places right","three places left"],0,""],["Larger metric unit to smaller one, the decimal moves",["to the right","to the left","it doesn't move"],0,"Number gets bigger."],["A centimeter is 1/100 of a meter and a kilometer is 1,000 meters.",["True","False"],0,""]]},
+
+{t:"Converting between inches, pounds, and metric",s:`Four numbers to memorize. Write them on your hand before the test.
+2.54. One inch equals 2.54 centimeters. To go inches to centimeters, multiply by 2.54.
+67 inches times 2.54. 67 times 2 is 134. 67 times 0.5 is 33.5. 67 times 0.04 is 2.68. Add them: 134 plus 33.5 plus 2.68 is 170.18 centimeters.
+28.35. One ounce equals 28.35 grams. Ounces to grams, multiply by 28.35. 49 ounces times 28.35 is 1,389.15 grams.
+2.205. One kilogram equals 2.205 pounds. So a kilogram is more than TWO pounds. A pound of water does NOT weigh more than a kilogram of water. That statement is false.
+And 16. Sixteen ounces in a pound.`,
+b:[["Inches → cm", "× 2.54. Example: 67 × 2.54 = 170.18 cm"], ["Ounces → grams", "× 28.35. Example: 49 × 28.35 = 1,389.15 g"], ["Kilograms → pounds", "× 2.205. A kilogram is heavier than a pound."], ["Pounds → ounces", "× 16"]],
+v:tags(["1 in = 2.54 cm","1 oz = 28.35 g","1 kg = 2.205 lb","16 oz = 1 lb"]),
+q:[["10 inches in centimeters is",["25.4 cm","2.54 cm","254 cm"],0,"× 2.54."],["67 inches in centimeters is",["170.18 cm","26.38 cm","17.01 cm"],0,""],["49 ounces in grams is",["1389.15 g","747.42 g","1.73 g"],0,"× 28.35."],["A pound of water weighs more than a kilogram of water.",["False","True"],0,"1 kg = 2.205 lb."]]},
+
+{t:"Temperature: Fahrenheit and Celsius",s:`Water freezes at 32 Fahrenheit, which is 0 Celsius. Water boils at 212 Fahrenheit, which is 100 Celsius. So on Celsius the range from freezing to boiling is 100 degrees. On Fahrenheit it's 180.
+Fahrenheit to Celsius, two steps:
+Step one: subtract 32.
+Step two: multiply by 5, then divide by 9.
+15 Fahrenheit. Step one: 15 minus 32 is negative 17. Step two: negative 17 times 5 is negative 85. Negative 85 divided by 9 is negative 9.4. Answer: negative 9.4 Celsius.
+180 Fahrenheit. 180 minus 32 is 148. 148 times 5 is 740. 740 divided by 9 is 82.2 Celsius.
+Celsius to Fahrenheit, do it backwards: multiply by 9, divide by 5, THEN add 32. 90 Celsius: 90 times 9 is 810, divided by 5 is 162, plus 32 is 194 Fahrenheit.`,
+b:[["Reference points", "Water freezes at 32°F = 0°C. Boils at 212°F = 100°C."], ["°F → °C", "Step 1: subtract 32. Step 2: multiply by 5, divide by 9."], ["Example", "15°F: 15 − 32 = −17 → −17 × 5 = −85 → −85 ÷ 9 = −9.4°C"], ["°C → °F", "Multiply by 9, divide by 5, then add 32. 90°C → 810 ÷ 5 = 162 + 32 = 194°F"]],
+v:big("°C = (°F − 32) × 5 ÷ 9<br>°F = °C × 9 ÷ 5 + 32"),
+q:[["Water freezes at what temperature in Celsius?",["0°C","32°C","100°C"],0,""],["15°F in Celsius is",["−9.4°C","9.4°C","−59°C"],0,"(15 − 32) = −17, × 5 ÷ 9."],["The difference between freezing and boiling water on the Celsius scale is",["100°C","180°C","212°C"],0,""]]},
+
+{t:"Angles: four words",s:`An angle is two lines that meet at a point. We measure how far apart they open in degrees.
+Acute: less than 90. Sharp, like a slice of pizza. 66 degrees is acute.
+Right: exactly 90. A square corner. The corner of this phone.
+Obtuse: more than 90 but less than 180. Opened wide, like a reclining chair.
+Straight: exactly 180. A flat line.
+Two more words. Adjacent angles are next to each other, sharing the same corner point and one side. Opposite angles are made when two lines cross, like an X, and they are always equal.
+A triangle's three angles always add up to 180. A rectangle has four corners, each one 90, so they add up to 360. Not 180. 360.`,
+b:[["Acute", "Less than 90° (66° is acute)"], ["Right", "Exactly 90°"], ["Obtuse", "More than 90°, less than 180°"], ["Straight", "Exactly 180°"], ["Adjacent", "Share the same vertex (corner point) and one side"], ["Opposite", "Formed by two crossing lines; always equal"], ["Totals", "Triangle = 180°. Rectangle = 4 × 90° = 360°."]],
+v:`<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">${angle(66,"66° acute")}${angle(90,"90° right")}${angle(130,"130° obtuse")}</div>`,
+q:[["An angle of exactly 90° is",["right","acute","obtuse"],0,""],["An angle of 66° is",["acute","obtuse","straight"],0,"Less than 90."],["The four angles in a rectangle add up to 180°.",["False, 360°","True"],0,"4 × 90 = 360."],["Two angles sharing a corner point and one side, both under 90°, are",["acute and adjacent","obtuse and opposite","right and opposite"],0,""]]},
+
+{t:"Perimeter and area",s:`Perimeter is the distance all the way around the outside of a shape. Like walking the fence line. Add up all the sides. For a circle, the word for perimeter is circumference. Same idea, special name, circles only.
+Area is how much flat space is inside. Like how much carpet you need. Area is always in SQUARE units: square feet, square meters.
+Rectangle: area is length times width. 27.3 meters times 9.3 meters is 253.89 square meters.
+Square: same thing, side times side.
+Triangle: one half times base times height. A triangle is half of a rectangle, so you cut the answer in half.
+Circle: pi times radius times radius. Pi is 3.14. Radius is half the diameter. Pi only shows up with circles.
+Test trap: if the answer choices show m² and m³, area is m². Squared. Never cubed.`,
+b:[["Perimeter", "Distance around the outside. Add all sides. For a circle it's called circumference."], ["Area", "Space inside. Always square units (ft², m²)."], ["Rectangle", "length × width. 27.3 × 9.3 = 253.89 m²"], ["Triangle", "½ × base × height"], ["Circle", "π × radius × radius (π ≈ 3.14, radius = half the diameter)"]],
+v:tags(["Perimeter = add all sides","Circumference = perimeter of a circle","Rectangle area = L × W","Triangle area = ½ × B × H","Circle area = 3.14 × r × r","Area is SQUARE units"]),
+q:[["A rectangle 4 ft by 5 ft has an area of",["20 ft²","9 ft²","20 ft³"],0,"4 × 5. Square units."],["Area of a rectangle 27.3 m × 9.3 m is",["253.89 m²","253.89 m³","245.7 m²"],0,""],["Pi is needed for the area of a",["circle","square","rectangle"],0,""],["The difference between circumference and perimeter is",["circumference applies only to circles","perimeter is half the circumference","circumference applies only to shapes with angles"],0,""]]},
+
+{t:"Volume: one more multiply",s:`Volume is how much a container holds. It's area with one more dimension: depth. Volume is always CUBIC units: cubic feet, cubic centimeters.
+Box: length times width times depth. 5 feet by 6 feet by 13 feet. 5 times 6 is 30. 30 times 13 is 390. 390 cubic feet.
+Cube: all sides equal, so side times side times side. 3 centimeters: 3 times 3 is 9, times 3 is 27 cubic centimeters.
+Triangular prism, the wedge shape: one half times base times height times depth.
+Cylinder, the can shape: 3.14 times radius times radius times height.
+The tank: 23 feet high, radius 6.25. 6.25 times 6.25 is 39.06. Times 3.14 is 122.66. Times 23 is 2,821. About 2,821 cubic feet.
+Shipping container: 26 feet by 13 feet 8 inches by 3 feet. 8 inches is 8 twelfths of a foot, 0.667. So 13.667. 26 times 13.667 is 355.3. Times 3 is about 1,066 cubic feet.`,
+b:[["Volume", "How much a container holds. Always cubic units (ft³, cm³)."], ["Box", "length × width × depth. 5 × 6 × 13 = 390 ft³"], ["Cube", "side × side × side. 3 × 3 × 3 = 27 cm³"], ["Triangular prism", "½ × base × height × depth"], ["Cylinder", "π × r × r × height. 3.14 × 6.25 × 6.25 × 23 ≈ 2,821 ft³"], ["Feet and inches", "8 inches = 8⁄12 ft = 0.667 ft, so 13'8\" = 13.667 ft"]],
+v:tags(["Box = L × W × D","Cube = s × s × s","Wedge = ½ × B × H × D","Can = 3.14 × r × r × H","Volume is CUBIC units"]),
+q:[["A 2 cm cube has a volume of",["8 cm³","6 cm³","4 cm³"],0,"2 × 2 × 2."],["A 3 cm cube has a volume of",["27 cm³","9 cm³","12 cm³"],0,""],["A shape 5 ft high, 6 ft thick, 13 ft long has a volume of",["390 ft³","24 ft³","95 ft³"],0,""],["Cylinder tank 23 ft high, radius 6.25 ft. Volume to the nearest cubic foot?",["2,821 ft³","898 ft³","144 ft³"],0,"3.14 × 6.25 × 6.25 × 23."]]},
+
+{t:"The biggest trap: mixed units",s:`The test loves to give you one measurement in one unit and another in a different unit. If you plug them straight into the formula, you get a wrong answer that's sitting right there in the choices.
+Rule: before you touch any formula, make every number the same unit.
+Triangular prism: 7 centimeter base, 4 centimeter height, 30 MILLIMETER depth. Stop. Millimeters. 30 millimeters is 3 centimeters. Now: one half times 7 times 4 times 3. 7 times 4 is 28. Times 3 is 84. Half of 84 is 42. 42 cubic centimeters.
+If you forgot and used 30, you'd get 420, and the test has an 82 or a 42 millimeter trap waiting for you.
+Cylinder: 6 METERS across, 60 CENTIMETERS high. 60 centimeters is 0.6 meters. Diameter 6 means radius 3. 3.14 times 3 times 3 times 0.6 is 16.96 cubic meters.
+Say it: same units first.`,
+b:[["The rule", "Convert every measurement to the SAME unit before using any formula."], ["Example", "7 cm, 4 cm, 30 mm → 30 mm = 3 cm → ½ × 7 × 4 × 3 = 42 cm³"], ["Example", "6 m diameter, 60 cm high → 0.6 m high, radius 3 m → 3.14 × 3 × 3 × 0.6 = 16.96 m³"], ["The trap", "If you forget, a wrong answer (420, 82, 1130.4) is always waiting in the choices."]],
+v:big("30 mm → 3 cm<br>60 cm → 0.6 m<br>8 in → 0.667 ft<br>SAME UNITS FIRST"),
+q:[["Before using a formula with 7 cm and 30 mm, you should",["convert 30 mm to 3 cm","multiply as is","convert 7 cm to 70 mm and 30 mm to 30 cm"],0,""],["Triangular prism: 7 cm base, 4 cm height, 30 mm depth. Volume?",["42 cm³","420 cm³","82 mm³"],0,"½ × 7 × 4 × 3."],["Cylinder 6 m in diameter, 60 cm high. Volume?",["16.96 m³","1130.4 m³","18.23 m³"],0,"Radius 3 m, height 0.6 m."]]},
+
+{t:"Test day checklist",s:`You're ready. Here's the two minute checklist before you start the test.
+One. Read the question twice. Underline the units.
+Two. If the units don't match, convert first.
+Three. Fractions: same bottom, then add the tops, then reduce.
+Four. Decimals: dots under dots to add. Count the places to multiply. Move both dots to divide.
+Five. Percent to decimal, dot goes left. Decimal to percent, dot goes right.
+Six. Area is squared, volume is cubed. Pi is only for circles.
+Seven. Rectangle angles add to 360. Triangle angles add to 180.
+Eight. Red 16, black 24, loose hook is fine.
+Write the four conversion numbers on your scratch paper the second the test starts: 2.54, 28.35, 2.205, and subtract 32 times 5 over 9.
+Go get it.`,
+b:[["Fractions", "Same bottom → add tops → reduce"], ["Decimals", "Add: dots under dots. Multiply: count places. Divide: move both dots."], ["Percent", "To decimal: dot left 2. To percent: dot right 2."], ["Shapes", "Area = ², Volume = ³, π only for circles, rectangle 360°, triangle 180°"], ["Numbers to write down", "2.54 · 28.35 · 2.205 · (°F − 32) × 5⁄9"]],
+v:tags(["Underline units","Convert first","Same bottom, add tops, reduce","Dots under dots","Area ², volume ³","360 rectangle, 180 triangle","2.54 · 28.35 · 2.205"]),
+q:[["First thing to do when a problem has cm and mm:",["convert to the same unit","use the formula right away","pick the biggest number"],0,""],["Area is measured in",["square units","cubic units","degrees"],0,""]]},
+];
+// ---------- render ----------
+function render(list,el,pref){el.innerHTML=list.map((c,i)=>`<section class="ch" id="${pref}${i}">
+<div class="n">${pref=='T'?'Power Tools':'Math'} · Chapter ${i+1} of ${list.length}</div><h2>${c.t}</h2>
+<button class="play" onclick="playCh('${pref}',${i})">▶ Play chapter</button> <button class="toggle" onclick="this.parentNode.querySelector('.script').classList.toggle('hide')">show/hide words</button>
+<div class="vis">${c.v}</div>${c.b?`<div class="bd"><div class="bdh">Breakdown</div>${c.b.map(([l,t])=>`<div class="bdi"><b>${l}:</b> ${t}</div>`).join("")}</div>`:""}
+<div class="script hide">${c.s}</div>
+<div class="q">${c.q.map((q,j)=>`<p>${q[0]}</p>${shuffle(q[1].map((o,k)=>[o,k===q[2]])).map(([o,ok])=>`<button class="opt" onclick="ans(this,${ok})">${o}</button>`).join('')}<div class="why">${q[3]}</div>`).join('')}</div>
+</section>`).join('');}
+function resetAll(){stopAll();render(TOOLS,document.getElementById('tools'),'T');render(MATH,document.getElementById('math'),'M');document.getElementById('status').textContent='Reset. Everything is blank and the answers are reshuffled.';window.scrollTo(0,0);}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function ans(b,ok){const sib=[...b.parentNode.children];b.classList.add(ok?'good':'bad');if(ok){let w=b;while(w&&!w.classList.contains('why'))w=w.nextElementSibling;if(w){w.style.display='block'}}}
+render(TOOLS,document.getElementById('tools'),'T');render(MATH,document.getElementById('math'),'M');
+let cur='tools';
+function show(w){cur=w;stopAll();document.getElementById('tools').style.display=w=='tools'?'':'none';document.getElementById('math').style.display=w=='math'?'':'none';document.getElementById('tTools').classList.toggle('on',w=='tools');document.getElementById('tMath').classList.toggle('on',w=='math');window.scrollTo(0,0);}
+
+// ---------- speech ----------
+const synth=window.speechSynthesis;let queue=[],speaking=false,chosen=null;
+function listVoices(){const vs=synth.getVoices().filter(v=>/^en/i.test(v.lang));const sel=document.getElementById('voiceSel');if(!vs.length)return;
+ const score=v=>(/Premium|Enhanced|Natural|Neural/i.test(v.name)?40:0)+(/Samantha|Ava|Allison|Zoe|Evan|Nathan|Tom|Aria|Jenny|Guy|Google US/i.test(v.name)?20:0)+(/en.US/i.test(v.lang)?10:0)+(v.localService?2:0);
+ vs.sort((a,b)=>score(b)-score(a));sel.innerHTML=vs.map((v,i)=>`<option value="${v.name}">${v.name.replace(/\(.*?\)/g,'').trim()}</option>`).join('');
+ const saved=(()=>{try{return localStorage.getItem('voice')}catch(e){return null}})();chosen=vs.find(v=>v.name===saved)||vs[0];sel.value=chosen.name;}
+function pickVoice(){const n=document.getElementById('voiceSel').value;chosen=synth.getVoices().find(v=>v.name===n)||chosen;try{localStorage.setItem('voice',n)}catch(e){}}
+synth.onvoiceschanged=listVoices;listVoices();
+function clean(t){return t.replace(/(\d)\/(\d+)/g,'$1 over $2').replace(/×/g,' times ').replace(/÷/g,' divided by ').replace(/−/g,' minus ').replace(/→/g,', ').replace(/°/g,' degrees ').replace(/\bft²/g,' square feet').replace(/\bm²/g,' square meters').replace(/\bft³/g,' cubic feet').replace(/\bcm³/g,' cubic centimeters').replace(/\bm³/g,' cubic meters');}
+function say(text,onend){const u=new SpeechSynthesisUtterance(clean(text));if(chosen)u.voice=chosen;u.rate=parseFloat(document.getElementById('rate').value)||0.92;u.pitch=1;u.onend=onend;u.onerror=onend;synth.speak(u);}
+function playCh(pref,i){stopAll();const list=pref=='T'?TOOLS:MATH;const c=list[i];const sec=document.getElementById(pref+i);sec.querySelector('.play').classList.add('on');sec.scrollIntoView({behavior:'smooth',block:'start'});document.getElementById('status').textContent='Playing: '+c.t;
+ // one utterance per paragraph keeps iOS from cutting off, but no artificial pauses between sentences
+ const parts=(c.t+'. '+c.s).split(/\n+/).filter(p=>p.trim());let k=0;speaking=true;
+ (function next(){if(!speaking)return;if(k>=parts.length){sec.querySelector('.play').classList.remove('on');document.getElementById('status').textContent='Done. Answer the questions, then play the next chapter.';if(queue.length){const n=queue.shift();setTimeout(()=>playCh(n[0],n[1]),900);}return;}say(parts[k++],next);})();}
+function playAll(){const pref=cur=='tools'?'T':'M';const list=cur=='tools'?TOOLS:MATH;queue=list.map((_,i)=>[pref,i]).slice(1);playCh(pref,0);}
+function stopAll(){speaking=false;queue=[];synth.cancel();document.querySelectorAll('.play').forEach(b=>b.classList.remove('on'));}
+// iOS pauses speech when the tab hides; resume if it comes back
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&speaking&&synth.paused)synth.resume();});
+if(!('speechSynthesis' in window))document.getElementById('status').textContent='Read-aloud needs Safari or Chrome. Tap "show/hide words" to read instead.';
+</script>
+</html>
